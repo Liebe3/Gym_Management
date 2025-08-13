@@ -3,10 +3,12 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../../services/AuthService";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -21,9 +23,20 @@ const LoginPage = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
+      console.log("Submitting form:", form);
       const response = await loginUser(form);
-      alert(response.message);
+      console.log("Login response:", response);
+
+      if (response.token) {
+        console.log("Token received:", response.token);
+        alert("Login successful!");
+        navigate("/dashboard");
+      } else {
+        console.log("No token in response:", response);
+        alert("Login failed - no token received");
+      }
     } catch (error) {
+      console.error("Login error:", error);
       alert(error.response?.data?.message || "Error logging in user");
     }
   };
