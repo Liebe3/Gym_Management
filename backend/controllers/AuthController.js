@@ -39,10 +39,8 @@ exports.registerUser = async (req, res) => {
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email });
 
-    //check user
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -57,9 +55,10 @@ exports.loginUser = async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    // Set token in localStorage through response
     res.json({
       message: "Login successful",
-      token,
+      token, // This is what we'll save in localStorage
       user: {
         id: user._id,
         firstName: user.firstName,
