@@ -3,12 +3,11 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { loginUser } from "../../services/AuthService";
+import { showError, showSuccess } from "../utils/Alert";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
-
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -20,24 +19,26 @@ const LoginPage = () => {
     setForm({ ...form, [event.target.name]: event.target.value });
   };
 
-  const handleSubmit = async (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
-    try {
-      console.log("Submitting form:", form);
-      const response = await loginUser(form);
-      console.log("Login response:", response);
 
+    if (!form.password || !form.password) {
+      showError("Email and password are required");
+      return;
+    }
+
+    try {
+      const response = await loginUser(form);
       if (response.token) {
-        console.log("Token received:", response.token);
-        alert("Login successful!");
-        navigate("/dashboard");
+        showSuccess("Login successful!");
+        setForm({ email: "", password: "" });
       } else {
-        console.log("No token in response:", response);
-        alert("Login failed - no token received");
+        showError("Login failed - no token received");
       }
     } catch (error) {
-      console.error("Login error:", error);
-      alert(error.response?.data?.message || "Error logging in user");
+      const errorMessage =
+        error.response?.data?.message || "Error logging in user";
+      showError(errorMessage);
     }
   };
   return (
@@ -47,7 +48,7 @@ const LoginPage = () => {
           <h2 className="text-3xl font-bold">Login</h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleLogin} className="space-y-5">
           {/* Email */}
           <div>
             <label className="text-sm font-medium">Email</label>
