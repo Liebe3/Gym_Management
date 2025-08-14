@@ -1,7 +1,8 @@
-import React from "react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
+import { showError, showSuccess } from "../utils/Alert";
 
 import { registerUser } from "../../services/AuthService";
 
@@ -17,18 +18,30 @@ const RegisterPage = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
   };
 
-  const handleSubmit = async (event) => {
+  const handleRegister = async (event) => {
     event.preventDefault();
+
     try {
-      const response = await registerUser(form);
-      alert(response.message);
+      if (form.password !== form.confirmPassword) {
+        showError("Passwords don't match");
+        return;
+      }
+
+      const response = await registerUser(form); // will throw if status >= 400
+
+      // ✅ Only runs if request succeeded
+      showSuccess(response.message);
+      navigate("/login");
     } catch (error) {
-      alert(error.response?.data?.message || "Error registering user");
+      const errorMessage =
+        error.response?.data?.message || "Error registering user";
+      showError(errorMessage);
     }
   };
 
@@ -39,7 +52,7 @@ const RegisterPage = () => {
           <h2 className="text-3xl font-bold">Create an Account</h2>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleRegister} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             {/* first name */}
             <div>
@@ -47,7 +60,7 @@ const RegisterPage = () => {
               <input
                 value={form.firstName}
                 type="text"
-								name="firstName"
+                name="firstName"
                 placeholder="John"
                 className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -61,7 +74,7 @@ const RegisterPage = () => {
               <input
                 value={form.lastName}
                 type="text"
-								name="lastName"
+                name="lastName"
                 placeholder="Doe"
                 className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -76,7 +89,7 @@ const RegisterPage = () => {
             <input
               value={form.email}
               type="email"
-							name="email"
+              name="email"
               placeholder="john@example.com"
               className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               required
@@ -91,7 +104,7 @@ const RegisterPage = () => {
               <input
                 value={form.password}
                 type={showPassword ? "text" : "password"}
-								name="password"
+                name="password"
                 placeholder="Enter your password"
                 className="mt-1 w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -114,7 +127,7 @@ const RegisterPage = () => {
               <input
                 value={form.confirmPassword}
                 type={confirmPassword ? "text" : "password"}
-								name="confirmPassword"
+                name="confirmPassword"
                 placeholder="Confirm your password"
                 className="mt-1 w-full px-3 py-2 pr-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-[#0d1117] text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 required
@@ -154,7 +167,10 @@ const RegisterPage = () => {
 
         <div className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
           Already have an account?{" "}
-          <Link className="text-blue-600 dark:text-blue-400 underline hover:text-blue-500">
+          <Link
+            to={"/login"}
+            className="text-blue-600 dark:text-blue-400 underline hover:text-blue-500"
+          >
             Sign in
           </Link>
         </div>
