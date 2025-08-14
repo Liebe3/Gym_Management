@@ -7,7 +7,7 @@ const {
   updateMember,
   deleteMember,
   getMemberById,
-} = require("../controllers/UsersController");
+} = require("../controllers/MembersController");
 
 router.use(VerifyToken); // All routes require login
 
