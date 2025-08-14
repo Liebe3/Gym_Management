@@ -7,14 +7,14 @@ import { showError, showSuccess } from "../utils/Alert";
 import { registerUser } from "../../services/AuthService";
 
 const RegisterPage = () => {
-  const [form, setForm] = useState({
+  const initailFormState = {
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
-    role: "admin",
-  });
+  };
+  const [form, setForm] = useState(initailFormState);
 
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState(false);
@@ -27,17 +27,18 @@ const RegisterPage = () => {
   const handleRegister = async (event) => {
     event.preventDefault();
 
+    if (form.password !== form.confirmPassword) {
+      showError("Passwords don't match");
+      return;
+    }
+
     try {
-      if (form.password !== form.confirmPassword) {
-        showError("Passwords don't match");
-        return;
-      }
+      const response = await registerUser(form);
 
-      const response = await registerUser(form); // will throw if status >= 400
-
-      // ✅ Only runs if request succeeded
+      // Only runs if request succeeded
       showSuccess(response.message);
       navigate("/login");
+      setForm(initailFormState);
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Error registering user";
