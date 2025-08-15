@@ -14,7 +14,7 @@ API.interceptors.request.use((req) => {
     req.headers.Authorization = `Bearer ${token}`;
   }
   return req;
-})
+});
 
 export const getMembers = () => API.get("/members");
 export const createMember = (newMember) => API.post("/members", newMember);
@@ -22,5 +22,8 @@ export const getMemberById = (id) => API.get(`/members/${id}`);
 export const updateMember = (id, updatedMember) =>
   API.put(`/members/${id}`, updatedMember);
 export const deleteMember = (id) => API.delete(`/members/${id}`);
+
+//Mebership Plans API
+export const createPlan = (newPlan) => API.post("/plans", newPlan);
 
 export default API;
