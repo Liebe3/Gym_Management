@@ -3,38 +3,38 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("../config/db");
 const authRoutes = require("../routes/AuthRoutes");
-const memberRoutes = require("../routes/UserRoutes");
+const membershipPlanRoutes = require("../routes/MemberShipPlansRoute");
 
 dotenv.config();
 connectDB();
 
 const app = express();
-const allowedOrigins = ["http://localhost:5173", "https://JPGym_management"];
 
-//middleware
+// Debug middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  console.log("Headers:", req.headers);
+  next();
+});
+
+// CORS configuration
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) {
-        return callback(null, true);
-      }
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      } else {
-        return callback(new Error("Not Allowed by CORS"));
-      }
-    },
+    origin: ["http://localhost:5173", "https://JPGym_management"],
     credentials: true,
   })
 );
 
 app.use(express.json());
+
+// Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/members", memberRoutes);
-//test Route
+app.use("/api/plans", membershipPlanRoutes);
+
+// Test route
 app.get("/", (req, res) => {
   res.send("Gym management API Running");
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server in running in Port${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
