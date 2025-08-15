@@ -3,11 +3,14 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
-import { Link } from "react-router-dom";
-import { loginUser } from "../../services/AuthService";
+import { Link, useNavigate } from "react-router-dom"; // Add useNavigate here
+
 import { showError, showSuccess } from "../utils/Alert";
 
+import { AuthService } from "../../services/AuthService";
+
 const LoginPage = () => {
+  const navigate = useNavigate(); // Initialize useNavigate
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -22,16 +25,26 @@ const LoginPage = () => {
   const handleLogin = async (event) => {
     event.preventDefault();
 
-    if (!form.password || !form.password) {
+    if (!form.email || !form.password) {
       showError("Email and password are required");
       return;
     }
 
     try {
-      const response = await loginUser(form);
+      const response = await AuthService.loginUser(form);
       if (response.token) {
         showSuccess("Login successful!");
+        localStorage.setItem("token", response.token); // Store token
+        localStorage.setItem("user", JSON.stringify(response.user)); // Store user data
         setForm({ email: "", password: "" });
+
+        // Navigate based on user role
+        const role = response.user?.role || "user";
+        if (role === "admin") {
+          navigate("/admin/membership-plans");
+        } else {
+          navigate("/dashboard");
+        }
       } else {
         showError("Login failed - no token received");
       }
