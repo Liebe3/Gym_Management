@@ -4,7 +4,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import { showError, showSuccess } from "../utils/Alert";
 
-import { registerUser } from "../../services/AuthService";
+import { AuthService } from "../../services/AuthService";
 
 const RegisterPage = () => {
   const initailFormState = {
@@ -33,7 +33,7 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await registerUser(form);
+      const response = await AuthService.registerUser(form);
 
       // Only runs if request succeeded
       showSuccess(response.message);
