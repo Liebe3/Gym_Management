@@ -33,20 +33,8 @@ const userSchema = new mongoose.Schema(
       enum: ["admin", "trainer", "member", "user"],
       default: "user",
     },
-
+    
     phone: { type: String },
-    membershipType: {
-      type: String,
-      enum: ["Basic", "Standard", "Premium", null],
-      default: null,
-    },
-
-    joinedDate: { type: Date, default: null },
-    status: {
-      type: String,
-      enum: ["Pending", "Active", "Inactive", "Expired"],
-      default: "Pending",
-    },
   },
   { timestamps: true }
 );
