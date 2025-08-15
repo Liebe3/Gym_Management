@@ -3,7 +3,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 //resgiter
-
 exports.registerUser = async (req, res) => {
   try {
     const { firstName, lastName, email, password, confirmPassword } = req.body;
@@ -26,7 +25,6 @@ exports.registerUser = async (req, res) => {
       email,
       password: hashedPassword,
       role: "user",
-      status: "Pending",
     });
     await newUser.save();
 
@@ -65,7 +63,6 @@ exports.loginUser = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         role: user.role,
-        status: user.status,
         membershipType: user.membershipType,
       },
     });
