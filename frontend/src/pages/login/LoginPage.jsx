@@ -1,22 +1,39 @@
-import { useState } from "react";
+//hooks
+import { useContext, useState } from "react";
+
+//libraries
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { FaFacebook } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
-import { Link, useNavigate } from "react-router-dom"; // Add useNavigate here
+import { Link, useNavigate } from "react-router-dom";
 
+//utilities
 import { showError, showSuccess } from "../utils/Alert";
 
-import { AuthService } from "../../services/AuthService";
+//context
+import AuthContext from "../context/AuthContext";
+
+//components UI
+import Loading from "../../components/ui/Loading";
 
 const LoginPage = () => {
-  const navigate = useNavigate(); // Initialize useNavigate
-  const [form, setForm] = useState({
+  // context
+  const { login } = useContext(AuthContext);
+
+  //Router
+  const navigate = useNavigate();
+
+  //initial form
+  const initailFormState = {
     email: "",
     password: "",
-  });
+  };
 
+  // state hook
+  const [form, setForm] = useState(initailFormState);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -31,29 +48,29 @@ const LoginPage = () => {
     }
 
     try {
-      const response = await AuthService.loginUser(form);
-      if (response.token) {
-        showSuccess("Login successful!");
-        localStorage.setItem("token", response.token); // Store token
-        localStorage.setItem("user", JSON.stringify(response.user)); // Store user data
-        setForm({ email: "", password: "" });
+      setLoading(true);
+      const response = await login(form);
 
-        // Navigate based on user role
-        const role = response.user?.role || "user";
-        if (role === "admin") {
-          navigate("/admin/membership-plans");
-        } else {
-          navigate("/dashboard");
-        }
-      } else {
-        showError("Login failed - no token received");
+      if (response.token) {
+        showSuccess("Login Successful!");
+        setForm(initailFormState);
+        navigate(
+          response.user?.role === "admin"
+            ? "/admin/membership-plans"
+            : "/dashboard"
+        );
       }
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Error logging in user";
-      showError(errorMessage);
+      showError(error.response?.data.message || "Login failed");
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-[#0d1117] dark:text-[#f0f6fc] px-4 py-12">
       <div className="w-full max-w-md bg-white dark:bg-[#161b22] shadow-xl rounded-2xl p-8">
