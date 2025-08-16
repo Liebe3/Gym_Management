@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import membershipPlanService from "../../services/membershipPlansService";
 
 const MemberShipPlans = () => {
@@ -9,7 +9,7 @@ const MemberShipPlans = () => {
     durationType: "months",
     description: "",
     features: "",
-    status: "active",
+    status: "inactive",
   };
 
   const [plansForm, setPlansForm] = useState(initialPlansState);
