@@ -1,12 +1,28 @@
-import { useState } from "react";
+//hooks
+import { useContext, useState } from "react";
+
+//libraries
 import { Link } from "react-router-dom";
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
+
+//utilities
 import { showError, showSuccess } from "../utils/Alert";
 
-import { AuthService } from "../../services/AuthService";
+//context
+import AuthContext from "../context/AuthContext";
+
+//components UI
+import Loading from "../../components/ui/Loading";
 
 const RegisterPage = () => {
+  // context
+  const { register } = useContext(AuthContext);
+
+  //Router
+  const navigate = useNavigate();
+
+  //initial form
   const initailFormState = {
     firstName: "",
     lastName: "",
@@ -14,11 +30,12 @@ const RegisterPage = () => {
     password: "",
     confirmPassword: "",
   };
-  const [form, setForm] = useState(initailFormState);
 
+  //state hook
+  const [form, setForm] = useState(initailFormState);
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState(false);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -33,9 +50,8 @@ const RegisterPage = () => {
     }
 
     try {
-      const response = await AuthService.registerUser(form);
-
-      // Only runs if request succeeded
+      setLoading(true)
+      const response = await register(form);
       showSuccess(response.message);
       navigate("/login");
       setForm(initailFormState);
@@ -43,9 +59,14 @@ const RegisterPage = () => {
       const errorMessage =
         error.response?.data?.message || "Error registering user";
       showError(errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading) {
+    return <Loading />;
+  }
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-[#0d1117] dark:text-[#f0f6fc] px-4 py-12">
       <div className="w-full max-w-md bg-white dark:bg-[#161b22] shadow-xl rounded-2xl p-8">
