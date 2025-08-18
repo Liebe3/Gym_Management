@@ -1,3 +1,4 @@
+import { jwtDecode } from "jwt-decode";
 //hooks
 import { useContext, useState } from "react";
 
@@ -49,16 +50,16 @@ const LoginPage = () => {
 
     try {
       setLoading(true);
+
       const response = await login(form);
 
       if (response.token) {
         showSuccess("Login Successful!");
         setForm(initailFormState);
-        navigate(
-          response.user?.role === "admin"
-            ? "/admin/dashboard"
-            : "/login"
-        );
+
+        localStorage.setItem("token", response.token);
+        const role = jwtDecode(response.token).role;
+        navigate(role === "admin" ? "/admin/dashboard" : "/login");
       }
     } catch (error) {
       const errorMessage = error.response?.data.message || "Login failed";
