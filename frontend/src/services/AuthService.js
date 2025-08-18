@@ -18,7 +18,6 @@ export const AuthService = {
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user)); //for flexible
-        localStorage.setItem("role", response.data.user.role); // cleaner
       }
       return response.data;
     } catch (error) {
