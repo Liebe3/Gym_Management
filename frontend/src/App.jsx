@@ -4,9 +4,12 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import LoginPage from "./pages/login/LoginPage";
-import RegisterPage from "./pages/register/RegisterPage";
-import MemberShipPlans from "./pages/admin/MemberShipPlans";
+
+import LoginPage from "./auth/LoginPages";
+import RegisterPage from "./auth/RegisterPage";
+import Dashboard from "./admin/dashboard/Dashboard";
+import DashboardLayout from "./admin/dashboard/DashboardLayout";
+import MemberShipPlansSection from "./admin/dashboard/components/MemberShipPlansSection";
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -26,17 +29,27 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
-        {/* Protected Admin Routes */}
-        <Route path="/admin">
-          <Route
-            path="membership-plans"
-            element={
-              <ProtectedRoute>
-                <MemberShipPlans />
-              </ProtectedRoute>
-            }
-          />
-        </Route>
+        {/* Admin Routes (all share the same Sidebar layout) */}
+        <Route
+          path="/admin/dashboard"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <Dashboard />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/membership-plans"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout>
+                <MemberShipPlansSection />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
 
         {/* Catch-all route */}
         <Route path="*" element={<Navigate to="/login" replace />} />
