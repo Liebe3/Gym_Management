@@ -1,5 +1,14 @@
 const Plan = require("../models/MemberShipPlan");
 
+exports.getAllPlans = async (req, res) => {
+  try {
+    const plans = await Plan.find().sort({ createdAt: -1 }); // fetch plans
+    res.status(200).json({ plans }); // send response separately
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 exports.createPlan = async (req, res) => {
   try {
     const {
@@ -12,26 +21,37 @@ exports.createPlan = async (req, res) => {
       status,
     } = req.body;
 
-    const exisitngPlan = await Plan.findOne({ name });
+    // Convert features string to array if it's a string
+    const featuresArray =
+      typeof features === "string"
+        ? features.split(",").map((feature) => feature.trim())
+        : features;
 
-    if (exisitngPlan) {
+    // Convert status to lowercase
+    const normalizedStatus = status?.toLowerCase() || "active";
+
+    const existingPlan = await Plan.findOne({ name });
+
+    if (existingPlan) {
       return res
         .status(400)
-        .json({ message: "Plan with this name already exist" });
+        .json({ message: "Plan with this name already exists" });
     }
 
     const newPlan = new Plan({
-      name,
+      name: name.trim(),
       price,
       duration,
       durationType,
-      description,
-      features,
-      status: status || "active",
+      description: description?.trim(),
+      features: featuresArray,
+      status: normalizedStatus,
     });
+
     await newPlan.save();
-    res.status(201).json({ message: "Membership plan created successfuly" });
+    res.status(201).json({ message: "Membership plan created successfully" });
   } catch (error) {
+    console.error("Plan creation error:", error);
     res.status(500).json({ message: error.message });
   }
 };
