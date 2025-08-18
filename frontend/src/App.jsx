@@ -1,3 +1,4 @@
+import { jwtDecode } from "jwt-decode";
 import {
   BrowserRouter as Router,
   Routes,
@@ -12,10 +13,21 @@ import DashboardLayout from "./admin/dashboard/DashboardLayout";
 import MemberShipPlansSection from "./admin/dashboard/components/MemberShipPlansSection";
 
 // Protected Route Component
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
   const token = localStorage.getItem("token");
-  if (!token) {
+  if (!token) return <Navigate to="/login" replace />;
+
+  let role = null;
+
+  try {
+    const decoded = jwtDecode(token);
+    role = decoded.role;
+  } catch (error) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles && !allowedRoles.includes(role)) {
+    return <Navigate to="/unauthorized" replace />;
   }
   return children;
 };
@@ -33,7 +45,7 @@ function App() {
         <Route
           path="/admin/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <DashboardLayout>
                 <Dashboard />
               </DashboardLayout>
@@ -43,7 +55,7 @@ function App() {
         <Route
           path="/admin/membership-plans"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["admin"]}>
               <DashboardLayout>
                 <MemberShipPlansSection />
               </DashboardLayout>
@@ -52,7 +64,7 @@ function App() {
         />
 
         {/* Catch-all route */}
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/unauthorized" element={<h1>Access Denied</h1>} />
       </Routes>
     </Router>
   );
