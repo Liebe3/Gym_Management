@@ -17,7 +17,8 @@ export const AuthService = {
 
       if (response.data.token) {
         localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", response.data.user);
+        localStorage.setItem("user", JSON.stringify(response.data.user)); //for flexible
+        localStorage.setItem("role", response.data.user.role); // cleaner
       }
       return response.data;
     } catch (error) {
@@ -25,8 +26,7 @@ export const AuthService = {
     }
   },
 
-
-   // You can add other auth-related functions here, such as:
+  // You can add other auth-related functions here, such as:
   // logoutUser: () => {
   //   localStorage.removeItem("token");
   //   localStorage.removeItem("user");
