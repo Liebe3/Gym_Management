@@ -20,6 +20,16 @@ const membershipPlanService = {
       throw error;
     }
   },
+
+  updatePlan: async (planId, newPlan) => {
+    try {
+      const response = await API.put(`/membership-plans/${planId}`, newPlan);
+      return response.data;
+    } catch (error) {
+      console.error("Service error", error);
+      throw error;
+    }
+  },
 };
 
 export default membershipPlanService;
