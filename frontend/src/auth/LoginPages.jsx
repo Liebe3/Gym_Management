@@ -56,8 +56,8 @@ const LoginPage = () => {
         setForm(initailFormState);
         navigate(
           response.user?.role === "admin"
-            ? "/admin/membership-plans"
-            : "/dashboard"
+            ? "/admin/dashboard"
+            : "/login"
         );
       }
     } catch (error) {
