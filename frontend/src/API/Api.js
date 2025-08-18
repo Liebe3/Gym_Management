@@ -24,6 +24,7 @@ export const updateMember = (id, updatedMember) =>
 export const deleteMember = (id) => API.delete(`/members/${id}`);
 
 //Mebership Plans API
-export const createPlan = (newPlan) => API.post("/plans", newPlan);
+export const getAllPlans = () => API.get("/membership-plans");
+export const createPlan = (newPlan) => API.post("/membership-plans", newPlan);
 
 export default API;
