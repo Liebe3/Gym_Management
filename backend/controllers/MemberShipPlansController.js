@@ -55,3 +55,60 @@ exports.createPlan = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.updatePlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      price,
+      duration,
+      durationType,
+      description,
+      features,
+      status,
+    } = req.body;
+
+    if (name) {
+      const existingPlan = await Plan.findOne({ name, _id: { $ne: id } }); //$ne not equal query
+      if (existingPlan) {
+        return res
+          .status(400)
+          .json({ message: "Plan with this name already exist" });
+      }
+    }
+
+    const updatedPlan = await Plan.findByIdAndUpdate(
+      id,
+      {
+        name,
+        price,
+        duration,
+        durationType,
+        description,
+        features,
+        status,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedPlan) {
+      return res.status(404).json({ message: "Membership plan not found" });
+    }
+
+    res.status(200).json({
+      message: "Membership Plan updated successfully",
+      plan: updatedPlan,
+    });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      return res
+        .status(400)
+        .json({
+          message: "Validatio failed",
+          errors: Object.values(error.errors).map((e) => e.message),
+        });
+    }
+    res.status(500).json({ message: error.message });
+  }
+};
