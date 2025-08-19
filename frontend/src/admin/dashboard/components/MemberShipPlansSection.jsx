@@ -14,7 +14,7 @@ import {
 } from "react-icons/fi";
 import membershipPlanService from "../../../services/membershipPlansService";
 import PlanButton from "./ui/PlanButton";
-import CreatePlanModal from "./ui/MemberShipPlanModal";
+import MemberShipPlanModal from "./ui/MemberShipPlanModal"
 
 const MembershipPlansSection = () => {
   const [plans, setPlans] = useState([]);
@@ -282,7 +282,7 @@ const MembershipPlansSection = () => {
         )}
 
         {/* Modal */}
-        <CreatePlanModal
+        <MemberShipPlanModal
           isModalOpen={isModalOpen}
           handleCloseModal={handleCloseModal}
           mode={mode}
