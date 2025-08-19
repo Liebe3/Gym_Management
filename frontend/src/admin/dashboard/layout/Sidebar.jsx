@@ -1,6 +1,11 @@
 import { useState, useContext } from "react";
 import { NavLink } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+
+import ThemeContext from "../../../pages/context/ThemeContext";
+import AuthContext from "../../../pages/context/AuthContext";
+import { useNavigate } from "react-router-dom";
+
 import {
   MdDashboard,
   MdPeople,
@@ -19,9 +24,6 @@ import {
   MdLightMode,
   MdDarkMode,
 } from "react-icons/md";
-import ThemeContext from "../../../pages/context/ThemeContext";
-import AuthContext from "../../../pages/context/AuthContext";
-import { useNavigate } from "react-router-dom";
 
 const iconMap = {
   dashboard: MdDashboard,
@@ -44,11 +46,7 @@ const sidebarLinks = [
   { name: "Users", href: "/admin/users", icon: "people" },
   { name: "Trainers", href: "/admin/trainers", icon: "fitness_center" },
   { name: "Memberships", href: "/admin/memberships", icon: "card_membership" },
-  {
-    name: "Membership Plans",
-    href: "/admin/membership-plans",
-    icon: "list_alt",
-  },
+  { name: "Membership Plans", href: "/admin/membership-plans", icon: "list_alt",},
   { name: "Settings", href: "/admin/settings", icon: "settings" },
   { name: "Theme", href: "#", icon: "theme" },
 ];
@@ -241,7 +239,10 @@ const Sidebar = () => {
               <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center">
                 <MdPerson size={20} className="text-white" />
               </div>
-              <button onClick={handleLogout} className=" hover:bg-gray-200 dark:hover:bg-gray-800 dark:text-gray-300 text-gray-600 hover:text-emerald-600  dark:hover:text-emerald-400 p-2 rounded-lg transition-all duration-200 cursor-pointer">
+              <button
+                onClick={handleLogout}
+                className=" hover:bg-gray-200 dark:hover:bg-gray-800 dark:text-gray-300 text-gray-600 hover:text-emerald-600  dark:hover:text-emerald-400 p-2 rounded-lg transition-all duration-200 cursor-pointer"
+              >
                 <MdLogout size={18} />
               </button>
             </motion.div>
