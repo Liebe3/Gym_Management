@@ -2,7 +2,7 @@ import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 import MemberShipPlanForm from "../memberhipPlans/MemberShipPlanForm";
 
-const CreatePlanModal = ({ isModalOpen, handleCloseModal, mode = "create", selectedPlan, onSuccess, }) => {
+const MemberShipPlanModal = ({ isModalOpen, handleCloseModal, mode = "create", selectedPlan, onSuccess, }) => {
   return (
     <Transition show={isModalOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={handleCloseModal}>
@@ -84,4 +84,4 @@ const CreatePlanModal = ({ isModalOpen, handleCloseModal, mode = "create", selec
   );
 };
 
-export default CreatePlanModal;
+export default MemberShipPlanModal;
