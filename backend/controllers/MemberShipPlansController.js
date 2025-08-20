@@ -102,13 +102,26 @@ exports.updatePlan = async (req, res) => {
     });
   } catch (error) {
     if (error.name === "ValidationError") {
-      return res
-        .status(400)
-        .json({
-          message: "Validatio failed",
-          errors: Object.values(error.errors).map((e) => e.message),
-        });
+      return res.status(400).json({
+        message: "Validatio failed",
+        errors: Object.values(error.errors).map((e) => e.message),
+      });
     }
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.deletePlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedPlan = await Plan.findByIdAndDelete(id);
+
+    if (!deletedPlan) {
+      return res.status(404).json({ message: "Membership plan not found" });
+    }
+
+    res.status(200).json({ mesasge: "Membership plan deleted successfully" });
+  } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
