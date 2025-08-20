@@ -91,7 +91,7 @@ const Sidebar = () => {
       {/* Collapse Button */}
       <motion.button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-6 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-full p-1.5 shadow-lg hover:shadow-xl z-10"
+        className="absolute -right-3 top-6 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-600 rounded-full p-1.5 shadow-lg hover:shadow-xl z-10 cursor-pointer"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         transition={{ type: "spring", stiffness: 400, damping: 17 }}
