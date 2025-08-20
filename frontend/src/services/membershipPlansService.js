@@ -30,6 +30,16 @@ const membershipPlanService = {
       throw error;
     }
   },
+
+  deletePlan: async (planId) => {
+    try {
+      const response = await API.delete(`/membership-plans/${planId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Service error:", error);
+      throw error;
+    }
+  },
 };
 
 export default membershipPlanService;
