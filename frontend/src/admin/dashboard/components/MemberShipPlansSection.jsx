@@ -14,7 +14,12 @@ import {
 } from "react-icons/fi";
 import membershipPlanService from "../../../services/membershipPlansService";
 import PlanButton from "./ui/PlanButton";
-import MemberShipPlanModal from "./ui/MemberShipPlanModal"
+import MemberShipPlanModal from "./ui/MemberShipPlanModal";
+import {
+  showError,
+  showSuccess,
+  ShowWarning,
+} from "../../../pages/utils/Alert";
 
 const MembershipPlansSection = () => {
   const [plans, setPlans] = useState([]);
@@ -62,6 +67,22 @@ const MembershipPlansSection = () => {
     setSelectedPlan(plan);
     setMode("update");
     setIsModalOpen(true);
+  };
+
+  //delete plan
+  const handleDelete = async (deleteId) => {
+    try {
+      const result = await ShowWarning("This action cannot be undone.");
+
+      if (result.isConfirmed) {
+        await membershipPlanService.deletePlan(deleteId);
+        showSuccess("Plan has been deleted");
+        await loadMembershipPlans(); // load the plan
+      }
+    } catch (error) {
+      console.error("Erro deleting plan", error);
+      showError("Failed to delete the plan.");
+    }
   };
 
   // Close modal
@@ -253,19 +274,23 @@ const MembershipPlansSection = () => {
                         </td>
                         <td className="py-3 px-4">
                           <div className="flex items-center space-x-1">
+                            {/* edit plan action */}
                             <motion.button
                               onClick={() => handleEditPlan(plan)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
-                              className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm"
+                              className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
                               title="Edit Plan"
                             >
                               <FiEdit3 className="w-3 h-3" />
                             </motion.button>
+
+                            {/* delete plan action */}
                             <motion.button
+                              onClick={() => handleDelete(plan._id)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
-                              className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm"
+                              className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
                               title="Delete Plan"
                             >
                               <FiTrash2 className="w-3 h-3" />
