@@ -10,6 +10,7 @@ const AuthProvider = ({ children }) => {
   //state hook
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -18,6 +19,7 @@ const AuthProvider = ({ children }) => {
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
     }
+    setLoading(false)
   }, []);
 
   const register = async (formData) => {
@@ -44,7 +46,7 @@ const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, register, login, logout }}>
+    <AuthContext.Provider value={{ user, token, register, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
