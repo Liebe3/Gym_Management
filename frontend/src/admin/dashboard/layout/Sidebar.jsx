@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 import ThemeContext from "../../../pages/context/ThemeContext";
 import AuthContext from "../../../pages/context/AuthContext";
+import Loading from "../../../components/ui/Loading";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -46,14 +47,18 @@ const sidebarLinks = [
   { name: "Users", href: "/admin/users", icon: "people" },
   { name: "Trainers", href: "/admin/trainers", icon: "fitness_center" },
   { name: "Memberships", href: "/admin/memberships", icon: "card_membership" },
-  { name: "Membership Plans", href: "/admin/membership-plans", icon: "list_alt",},
+  {
+    name: "Membership Plans",
+    href: "/admin/membership-plans",
+    icon: "list_alt",
+  },
   { name: "Settings", href: "/admin/settings", icon: "settings" },
   { name: "Theme", href: "#", icon: "theme" },
 ];
 
 const Sidebar = () => {
   const { theme, toggleTheme } = useContext(ThemeContext);
-  const { logout } = useContext(AuthContext);
+  const { logout, user, loading } = useContext(AuthContext);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const navigate = useNavigate();
 
@@ -71,6 +76,11 @@ const Sidebar = () => {
     hidden: { opacity: 0, x: -10 },
   };
 
+  if (!user) return null;
+
+  if (loading) {
+    return <Loading />;
+  }
   return (
     <motion.div
       className={`min-h-screen flex flex-col shadow-xl relative border-r bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700`}
@@ -215,10 +225,10 @@ const Sidebar = () => {
                   <MdPerson size={20} className="text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">Admin User</p>
-                  <p className="text-xs text-gray-400 truncate">
-                    admin@example.com
+                  <p className="text-sm font-medium truncate">
+                    {`Admin ${user.firstName}`}
                   </p>
+                  <p className="text-xs text-gray-400 truncate">{user.email}</p>
                 </div>
               </div>
               <button
