@@ -20,6 +20,7 @@ import {
   showSuccess,
   ShowWarning,
 } from "../../../pages/utils/Alert";
+import Loading from "../../../components/ui/Loading";
 
 const MembershipPlansSection = () => {
   const [plans, setPlans] = useState([]);
@@ -37,8 +38,8 @@ const MembershipPlansSection = () => {
       setLoading(true);
       const response = await membershipPlanService.getAllPlans();
       setPlans(response.plans || []);
-    } catch (err) {
-      console.error("Error fetching membership plans:", err);
+    } catch (error) {
+      console.error("Error fetching membership plans:", error);
       setError("Failed to fetch membership plans.");
     } finally {
       setLoading(false);
@@ -94,17 +95,18 @@ const MembershipPlansSection = () => {
 
   if (loading)
     return (
-      <div className="flex items-center justify-center py-12">
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="mr-3"
-        >
-          <FiLoader className="w-6 h-6 text-emerald-600" />
-        </motion.div>
-        <p className="text-gray-600 dark:text-gray-400 font-medium">
-          Loading membership plans...
+      <div className="flex flex-col items-center justify-evenly">
+        <p className="text-emerald-600 font-bold text-xl tracking-wide animate-pulse mt-5">
+          Fetching membership plan...
         </p>
+
+        <p className="text-gray-500 dark:text-gray-400 text-sm">
+          Please wait while we load the available plans
+        </p>
+
+        <div className="mt-[-100px]">
+          <Loading />
+        </div>
       </div>
     );
 
