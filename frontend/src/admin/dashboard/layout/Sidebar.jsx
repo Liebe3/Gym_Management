@@ -43,7 +43,7 @@ const iconMap = {
 
 const sidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: "dashboard" },
-  { name: "Members", href: "/admin/members", icon: "groups" },
+  { name: "Member", href: "/admin/member", icon: "groups" },
   { name: "Users", href: "/admin/users", icon: "people" },
   { name: "Trainers", href: "/admin/trainers", icon: "fitness_center" },
   { name: "Memberships", href: "/admin/memberships", icon: "card_membership" },
