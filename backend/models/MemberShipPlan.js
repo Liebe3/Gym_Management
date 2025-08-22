@@ -43,4 +43,4 @@ const MemberShipPlansSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("MemberShipPlan", MemberShipPlansSchema);
+module.exports = mongoose.model("MembershipPlan", MemberShipPlansSchema);
