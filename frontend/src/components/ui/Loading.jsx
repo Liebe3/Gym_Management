@@ -14,7 +14,7 @@ function Loading() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gray-50 dark:bg-[#0d1117] dark:text-[#f0f6fc] flex items-center justify-center px-4">
+    <div className="min-h-screen w-full flex">
       <motion.div
         animate="pulse"
         transition={{ staggerChildren: -0.2, staggerDirection: -1 }}
@@ -47,7 +47,7 @@ function StyleSheet() {
           width: 20px;
           height: 20px;
           border-radius: 50%;
-          background-color: #2563EB;
+          background-color: #059669;
           will-change: transform;
         }
       `}
