@@ -11,6 +11,7 @@ import RegisterPage from "./auth/RegisterPage";
 import Dashboard from "./admin/dashboard/Dashboard";
 import DashboardLayout from "./admin/dashboard/DashboardLayout";
 import MemberShipPlansSection from "./admin/dashboard/components/MemberShipPlansSection";
+import MemberSection from "./admin/dashboard/components/MemberSection";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -58,6 +59,17 @@ function App() {
             <ProtectedRoute allowedRoles={["admin"]}>
               <DashboardLayout>
                 <MemberShipPlansSection />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+
+         <Route
+          path="/admin/member"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <DashboardLayout>
+                <MemberSection/>
               </DashboardLayout>
             </ProtectedRoute>
           }
