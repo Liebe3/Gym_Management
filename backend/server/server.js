@@ -3,7 +3,8 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("../config/db");
 const authRoutes = require("../routes/AuthRoutes");
-const membershipPlansRoutes = require("../routes/MemberShipPlansRoutes"); 
+const membershipPlansRoutes = require("../routes/MemberShipPlansRoutes");
+const memberRoutes = require("../routes/MemberRoutes");
 
 dotenv.config();
 connectDB();
@@ -30,6 +31,7 @@ app.use(express.json());
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/membership-plans", membershipPlansRoutes);
+app.use("/api/member", memberRoutes);
 
 // Test route
 app.get("/", (req, res) => {
