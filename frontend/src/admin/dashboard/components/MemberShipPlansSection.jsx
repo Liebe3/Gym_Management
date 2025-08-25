@@ -154,6 +154,7 @@ const MembershipPlansSection = () => {
             <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">
               No membership plans available.
             </p>
+            {/* create plan button */}
             <PlanButton onClick={handleOpenCreate}>
               <div className="flex items-center">
                 <FiPlus className="w-4 h-4 mr-2" />
