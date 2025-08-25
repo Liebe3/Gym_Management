@@ -11,9 +11,12 @@ import {
   FiClock,
   FiEdit3,
   FiTrash2,
+  FiPlus,
 } from "react-icons/fi";
 import memberService from "../../../services/memberService";
 import Loading from "../../../components/ui/Loading";
+import CreateMemberButon from "./ui/CreateMemberButon";
+
 
 const MemberSection = () => {
   const [members, setMembers] = useState([]);
@@ -98,6 +101,14 @@ const MemberSection = () => {
             <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">
               No members available.
             </p>
+
+            {/* create member button */}
+            <button>
+              <div className="flex items-center">
+                <FiPlus className="w-4 h-4 mr-2" />
+                Create Your First Member
+              </div>
+            </button>
           </motion.div>
         ) : (
           <motion.div
@@ -106,6 +117,17 @@ const MemberSection = () => {
             transition={{ delay: 0.3 }}
             className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
           >
+
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+              <CreateMemberButon>
+                <div className="flex items-center">
+                  <FiPlus className="w-4 h-4 mr-2" />
+                  Create New Member
+                </div>
+              </CreateMemberButon>
+            </div>
+
+
             {/* Members Table */}
             <div className="overflow-x-auto">
               <table className="min-w-full">
