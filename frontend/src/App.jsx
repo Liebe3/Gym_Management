@@ -12,6 +12,7 @@ import Dashboard from "./admin/dashboard/Dashboard";
 import DashboardLayout from "./admin/dashboard/DashboardLayout";
 import MemberShipPlansSection from "./admin/dashboard/components/MemberShipPlansSection";
 import MemberSection from "./admin/dashboard/components/MemberSection";
+import MembersForm from "./admin/dashboard/components/members/MembersForm";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -41,6 +42,7 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/create-member" element={<MembersForm/>}/>
 
         {/* Admin Routes (all share the same Sidebar layout) */}
         <Route
