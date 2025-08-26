@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("../config/db");
 const authRoutes = require("../routes/AuthRoutes");
+const userRoutes = require("../routes/UserRoutes")
 const membershipPlansRoutes = require("../routes/MemberShipPlansRoutes");
 const memberRoutes = require("../routes/MemberRoutes");
 
@@ -30,6 +31,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes)
 app.use("/api/membership-plans", membershipPlansRoutes);
 app.use("/api/member", memberRoutes);
 
