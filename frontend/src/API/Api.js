@@ -30,6 +30,10 @@ export const updatePlan = (id, updatedPlan) =>
   API.put(`/membership-plans/${id}`, updatedPlan);
 export const deletePlan = (id) => API.delete(`/membership-plans/${id}`);
 
+//user API
+export const getAllUser = () => API.get("/user")
+
+
 //member API
 export const getAllMember = () => API.get("/member");
 export const createMember = (newMember) => API.post("/member", newMember);
