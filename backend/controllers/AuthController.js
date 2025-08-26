@@ -2,6 +2,9 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+
+
+
 //resgiter
 exports.registerUser = async (req, res) => {
   try {
@@ -34,6 +37,7 @@ exports.registerUser = async (req, res) => {
   }
 };
 
+//login
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
