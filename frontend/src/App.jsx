@@ -9,10 +9,13 @@ import {
 import LoginPage from "./auth/LoginPages";
 import RegisterPage from "./auth/RegisterPage";
 import Dashboard from "./admin/dashboard/Dashboard";
+import UserSection from "./admin/dashboard/components/UserSection";
 import DashboardLayout from "./admin/dashboard/DashboardLayout";
 import MemberShipPlansSection from "./admin/dashboard/components/MemberShipPlansSection";
 import MemberSection from "./admin/dashboard/components/MemberSection";
 import MembersForm from "./admin/dashboard/components/members/MembersForm";
+import MemberManagement from "./admin/dashboard/components/members/MemberManagement";
+import PaymentForm from "./admin/dashboard/components/members/PaymentForm";
 
 // Protected Route Component
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -42,7 +45,8 @@ function App() {
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/create-member" element={<MembersForm/>}/>
+        {/* <Route path="/create-member" element={<MemberManagement/>}/>
+         <Route path="/payment" element={<PaymentForm/>}/> */}
 
         {/* Admin Routes (all share the same Sidebar layout) */}
         <Route
@@ -66,12 +70,23 @@ function App() {
           }
         />
 
-         <Route
+        <Route
           path="/admin/member"
           element={
             <ProtectedRoute allowedRoles={["admin"]}>
               <DashboardLayout>
-                <MemberSection/>
+                <MemberSection />
+              </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/user"
+          element={
+            <ProtectedRoute allowedRoles={["admin"]}>
+              <DashboardLayout>
+                <UserSection />
               </DashboardLayout>
             </ProtectedRoute>
           }
