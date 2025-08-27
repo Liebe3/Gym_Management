@@ -10,12 +10,22 @@ const memberService = {
       throw error;
     }
   },
-  createMember: async () => {
+  createMember: async (memberData) => {
     try {
-      const response = await API.post("/member");
+      const response = await API.post("/member", memberData);
       return response.data;
     } catch (error) {
-      console.error("Service error", error);
+      console.error("Service error", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  checkUserActiveMembership: async (userId) => {
+    try {
+      const response = await API.get(`/member/check-active/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Service error checking active membership:", error);
       throw error;
     }
   },
