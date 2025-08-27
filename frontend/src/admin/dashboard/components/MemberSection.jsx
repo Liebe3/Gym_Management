@@ -16,12 +16,15 @@ import {
 import memberService from "../../../services/memberService";
 import Loading from "../../../components/ui/Loading";
 import CreateMemberButon from "./ui/CreateMemberButon";
-
+import MemberModal from "../components/ui/MemberModal";
 
 const MemberSection = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [mode, setMode] = useState("create");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch members
   const loadMembers = async () => {
@@ -42,6 +45,16 @@ const MemberSection = () => {
   useEffect(() => {
     loadMembers();
   }, []);
+
+  const hanldeOpenCreate = () => {
+    setMode("create");
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setMode("create");
+  };
 
   if (loading)
     return (
@@ -103,12 +116,12 @@ const MemberSection = () => {
             </p>
 
             {/* create member button */}
-            <button>
+            <CreateMemberButon onClick={hanldeOpenCreate}>
               <div className="flex items-center">
                 <FiPlus className="w-4 h-4 mr-2" />
                 Create Your First Member
               </div>
-            </button>
+            </CreateMemberButon>
           </motion.div>
         ) : (
           <motion.div
@@ -117,16 +130,14 @@ const MemberSection = () => {
             transition={{ delay: 0.3 }}
             className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
           >
-
             <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-              <CreateMemberButon>
+              <CreateMemberButon onClick={hanldeOpenCreate}>
                 <div className="flex items-center">
                   <FiPlus className="w-4 h-4 mr-2" />
                   Create New Member
                 </div>
               </CreateMemberButon>
             </div>
-
 
             {/* Members Table */}
             <div className="overflow-x-auto">
@@ -244,6 +255,18 @@ const MemberSection = () => {
             </div>
           </motion.div>
         )}
+
+        {
+          <MemberModal
+            isModalOpen={isModalOpen}
+            mode={mode}
+            handleCloseModal={handleCloseModal}
+            onSuccess={() => {
+              setIsModalOpen(false);
+              loadMembers();
+            }}
+          />
+        }
       </div>
     </div>
   );
