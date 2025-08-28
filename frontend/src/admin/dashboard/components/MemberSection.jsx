@@ -12,6 +12,7 @@ import {
   FiEdit3,
   FiTrash2,
   FiPlus,
+  FiMinusCircle,
 } from "react-icons/fi";
 import memberService from "../../../services/memberService";
 import Loading from "../../../components/ui/Loading";
@@ -258,6 +259,11 @@ const MemberSection = () => {
                             <div className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-2 py-1 rounded-full text-xs font-medium">
                               <FiClock className="w-3 h-3 mr-1" />
                               <span className="hidden sm:inline">Pending</span>
+                            </div>
+                          ) : member.status === "none" ? (
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-medium">
+                              <FiMinusCircle className="w-3 h-3 mr-1" />
+                              <span className="hidden sm:inline">None</span>
                             </div>
                           ) : (
                             <div className="flex items-center bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 px-2 py-1 rounded-full text-xs font-medium">
