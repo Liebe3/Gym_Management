@@ -90,7 +90,7 @@ const MembersForm = ({
         console.log("Fetching users...");
         const userResponse = await userService.getAllUser();
         console.log("User Response:", userResponse);
-        setUsers(userResponse?.users || []);
+        setUsers(userResponse?.data || []);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -106,7 +106,7 @@ const MembersForm = ({
         const memberShipPlansResponse =
           await membershipPlanService.getAllPlans();
         console.log("Membership Plans Response:", memberShipPlansResponse);
-        setMembershipPlans(memberShipPlansResponse?.plans || []);
+        setMembershipPlans(memberShipPlansResponse?.data || []);
       } catch (error) {
         console.error("Error fetching membership plans:", error);
       }
