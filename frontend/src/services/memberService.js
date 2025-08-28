@@ -33,6 +33,16 @@ const memberService = {
     }
   },
 
+  deleteMember: async (memberId) => {
+    try {
+      const response = await API.delete(`/member/${memberId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Service error", error);
+      throw error;
+    }
+  },
+
   checkUserActiveMembership: async (userId) => {
     try {
       const response = await API.get(`/member/check-active/${userId}`);
