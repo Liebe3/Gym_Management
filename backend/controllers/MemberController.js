@@ -184,8 +184,6 @@ exports.createMember = async (req, res) => {
   }
 };
 
-// Add this to your MemberController.js file
-
 exports.updateMember = async (req, res) => {
   try {
     const { id } = req.params;
@@ -344,6 +342,23 @@ exports.updateMember = async (req, res) => {
       message: "Server error",
       error: error.message,
     });
+  }
+};
+
+exports.deleteMember = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deletedMember = await Member.findByIdAndDelete(id);
+
+    if (!deletedMember) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+
+    res
+      .status(200)
+      .json({ success: true, message: "Member deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
