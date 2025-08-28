@@ -36,7 +36,7 @@ const MembershipPlansSection = () => {
     try {
       setLoading(true);
       const response = await membershipPlanService.getAllPlans();
-      setPlans(response.plans || []);
+      setPlans(response.data|| []);
     } catch (error) {
       console.error("Error fetching membership plans:", error);
       setError("Failed to fetch membership plans.");
@@ -80,7 +80,7 @@ const MembershipPlansSection = () => {
         await loadMembershipPlans(); // load the plan
       }
     } catch (error) {
-      console.error("Erro deleting plan", error);
+      console.error("Error deleting plan", error);
       showError("Failed to delete the plan.");
     }
   };
