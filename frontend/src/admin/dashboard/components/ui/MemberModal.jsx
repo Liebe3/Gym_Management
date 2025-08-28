@@ -2,7 +2,13 @@ import MembersForm from "../members/MembersForm";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
 
-const MemberModal = ({ isModalOpen, mode = "create", handleCloseModal, onSuccess }) => {
+const MemberModal = ({
+  isModalOpen,
+  mode = "create",
+  selectedMember,
+  handleCloseModal,
+  onSuccess,
+}) => {
   return (
     <Transition show={isModalOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={handleCloseModal}>
@@ -41,7 +47,9 @@ const MemberModal = ({ isModalOpen, mode = "create", handleCloseModal, onSuccess
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                       {mode === "create"
                         ? "Set up a new member for your gym"
-                        : "Update this membership plan's details"}
+                        : `Update ${
+                            selectedMember?.user?.firstName || "this member"
+                          }'s membership details`}
                     </p>
                   </div>
                   <button
@@ -69,7 +77,7 @@ const MemberModal = ({ isModalOpen, mode = "create", handleCloseModal, onSuccess
               <div className="p-6">
                 <MembersForm
                   onClose={handleCloseModal}
-                  // selectedPlan={selectedPlan}
+                  selectedMember={selectedMember}
                   mode={mode}
                   onSuccess={onSuccess}
                 />
