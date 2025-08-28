@@ -51,7 +51,7 @@ const UserSection = () => {
       console.log("Filtered response:", response);
 
       if (response.success) {
-        setUsers(response.users || []);
+        setUsers(response.data || []);
         setPagination(response.pagination || {});
         setRoleCounts(response.filter?.roleCounts || {});
       } else {
