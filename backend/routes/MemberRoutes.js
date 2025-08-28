@@ -7,7 +7,8 @@ const {
   createMember,
   getAllMember,
   checkUserActiveMemberShip,
-  updateMember
+  updateMember,
+  deleteMember,
 } = require("../controllers/MemberController");
 
 router.use(VerifyToken);
@@ -18,5 +19,5 @@ router.post("/", createMember);
 router.put("/:id", updateMember); // Add this route
 router.patch("/:id", updateMember); // Support both PUT and PATCH
 router.get("/check-active/:userId", checkUserActiveMemberShip);
-
+router.delete("/:id", deleteMember);
 module.exports = router;
