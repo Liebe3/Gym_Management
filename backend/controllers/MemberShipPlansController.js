@@ -3,9 +3,9 @@ const Plan = require("../models/MemberShipPlan");
 exports.getAllPlans = async (req, res) => {
   try {
     const plans = await Plan.find().sort({ createdAt: -1 }); // fetch plans
-    res.status(200).json({ plans }); // send response separately
+    res.status(200).json({ success: true, data: plans}); // send response separately
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
