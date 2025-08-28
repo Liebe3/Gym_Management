@@ -3,14 +3,20 @@ const router = express.Router();
 const VerifyToken = require("../middleware/VerifyToken");
 const VerifyAdmin = require("../middleware/VerifyAdmin");
 
-const { createMember, getAllMember, checkUserActiveMemberShip } = require("../controllers/MemberController");
+const {
+  createMember,
+  getAllMember,
+  checkUserActiveMemberShip,
+  updateMember
+} = require("../controllers/MemberController");
 
 router.use(VerifyToken);
 router.use(VerifyAdmin);
 
-router.get("/", getAllMember)
+router.get("/", getAllMember);
 router.post("/", createMember);
-router.get("/check-active/:userId", checkUserActiveMemberShip)
+router.put("/:id", updateMember); // Add this route
+router.patch("/:id", updateMember); // Support both PUT and PATCH
+router.get("/check-active/:userId", checkUserActiveMemberShip);
 
-
-module.exports = router; 
+module.exports = router;
