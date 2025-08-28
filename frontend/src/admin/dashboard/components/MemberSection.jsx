@@ -25,6 +25,7 @@ const MemberSection = () => {
 
   const [mode, setMode] = useState("create");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   // Fetch members
   const loadMembers = async () => {
@@ -51,11 +52,29 @@ const MemberSection = () => {
     setIsModalOpen(true);
   };
 
+  const handleOpenEdit = (member) => {
+    setMode("update");
+    setIsModalOpen(true);
+    setSelectedMember(member);
+  };
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setMode("create");
   };
 
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedMember(null);
+    loadMembers();
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) {
+      return "N/A";
+    }
+    return new Date(dateString).toLocaleDateString();
+  };
   if (loading)
     return (
       <div className="flex flex-col items-center justify-evenly">
@@ -205,16 +224,21 @@ const MemberSection = () => {
                           {member.membershipPlan?.name}
                         </td>
                         <td className="py-3 px-4 hidden lg:table-cell text-gray-600 dark:text-gray-400">
-                          {member.startDate}
+                          {formatDate(member.startDate)}
                         </td>
                         <td className="py-3 px-4 hidden lg:table-cell text-gray-600 dark:text-gray-400">
-                          {member.endDate}
+                          {formatDate(member.endDate)}
                         </td>
                         <td className="py-3 px-4">
                           {member.status === "active" ? (
                             <div className="flex items-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 px-2 py-1 rounded-full text-xs font-medium">
                               <FiCheckCircle className="w-3 h-3 mr-1" />
                               <span className="hidden sm:inline">Active</span>
+                            </div>
+                          ) : member.status === "pending" ? (
+                            <div className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-2 py-1 rounded-full text-xs font-medium">
+                              <FiClock className="w-3 h-3 mr-1" />
+                              <span className="hidden sm:inline">Pending</span>
                             </div>
                           ) : (
                             <div className="flex items-center bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 px-2 py-1 rounded-full text-xs font-medium">
@@ -228,6 +252,7 @@ const MemberSection = () => {
                           <div className="flex items-center space-x-1">
                             {/* edit plan action */}
                             <motion.button
+                              onClick={() => handleOpenEdit(member)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
@@ -260,11 +285,9 @@ const MemberSection = () => {
           <MemberModal
             isModalOpen={isModalOpen}
             mode={mode}
+            selectedMember={selectedMember}
             handleCloseModal={handleCloseModal}
-            onSuccess={() => {
-              setIsModalOpen(false);
-              loadMembers();
-            }}
+            onSuccess={handleSuccess}
           />
         }
       </div>
