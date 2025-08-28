@@ -58,7 +58,7 @@ exports.getAllUser = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      users,
+      data: users,
       pagination: {
         currentPage: pageNum,
         totalPages,
