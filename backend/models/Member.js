@@ -15,7 +15,7 @@ const memberSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["active", "expired", "none"],
+      enum: ["active", "expired", "none", "pending"],
       default: "none",
     },
     startDate: {
