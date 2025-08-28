@@ -20,6 +20,19 @@ const memberService = {
     }
   },
 
+  updateMember: async (memberId, updateData) => {
+    try {
+      const response = await API.put(`/member/${memberId}`, updateData);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Service error updating member:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
+
   checkUserActiveMembership: async (userId) => {
     try {
       const response = await API.get(`/member/check-active/${userId}`);
