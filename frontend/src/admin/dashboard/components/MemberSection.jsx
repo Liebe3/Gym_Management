@@ -17,6 +17,11 @@ import memberService from "../../../services/memberService";
 import Loading from "../../../components/ui/Loading";
 import CreateMemberButon from "./ui/CreateMemberButon";
 import MemberModal from "../components/ui/MemberModal";
+import {
+  showError,
+  showSuccess,
+  ShowWarning,
+} from "../../../pages/utils/Alert";
 
 const MemberSection = () => {
   const [members, setMembers] = useState([]);
@@ -56,6 +61,20 @@ const MemberSection = () => {
     setMode("update");
     setIsModalOpen(true);
     setSelectedMember(member);
+  };
+
+  const handleDelete = async (deleteId) => {
+    try {
+      const result = await ShowWarning("This action cannot be undone");
+      if (result.isConfirmed) {
+        await memberService.deleteMember(deleteId);
+        showSuccess("Member has been deleted");
+        await loadMembers();
+      }
+    } catch (error) {
+      console.error("Error deleteing member", error);
+      showError("Failed to delete the member");
+    }
   };
 
   const handleCloseModal = () => {
@@ -263,6 +282,7 @@ const MemberSection = () => {
 
                             {/* delete plan action */}
                             <motion.button
+                              onClick={() => handleDelete(member._id)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
