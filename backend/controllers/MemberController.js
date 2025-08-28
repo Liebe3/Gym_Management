@@ -53,26 +53,25 @@ exports.createMember = async (req, res) => {
     today.setHours(0, 0, 0, 0); // ignore time
 
     const start = startDate ? new Date(startDate) : today;
-    if (start < today) {
-      return res
-        .status(400)
-        .json({ message: "Start date cannot be in the past" });
-    }
-
     let calculatedEndDate;
+
     if (endDate) {
       calculatedEndDate = new Date(endDate);
-      if (calculatedEndDate < start) {
+
+      // stricter check: end must be AFTER start
+      if (calculatedEndDate <= start) {
         return res
           .status(400)
-          .json({ message: "End date cannot be before start date" });
+          .json({ message: "End date must be after start date" });
       }
+
       if (calculatedEndDate < today) {
         return res
           .status(400)
           .json({ message: "End date cannot be in the past" });
       }
     } else {
+      // auto-calculate endDate based on plan duration
       calculatedEndDate = new Date(start);
       switch (plan.durationType) {
         case "days":
@@ -174,6 +173,169 @@ exports.createMember = async (req, res) => {
         success: false,
         message: "Validation failed",
         errors: Object.values(error.errors).map((e) => e.message),
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+// Add this to your MemberController.js file
+
+exports.updateMember = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, startDate, endDate } = req.body;
+
+    // Validate member ID
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Member ID is required",
+      });
+    }
+
+    // Find the existing member
+    const existingMember = await Member.findById(id)
+      .populate("user", "firstName lastName email")
+      .populate("membershipPlan", "name price duration durationType");
+
+    if (!existingMember) {
+      return res.status(404).json({
+        success: false,
+        message: "Member not found",
+      });
+    }
+
+    // Prepare update object with only allowed fields
+    const updateData = {};
+
+    // Validate and add status if provided
+    if (status !== undefined) {
+      const validStatuses = ["active", "expired", "none", "pending"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status. Must be one of: ${validStatuses.join(
+            ", "
+          )}`,
+        });
+      }
+      updateData.status = status;
+    }
+
+    // Validate and add dates if provided
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (startDate !== undefined) {
+      const start = new Date(startDate);
+      if (isNaN(start.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid start date format",
+        });
+      }
+
+      // Allow past start dates for existing members (they might need to correct historical data)
+      updateData.startDate = start;
+    }
+
+    if (endDate !== undefined) {
+      const end = new Date(endDate);
+      if (isNaN(end.getTime())) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid end date format",
+        });
+      }
+
+      // Validate end date against start date
+      const finalStartDate = startDate
+        ? new Date(startDate)
+        : existingMember.startDate;
+      if (end <= finalStartDate) {
+        return res.status(400).json({
+          success: false,
+          message: "End date must be after start date",
+        });
+      }
+
+      updateData.endDate = end;
+    }
+
+    // Check if there's anything to update
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "No valid fields provided for update. You can only update: status, startDate, endDate",
+      });
+    }
+
+    // Update the member
+    const updatedMember = await Member.findByIdAndUpdate(id, updateData, {
+      new: true, // Return the updated document
+      runValidators: true, // Run schema validators
+    })
+      .populate("user", "firstName lastName email phone role")
+      .populate("membershipPlan", "name price duration durationType");
+
+    // Handle user role update based on status change
+    if (status !== undefined && existingMember.user) {
+      const user = await User.findById(existingMember.user._id);
+      if (user) {
+        if (status === "active") {
+          // Set user role to member when membership becomes active
+          if (user.role !== "member") {
+            user.role = "member";
+            await user.save();
+          }
+        } else if (status === "expired" || status === "none") {
+          // Check if user has other active memberships before changing role
+          const otherActiveMemberships = await Member.findOne({
+            user: user._id,
+            _id: { $ne: id }, // Exclude current membership
+            status: "active",
+            endDate: { $gte: new Date() },
+          });
+
+          // If no other active memberships, revert to user role
+          if (!otherActiveMemberships && user.role === "member") {
+            user.role = "user";
+            await user.save();
+          }
+        }
+      }
+    }
+
+    console.log("Updated member:", updatedMember.toJSON());
+
+    res.status(200).json({
+      success: true,
+      message: "Member updated successfully",
+      data: updatedMember,
+      updatedFields: Object.keys(updateData),
+    });
+  } catch (error) {
+    console.error("Error updating member:", error);
+
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: Object.values(error.errors).map((e) => e.message),
+      });
+    }
+
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid member ID format",
       });
     }
 
