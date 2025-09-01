@@ -37,9 +37,7 @@ const MemberSection = () => {
   const loadMembers = async () => {
     try {
       setLoading(true);
-      const response = await memberService.getAllMember(); // singular fn but hits /members
-      console.log("Full response:", response); // Add this
-      console.log("Response data:", response.data); // Add this
+      const response = await memberService.getAllMember();
       setMembers(response.data || []);
     } catch (error) {
       console.error("Error fetching members", error);
