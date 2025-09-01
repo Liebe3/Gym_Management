@@ -87,9 +87,7 @@ const MembersForm = ({
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        console.log("Fetching users...");
         const userResponse = await userService.getAllUser();
-        console.log("User Response:", userResponse);
         setUsers(userResponse?.data || []);
       } catch (error) {
         console.error("Error fetching users:", error);
@@ -102,10 +100,8 @@ const MembersForm = ({
   useEffect(() => {
     const fetchMemberShipPlans = async () => {
       try {
-        console.log("Fetching membership plans...");
         const memberShipPlansResponse =
           await membershipPlanService.getAllPlans();
-        console.log("Membership Plans Response:", memberShipPlansResponse);
         setMembershipPlans(memberShipPlansResponse?.data || []);
       } catch (error) {
         console.error("Error fetching membership plans:", error);
@@ -173,12 +169,9 @@ const MembersForm = ({
         autoRenew: form.autoRenew,
       };
 
-      console.log("Submitting data:", submitData);
-
       const result = await memberService.createMember(submitData);
 
       if (result.success) {
-        console.log("Member created successfully:", result.data);
         setForm(initialForm);
         setSelectedUserActivePlan(null);
         showSuccess("Member created successfully");
