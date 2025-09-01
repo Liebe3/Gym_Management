@@ -16,6 +16,15 @@ import {
 import userService from "../../../services/userService";
 import Loading from "../../../components/ui/Loading";
 
+// Available roles from your schema
+const availableRoles = [
+  { value: "all", label: "All Roles" },
+  { value: "admin", label: "Admin" },
+  { value: "trainer", label: "Trainer" },
+  { value: "member", label: "Member" },
+  { value: "user", label: "User" },
+];
+
 const UserSection = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -25,15 +34,8 @@ const UserSection = () => {
   const [debounceSearch, setDebounceSearch] = useState("");
   const [roleCounts, setRoleCounts] = useState({});
   const [pagination, setPagination] = useState({});
-
-  // Available roles from your schema
-  const availableRoles = [
-    { value: "all", label: "All Roles" },
-    { value: "admin", label: "Admin" },
-    { value: "trainer", label: "Trainer" },
-    { value: "member", label: "Member" },
-    { value: "user", label: "User" },
-  ];
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 10;
 
   const loadUsers = async (filters = {}) => {
     try {
@@ -44,11 +46,16 @@ const UserSection = () => {
       const currentFilters = {
         role: selectedRole,
         search: debounceSearch,
+        page: currentPage,
+        limit,
         ...filters,
       };
 
+      if (debounceSearch) {
+        currentFilters.search = debounceSearch; // only add search if not empty
+      }
+      
       const response = await userService.getAllUser(currentFilters);
-      console.log("Filtered response:", response);
 
       if (response.success) {
         setUsers(response.data || []);
@@ -86,8 +93,13 @@ const UserSection = () => {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      setDebounceSearch(searchTerm);
+      if (searchTerm.trim() !== "") {
+        setDebounceSearch(searchTerm);
+      } else {
+        setDebounceSearch(null); // avoid empty string search
+      }
     }, 500);
+
     return () => {
       clearTimeout(handler);
     };
@@ -96,7 +108,7 @@ const UserSection = () => {
   // Load users on component mount
   useEffect(() => {
     loadUsers();
-  }, [debounceSearch, selectedRole]);
+  }, [debounceSearch, selectedRole, currentPage]);
 
   if (loading)
     return (
@@ -170,7 +182,7 @@ const UserSection = () => {
                   type="text"
                   value={searchTerm}
                   onChange={(e) => handleSearch(e.target.value)}
-                  placeholder="Search by name or email..."
+                  placeholder="Search"
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 dark:bg-gray-800 dark:text-white transition-colors duration-200"
                 />
                 {searchTerm && (
@@ -241,34 +253,6 @@ const UserSection = () => {
                 })}
               </div>
             </div>
-
-            {/* Active filters summary */}
-            {hasActiveFilters && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg border border-emerald-200 dark:border-emerald-700"
-              >
-                <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="text-emerald-700 dark:text-emerald-400 font-medium">
-                    Active filters:
-                  </span>
-                  {selectedRole !== "all" && (
-                    <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-800 text-emerald-700 dark:text-emerald-300 rounded-md">
-                      Role: {selectedRole}
-                    </span>
-                  )}
-                  {searchTerm && (
-                    <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-800 text-emerald-700 dark:text-emerald-300 rounded-md">
-                      Search: "{searchTerm}"
-                    </span>
-                  )}
-                  <span className="text-emerald-600 dark:text-emerald-400">
-                    → {users.length} result{users.length !== 1 ? "s" : ""}
-                  </span>
-                </div>
-              </motion.div>
-            )}
           </motion.div>
         )}
 
@@ -426,12 +410,54 @@ const UserSection = () => {
 
             {/* Pagination (if you want to add it later) */}
             {pagination.totalPages > 1 && (
-              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                  <span>
-                    Page {pagination.currentPage} of {pagination.totalPages}
-                  </span>
-                  <span>{pagination.totalUsers} total users</span>
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Page {pagination.currentPage} of {pagination.totalPages} —{" "}
+                  {pagination.totalUsers} total users
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    disabled={!pagination.hasPrevPage}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      pagination.hasPrevPage
+                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                        : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Prev
+                  </button>
+
+                  {/* Numbered pages */}
+                  {Array.from(
+                    { length: pagination.totalPages },
+                    (_, i) => i + 1
+                  ).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 rounded-md text-sm ${
+                        currentPage === page
+                          ? "bg-emerald-600 text-white"
+                          : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+
+                  <button
+                    disabled={!pagination.hasNextPage}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      pagination.hasNextPage
+                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                        : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Next
+                  </button>
                 </div>
               </div>
             )}
