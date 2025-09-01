@@ -18,7 +18,6 @@ const userService = {
       const queryString = queryParams.toString();
       const endpoint = `/user${queryString ? `?${queryString}` : ""}`;
 
-      console.log("Fetching user with URL: ", endpoint);
       const response = await API.get(endpoint);
       return response.data;
     } catch (error) {
