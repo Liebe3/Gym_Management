@@ -2,20 +2,56 @@ const Member = require("../models/Member");
 const User = require("../models/User");
 const MembershipPlan = require("../models/MemberShipPlan");
 const Payment = require("../models/Payment");
+const createFilter = require("../utils/filters");
 
 exports.getAllMember = async (req, res) => {
   try {
-    // Fixed: Added population and changed response structure
-    const members = await Member.find()
+    const searchableFields = ["user.firstName", "user.lastName", "user.email"];
+    const filterableFields = {
+      status: "status",
+      membershipPlan: "membershipPlan",
+    };
+
+    const filter = createFilter.buildFilter(
+      req.query,
+      searchableFields,
+      filterableFields
+    );
+    const sort = createFilter.buildSort(req.query, { createdAt: -1 });
+    const { page, limit, skip } = createFilter.buildPagination(req.query);
+
+    // Get members with population
+    const members = await Member.find(filter)
       .populate("user", "firstName lastName email phone")
       .populate("membershipPlan", "name price duration durationType")
-      .sort({ createdAt: -1 });
+      .sort(sort)
+      .skip(skip)
+      .limit(limit);
 
-    res.status(200).json({
-      success: true,
-      data: members,
-      count: members.length,
-    });
+    const totalFiltered = await Member.countDocuments(filter);
+
+    // Build counts for status filter (without any existing filters)
+    const statusCounts = await createFilter.buildCounts(Member, "status");
+
+    // Build counts for membershipPlan filter (without any existing filters)
+    const membershipPlanCounts = await createFilter.buildCounts(
+      Member,
+      "membershipPlan"
+    );
+
+    // Use the buildResponse utility to create consistent response
+    const response = createFilter.buildResponse(
+      members,
+      { page, limit },
+      filter,
+      {
+        status: statusCounts,
+        membershipPlan: membershipPlanCounts,
+      },
+      totalFiltered
+    );
+
+    res.status(200).json(response);
   } catch (error) {
     console.error("Error fetching members:", error);
     res.status(500).json({
@@ -47,6 +83,10 @@ exports.createMember = async (req, res) => {
     const plan = await MembershipPlan.findById(membershipPlanId);
     if (!plan) {
       return res.status(404).json({ message: "Membership plan not found" });
+    }
+
+    if (!startDate) {
+      return res.status(400).json({ message: "Start date is required" });
     }
 
     const today = new Date();
