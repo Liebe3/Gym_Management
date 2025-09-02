@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { TbCurrencyPeso } from "react-icons/tb";
 import {
   FiEdit3,
   FiTrash2,
@@ -36,7 +37,7 @@ const MembershipPlansSection = () => {
     try {
       setLoading(true);
       const response = await membershipPlanService.getAllPlans();
-      setPlans(response.data|| []);
+      setPlans(response.data || []);
     } catch (error) {
       console.error("Error fetching membership plans:", error);
       setError("Failed to fetch membership plans.");
@@ -195,7 +196,7 @@ const MembershipPlansSection = () => {
                     </th>
                     <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
                       <div className="flex items-center">
-                        <FiDollarSign className="w-4 h-4 mr-2 text-emerald-600" />
+                        <TbCurrencyPeso className="w-4 h-4 mr-1 text-emerald-600" />
                         Price
                       </div>
                     </th>
@@ -242,7 +243,7 @@ const MembershipPlansSection = () => {
                         <td className="py-3 px-4">
                           <div className="flex items-center">
                             <div className="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 px-2 py-1 rounded-full font-semibold text-xs">
-                              ${plan.price}
+                              ₱{plan.price}
                             </div>
                           </div>
                         </td>
