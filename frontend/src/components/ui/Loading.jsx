@@ -18,7 +18,7 @@ function Loading() {
       <motion.div
         animate="pulse"
         transition={{ staggerChildren: -0.2, staggerDirection: -1 }}
-        className="container"
+        className="container m-auto"
       >
         <motion.div className="dot" variants={dotVariants} />
         <motion.div className="dot" variants={dotVariants} />
