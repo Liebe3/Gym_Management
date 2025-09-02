@@ -5,7 +5,6 @@ const VerifyAdmin = require("../middleware/VerifyAdmin");
 
 const { getAllUser } = require("../controllers/UserController");
 
-
 router.use(VerifyToken);
 router.use(VerifyAdmin);
 
