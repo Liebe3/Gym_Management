@@ -1,84 +1,42 @@
 const User = require("../models/User");
+const createFilter = require("../utils/filters");
 
 exports.getAllUser = async (req, res) => {
   try {
-    //get query params
-    const { role, search, sortBy, sortOrder, page, limit } = req.query;
+    const searchableFields = ["firstName", "lastName", "email"];
+    const filterableFields = {
+      role: "role",
+    };
 
-    const filter = {};
-
-    if (role && role !== "all") {
-      filter.role = role;
-    }
-
-    if (search) {
-      filter.$or = [
-        { firstName: { $regex: search, $options: "i" } },
-        { lastName: { $regex: search, $options: "i" } },
-        { email: { $regex: search, $options: "i" } },
-      ];
-    }
-
-    const sort = {};
-    if (sortBy) {
-      sort[sortBy] = sortOrder === "desc" ? -1 : 1;
-    } else {
-      sort.createdAt = -1;
-    }
-
-    const pageNum = parseInt(page) || 1;
-    const limitNum = parseInt(limit) || 100;
-    const skip = (pageNum - 1) * limitNum;
+    const filter = createFilter.buildFilter(
+      req.query,
+      searchableFields,
+      filterableFields
+    );
+    const sort = createFilter.buildSort(req.query, { createdAt: -1 });
+    const { page, limit, skip } = createFilter.buildPagination(req.query);
 
     const users = await User.find(filter)
       .sort(sort)
       .skip(skip)
-      .limit(limitNum)
+      .limit(limit)
       .select("-password");
 
-    const totalUsers = await User.countDocuments(filter);
-    const totalPages = Math.ceil(totalUsers / limitNum);
+    const totalFiltered = await User.countDocuments(filter);
 
-    const roleDistribution = await User.aggregate([
-      {
-        $group: {
-          _id: "$role",
-          count: { $sum: 1 },
-        },
-      },
-      { $sort: { _id: 1 } },
-    ]);
+    const counts = await createFilter.buildCounts(User, "role");
 
-    const roleCounts = roleDistribution.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {});
-
-    roleCounts.all = await User.countDocuments({});
-
-    res.status(200).json({
-      success: true,
-      data: users,
-      pagination: {
-        currentPage: pageNum,
-        totalPages,
-        totalUsers,
-        hasNextPage: pageNum < totalPages,
-        hasPrevPage: pageNum > 1,
-        limit: limitNum,
-      },
-      filter: {
-        applied: filter,
-        roleCounts,
-        totalFiltered: totalUsers,
-      },
-    });
+    res.json(
+      createFilter.buildResponse(
+        users,
+        { page, limit },
+        filter,
+        counts,
+        totalFiltered
+      )
+    );
   } catch (error) {
-    console.error("Erro fetching users", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch users",
-      error: error.message,
-    });
+    console.error("Error fetching users", error);
+    res.status(500).json({ message: "Failed to fetch users", error });
   }
 };
