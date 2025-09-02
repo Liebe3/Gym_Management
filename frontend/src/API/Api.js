@@ -16,13 +16,6 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-// export const getMembers = () => API.get("/members");
-// export const createMember = (newMember) => API.post("/members", newMember);
-// export const getMemberById = (id) => API.get(`/members/${id}`);
-// export const updateMember = (id, updatedMember) =>
-//   API.put(`/members/${id}`, updatedMember);
-// export const deleteMember = (id) => API.delete(`/members/${id}`);
-
 //Mebership Plans API
 export const getAllPlans = () => API.get("/membership-plans");
 export const createPlan = (newPlan) => API.post("/membership-plans", newPlan);
@@ -31,15 +24,15 @@ export const updatePlan = (id, updatedPlan) =>
 export const deletePlan = (id) => API.delete(`/membership-plans/${id}`);
 
 //user API
-export const getAllUser = () => API.get("/user")
-
+export const getAllUser = () => API.get("/user");
 
 //member API
 export const getAllMember = () => API.get("/member");
 export const createMember = (newMember) => API.post("/member", newMember);
-export const updateMember = (id, updateMember) => API.put(`/member/${id}`, updateMember); // Add this
-export const checkUserActiveMemberShip = (userId) => API.get(`/member/check-active/${userId}`)
-export const deletedMember = (id) => API.delete(`/member/${id}`)
-
+export const updateMember = (id, updateMember) =>
+  API.put(`/member/${id}`, updateMember); // Add this
+export const checkUserActiveMemberShip = (userId) =>
+  API.get(`/member/check-active/${userId}`);
+export const deletedMember = (id) => API.delete(`/member/${id}`);
 
 export default API;
