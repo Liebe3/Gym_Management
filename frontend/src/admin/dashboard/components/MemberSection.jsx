@@ -13,6 +13,9 @@ import {
   FiTrash2,
   FiPlus,
   FiMinusCircle,
+  FiSearch,
+  FiFilter,
+  FiX,
 } from "react-icons/fi";
 import memberService from "../../../services/memberService";
 import Loading from "../../../components/ui/Loading";
@@ -24,6 +27,15 @@ import {
   ShowWarning,
 } from "../../../pages/utils/Alert";
 
+// Fixed: Updated availableStatus to match your backend status values
+const availableStatus = [
+  { value: "all", label: "All Status" },
+  { value: "active", label: "Active" },
+  { value: "pending", label: "Pending" },
+  { value: "expired", label: "Expired" }, // Changed from "inactive" to "expired"
+  { value: "none", label: "None" },
+];
+
 const MemberSection = () => {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -33,12 +45,43 @@ const MemberSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMember, setSelectedMember] = useState(null);
 
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusCount, setStatusCount] = useState({});
+  const [pagination, setPagination] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 10;
+
   // Fetch members
   const loadMembers = async () => {
     try {
       setLoading(true);
-      const response = await memberService.getAllMember();
-      setMembers(response.data || []);
+      setError(null);
+
+      const filters = {
+        page: currentPage,
+        limit,
+      };
+
+      if (selectedStatus && selectedStatus !== "all") {
+        filters.status = selectedStatus;
+      }
+
+      if (debouncedSearch.trim()) {
+        filters.search = debouncedSearch.trim();
+      }
+
+      const response = await memberService.getAllMember(filters);
+
+      if (response.success) {
+        setMembers(response.data || []);
+        setPagination(response.pagination || {});
+        // Fixed: Access status counts correctly from the nested structure
+        setStatusCount(response.filter?.counts?.status || {});
+      } else {
+        setError(response.message || "Failed to fetch members");
+      }
     } catch (error) {
       console.error("Error fetching members", error);
       setError("Failed to fetch members");
@@ -49,7 +92,34 @@ const MemberSection = () => {
 
   useEffect(() => {
     loadMembers();
-  }, []);
+  }, [selectedStatus, debouncedSearch, currentPage]);
+
+  const handleStatusFilter = (status) => {
+    setSelectedStatus(status);
+    setCurrentPage(1);
+  };
+
+  const handleSearch = (search) => {
+    setSearchTerm(search);
+    setCurrentPage(1);
+  };
+
+  const clearFilters = () => {
+    setSelectedStatus("all");
+    setSearchTerm("");
+    setDebouncedSearch("");
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
 
   const hanldeOpenCreate = () => {
     setMode("create");
@@ -71,7 +141,7 @@ const MemberSection = () => {
         await loadMembers();
       }
     } catch (error) {
-      console.error("Error deleteing member", error);
+      console.error("Error deleting member", error);
       showError("Failed to delete the member");
     }
   };
@@ -79,6 +149,7 @@ const MemberSection = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setMode("create");
+    setSelectedMember(null); // Fixed: Clear selected member
   };
 
   const handleSuccess = () => {
@@ -93,6 +164,7 @@ const MemberSection = () => {
     }
     return new Date(dateString).toLocaleDateString();
   };
+
   if (loading)
     return (
       <div className="flex flex-col items-center justify-evenly">
@@ -122,6 +194,8 @@ const MemberSection = () => {
       </div>
     );
 
+  const hasActiveFilters = selectedStatus !== "all" || debouncedSearch !== "";
+
   return (
     <div className="w-full">
       <div className="max-w-full">
@@ -138,6 +212,100 @@ const MemberSection = () => {
           </p>
         </motion.div>
 
+        {/* Filter and Search Section */}
+        {Object.keys(statusCount).length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="mb-6 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6"
+          >
+            {/* Search Bar */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Search Members
+              </label>
+              <div className="relative">
+                <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  placeholder="Search"
+                  className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white transition-colors duration-200 outline-emerald-500"
+                />
+                {searchTerm && (
+                  <button
+                    onClick={() => handleSearch("")}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  >
+                    <FiX className="w-5 h-5 cursor-pointer" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Status Filter - Fixed the label and variable names */}
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <FiFilter className="w-5 h-5 text-emerald-600 mr-2" />
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Filter by Status
+                  </label>
+                </div>
+
+                {hasActiveFilters && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={clearFilters}
+                    className="flex items-center px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 text-sm cursor-pointer"
+                  >
+                    <FiX className="w-4 h-4 mr-1 cursor-pointer" />
+                    Clear All
+                  </motion.button>
+                )}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {availableStatus.map((status) => {
+                  // Fixed: Changed 'role' to 'status'
+                  const count = statusCount[status.value] || 0;
+                  const isSelected = selectedStatus === status.value;
+
+                  return (
+                    <motion.button
+                      key={status.value}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleStatusFilter(status.value)}
+                      className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 cursor-pointer ${
+                        isSelected
+                          ? "bg-emerald-600 text-white shadow-lg"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                      }`}
+                    >
+                      <span>{status.label}</span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                          isSelected
+                            ? "bg-white/20 text-white"
+                            : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                        }`}
+                      >
+                        {count}
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {/* No Members */}
         {members.length === 0 ? (
           <motion.div
@@ -146,19 +314,43 @@ const MemberSection = () => {
             className="text-center py-16 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700"
           >
             <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <FiUser className="w-8 h-8 text-gray-400" />
+              {hasActiveFilters ? (
+                <FiFilter className="w-8 h-8 text-gray-400" />
+              ) : (
+                <FiUser className="w-8 h-8 text-gray-400" />
+              )}
             </div>
-            <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">
-              No members available.
-            </p>
 
-            {/* create member button */}
-            <CreateMemberButon onClick={hanldeOpenCreate}>
-              <div className="flex items-center">
-                <FiPlus className="w-4 h-4 mr-2" />
-                Create Your First Member
-              </div>
-            </CreateMemberButon>
+            {hasActiveFilters ? (
+              <>
+                <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">
+                  No members match your filters
+                </p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mb-6">
+                  Try adjusting your search or status filter
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={clearFilters}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200"
+                >
+                  Clear Filters
+                </motion.button>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">
+                  No members available.
+                </p>
+                <CreateMemberButon onClick={hanldeOpenCreate}>
+                  <div className="flex items-center">
+                    <FiPlus className="w-4 h-4 mr-2" />
+                    Create Your First Member
+                  </div>
+                </CreateMemberButon>
+              </>
+            )}
           </motion.div>
         ) : (
           <motion.div
@@ -184,7 +376,13 @@ const MemberSection = () => {
                     <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
                       <div className="flex items-center">
                         <FiUser className="w-4 h-4 mr-2 text-emerald-600" />
-                        Name
+                        First name
+                      </div>
+                    </th>
+                    <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
+                      <div className="flex items-center">
+                        <FiUser className="w-4 h-4 mr-2 text-emerald-600" />
+                        Last name
                       </div>
                     </th>
                     <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
@@ -199,7 +397,6 @@ const MemberSection = () => {
                         Membership Plan
                       </div>
                     </th>
-
                     <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
                       <div className="flex items-center">
                         <FiCalendar className="w-4 h-4 mr-2 text-emerald-600" />
@@ -232,7 +429,12 @@ const MemberSection = () => {
                       >
                         <td className="py-3 px-4">
                           <div className="font-semibold text-gray-900 dark:text-white">
-                            {member.user?.firstName} {member.user?.lastName}
+                            {member.user?.firstName} 
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="font-semibold text-gray-900 dark:text-white">
+                            {member.user?.lastName}
                           </div>
                         </td>
                         <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
@@ -263,6 +465,11 @@ const MemberSection = () => {
                               <FiMinusCircle className="w-3 h-3 mr-1" />
                               <span className="hidden sm:inline">None</span>
                             </div>
+                          ) : member.status === "expired" ? (
+                            <div className="flex items-center bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 px-2 py-1 rounded-full text-xs font-medium">
+                              <FiXCircle className="w-3 h-3 mr-1" />
+                              <span className="hidden sm:inline">Expired</span>
+                            </div>
                           ) : (
                             <div className="flex items-center bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 px-2 py-1 rounded-full text-xs font-medium">
                               <FiXCircle className="w-3 h-3 mr-1" />
@@ -273,24 +480,22 @@ const MemberSection = () => {
 
                         <td className="py-3 px-4">
                           <div className="flex items-center space-x-1">
-                            {/* edit plan action */}
                             <motion.button
                               onClick={() => handleOpenEdit(member)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
-                              title="Edit Plan"
+                              title="Edit Member"
                             >
                               <FiEdit3 className="w-3 h-3" />
                             </motion.button>
 
-                            {/* delete plan action */}
                             <motion.button
                               onClick={() => handleDelete(member._id)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
-                              title="Delete Plan"
+                              title="Delete Member"
                             >
                               <FiTrash2 className="w-3 h-3" />
                             </motion.button>
@@ -302,18 +507,75 @@ const MemberSection = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Page {pagination.currentPage} of {pagination.totalPages} —{" "}
+                  {pagination.totalRecords} total members
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    disabled={!pagination.hasPrevPage}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      pagination.hasPrevPage
+                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 cursor-pointer"
+                        : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Prev
+                  </button>
+
+                  {/* Numbered pages */}
+                  {Array.from(
+                    { length: Math.min(pagination.totalPages, 5) },
+                    (_, i) => {
+                      const startPage = Math.max(1, currentPage - 2);
+                      return startPage + i;
+                    }
+                  )
+                    .filter((page) => page <= pagination.totalPages)
+                    .map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 rounded-md text-sm cursor-pointer ${
+                          currentPage === page
+                            ? "bg-emerald-600 text-white"
+                            : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                  <button
+                    disabled={!pagination.hasNextPage}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      pagination.hasNextPage
+                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 cursor-pointer"
+                        : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
-        {
-          <MemberModal
-            isModalOpen={isModalOpen}
-            mode={mode}
-            selectedMember={selectedMember}
-            handleCloseModal={handleCloseModal}
-            onSuccess={handleSuccess}
-          />
-        }
+        <MemberModal
+          isModalOpen={isModalOpen}
+          mode={mode}
+          selectedMember={selectedMember}
+          handleCloseModal={handleCloseModal}
+          onSuccess={handleSuccess}
+        />
       </div>
     </div>
   );
