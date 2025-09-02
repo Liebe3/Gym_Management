@@ -1,9 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiUser,
   FiMail,
-  FiPhone,
   FiEdit3,
   FiTrash2,
   FiPlus,
@@ -31,36 +30,41 @@ const UserSection = () => {
   const [error, setError] = useState(null);
   const [selectedRole, setSelectedRole] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
-  const [debounceSearch, setDebounceSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [roleCounts, setRoleCounts] = useState({});
   const [pagination, setPagination] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 10;
 
-  const loadUsers = async (filters = {}) => {
+  const hasMounted = useRef(false);
+
+  const loadUsers = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Merge current filters with new filters
-      const currentFilters = {
-        role: selectedRole,
-        search: debounceSearch,
+      // Build filters object with current state
+      const filters = {
         page: currentPage,
         limit,
-        ...filters,
       };
 
-      if (debounceSearch) {
-        currentFilters.search = debounceSearch; // only add search if not empty
+      // Only add role filter if not "all"
+      if (selectedRole && selectedRole !== "all") {
+        filters.role = selectedRole;
       }
 
-      const response = await userService.getAllUser(currentFilters);
+      // Only add search if not empty
+      if (debouncedSearch.trim()) {
+        filters.search = debouncedSearch.trim();
+      }
+
+      const response = await userService.getAllUser(filters);
 
       if (response.success) {
         setUsers(response.data || []);
         setPagination(response.pagination || {});
-        setRoleCounts(response.filter?.roleCounts || {});
+        setRoleCounts(response.filter?.counts || {});
       } else {
         setError(response.message || "Failed to fetch users");
       }
@@ -75,28 +79,27 @@ const UserSection = () => {
   // Handle role filter change
   const handleRoleFilter = (role) => {
     setSelectedRole(role);
-    loadUsers({ role });
+    setCurrentPage(1); // Reset to first page when filtering
   };
 
-  // Handle search with debouncing
+  // Handle search
   const handleSearch = (search) => {
     setSearchTerm(search);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   // Clear all filters
   const clearFilters = () => {
     setSelectedRole("all");
     setSearchTerm("");
-    setDebounceSearch(null); // ensure no search filter
+    setDebouncedSearch("");
+    setCurrentPage(1);
   };
 
+  // Handle search debouncing
   useEffect(() => {
     const handler = setTimeout(() => {
-      if (searchTerm.trim() !== "") {
-        setDebounceSearch(searchTerm);
-      } else {
-        setDebounceSearch(null); // avoid empty string search
-      }
+      setDebouncedSearch(searchTerm.trim());
     }, 500);
 
     return () => {
@@ -104,10 +107,20 @@ const UserSection = () => {
     };
   }, [searchTerm]);
 
-  // Load users on component mount
+  // Initial load on component mount
   useEffect(() => {
-    loadUsers();
-  }, [debounceSearch, selectedRole, currentPage]);
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      loadUsers();
+    }
+  }, []); // Empty dependency array - only runs on mount
+
+  // Load users when filters change (but not on initial mount)
+  useEffect(() => {
+    if (hasMounted.current) {
+      loadUsers();
+    }
+  }, [debouncedSearch, selectedRole, currentPage]);
 
   if (loading)
     return (
@@ -138,7 +151,7 @@ const UserSection = () => {
       </div>
     );
 
-  const hasActiveFilters = selectedRole !== "all" || searchTerm !== "";
+  const hasActiveFilters = selectedRole !== "all" || debouncedSearch !== "";
 
   return (
     <div className="w-full">
@@ -407,12 +420,12 @@ const UserSection = () => {
               </table>
             </div>
 
-            {/* Pagination (if you want to add it later) */}
+            {/* Pagination */}
             {pagination.totalPages > 1 && (
               <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
                 <div className="text-sm text-gray-500 dark:text-gray-400">
                   Page {pagination.currentPage} of {pagination.totalPages} —{" "}
-                  {pagination.totalUsers} total users
+                  {pagination.totalRecords} total users
                 </div>
 
                 <div className="flex items-center space-x-2">
@@ -421,7 +434,7 @@ const UserSection = () => {
                     onClick={() => setCurrentPage((prev) => prev - 1)}
                     className={`px-3 py-1 rounded-md text-sm ${
                       pagination.hasPrevPage
-                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 cursor-pointer"
                         : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
                     }`}
                   >
@@ -430,28 +443,33 @@ const UserSection = () => {
 
                   {/* Numbered pages */}
                   {Array.from(
-                    { length: pagination.totalPages },
-                    (_, i) => i + 1
-                  ).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`px-3 py-1 rounded-md text-sm ${
-                        currentPage === page
-                          ? "bg-emerald-600 text-white"
-                          : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
-                      }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                    { length: Math.min(pagination.totalPages, 5) },
+                    (_, i) => {
+                      const startPage = Math.max(1, currentPage - 2);
+                      return startPage + i;
+                    }
+                  )
+                    .filter((page) => page <= pagination.totalPages)
+                    .map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 rounded-md text-sm cursor-pointer ${
+                          currentPage === page
+                            ? "bg-emerald-600 text-white"
+                            : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
 
                   <button
                     disabled={!pagination.hasNextPage}
                     onClick={() => setCurrentPage((prev) => prev + 1)}
                     className={`px-3 py-1 rounded-md text-sm ${
                       pagination.hasNextPage
-                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 cursor-pointer"
                         : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
                     }`}
                   >
