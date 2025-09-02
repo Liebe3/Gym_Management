@@ -32,6 +32,38 @@ const MembersForm = ({
   const [selectedUserActivePlan, setSelectedUserActivePlan] = useState(null);
   const [checkingActivePlan, setCheckingActivePlan] = useState(false);
 
+
+  // --- Auto-calculate end date function ---
+  const calculateEndDate = (startDateValue, planId) => {
+    if (!startDateValue || !planId) return "";
+
+    const plan = membershipPlans.find((p) => p._id === planId);
+    if (!plan) return "";
+
+    const start = new Date(startDateValue);
+    let end = new Date(start);
+
+    switch (plan.durationType) {
+      case "days":
+        end.setDate(end.getDate() + plan.duration);
+        break;
+      case "weeks":
+        end.setDate(end.getDate() + plan.duration * 7);
+        break;
+      case "months":
+        end.setMonth(end.getMonth() + plan.duration);
+        break;
+      case "years":
+        end.setFullYear(end.getFullYear() + plan.duration);
+        break;
+      default:
+        break;
+    }
+
+    return end.toISOString().split("T")[0]; // YYYY-MM-DD
+  };
+
+  
   useEffect(() => {
     if (mode === formModes.Update && selectedMember) {
       setForm({
@@ -50,39 +82,6 @@ const MembersForm = ({
       setForm(initialForm);
     }
   }, [mode, selectedMember]);
-
-  // Fixed handleChange to properly handle checkboxes
-  const handleChange = (event) => {
-    const { name, value, type, checked } = event.target;
-    setForm({
-      ...form,
-      [name]: type === "checkbox" ? checked : value,
-    });
-
-    // Check for active plan when user is selected
-    if (name === "userId" && value && mode === formModes.Create) {
-      checkUserActivePlan(value);
-    } else if (name === "userId" && !value) {
-      setSelectedUserActivePlan(null);
-    }
-  };
-
-  // Function to check if selected user has an active membership
-  const checkUserActivePlan = async (userId) => {
-    if (!userId) return;
-
-    setCheckingActivePlan(true);
-    try {
-      const response = await memberService.checkUserActiveMembership(userId);
-      // Use the correct property from backend
-      setSelectedUserActivePlan(response.actviveMemberShip || null);
-    } catch (error) {
-      console.error("Error checking user active membership:", error);
-      setSelectedUserActivePlan(null);
-    } finally {
-      setCheckingActivePlan(false);
-    }
-  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -110,6 +109,50 @@ const MembersForm = ({
     fetchMemberShipPlans();
   }, []);
 
+  // Function to check if selected user has an active membership
+  const checkUserActivePlan = async (userId) => {
+    if (!userId) return;
+
+    setCheckingActivePlan(true);
+    try {
+      const response = await memberService.checkUserActiveMembership(userId);
+      // Use the correct property from backend
+      setSelectedUserActivePlan(response.actviveMemberShip || null);
+    } catch (error) {
+      console.error("Error checking user active membership:", error);
+      setSelectedUserActivePlan(null);
+    } finally {
+      setCheckingActivePlan(false);
+    }
+  };
+
+  const handleChange = (event) => {
+    const { name, value, type, checked } = event.target;
+
+    setForm((prev) => {
+      const updatedForm = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      };
+
+      // Auto-check end date if startDate or membershipPlanId changes
+      if (name === "startDate" || name === "membershipPlanId") {
+        updatedForm.endDate = calculateEndDate(
+          updatedForm.startDate,
+          updatedForm.membershipPlanId
+        );
+      }
+
+      return updatedForm;
+    });
+
+    // Check active plan when user is selected
+    if (name === "userId") {
+      if (value && mode === formModes.Create) checkUserActivePlan(value);
+      else setSelectedUserActivePlan(null);
+    }
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -129,7 +172,6 @@ const MembersForm = ({
       return;
     }
 
-    // Frontend validation for start/end dates
     // Frontend validation for start/end dates
     const today = new Date();
     today.setHours(0, 0, 0, 0); // ignore time
