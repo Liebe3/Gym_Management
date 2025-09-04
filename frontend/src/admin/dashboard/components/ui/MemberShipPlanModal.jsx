@@ -48,7 +48,7 @@ const MemberShipPlanModal = ({ isModalOpen, handleCloseModal, mode = "create", s
                   </div>
                   <button
                     onClick={handleCloseModal}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200"
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200 cursor-pointer"
                   >
                     <svg
                       className="w-6 h-6"
