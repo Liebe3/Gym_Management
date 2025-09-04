@@ -429,7 +429,7 @@ const MemberSection = () => {
                       >
                         <td className="py-3 px-4">
                           <div className="font-semibold text-gray-900 dark:text-white">
-                            {member.user?.firstName} 
+                            {member.user?.firstName}
                           </div>
                         </td>
                         <td className="py-3 px-4">
