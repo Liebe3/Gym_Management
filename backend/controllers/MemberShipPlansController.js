@@ -1,9 +1,44 @@
 const Plan = require("../models/MemberShipPlan");
+const createFilter = require("../utils/filters");
 
 exports.getAllPlans = async (req, res) => {
   try {
-    const plans = await Plan.find().sort({ createdAt: -1 }); // fetch plans
-    res.status(200).json({ success: true, data: plans}); // send response separately
+    const searchableFields = ["name", "description", "features"];
+    const filterableFields = {
+      status: "status",
+    };
+
+    // Build filter using your utility
+    const filter = createFilter.buildFilter(
+      req.query,
+      searchableFields,
+      filterableFields
+    );
+
+    // Build sort and pagination
+    const sort = createFilter.buildSort(req.query, { createdAt: -1 });
+    const { page, limit, skip } = createFilter.buildPagination(req.query);
+
+    // Query membership plans
+    const plans = await Plan.find(filter).sort(sort).skip(skip).limit(limit);
+
+    // Count total filtered results
+    const totalFiltered = await Plan.countDocuments(filter);
+
+    // Build status counts (this is crucial for your filter to show)
+    const statusCounts = await createFilter.buildCounts(Plan, "status");
+
+    // Build response
+    const response = createFilter.buildResponse(
+      plans,
+      { page, limit },
+      filter,
+      {
+        status: statusCounts,
+      },
+      totalFiltered
+    );
+    res.status(200).json(response);
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
