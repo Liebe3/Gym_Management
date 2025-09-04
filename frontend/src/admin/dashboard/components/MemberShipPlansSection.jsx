@@ -2,9 +2,12 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { TbCurrencyPeso } from "react-icons/tb";
 import {
+  FiUser,
+  FiSearch,
+  FiFilter,
+  FiX,
   FiEdit3,
   FiTrash2,
-  FiDollarSign,
   FiClock,
   FiCheckCircle,
   FiXCircle,
@@ -22,6 +25,12 @@ import {
 } from "../../../pages/utils/Alert";
 import Loading from "../../../components/ui/Loading";
 
+const availableStatus = [
+  { value: "all", label: "All Status" },
+  { value: "active", label: "Active" },
+  { value: "inactive", label: "Inactive" },
+];
+
 const MembershipPlansSection = () => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,12 +41,40 @@ const MembershipPlansSection = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mode, setMode] = useState("create");
 
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusCount, setStatusCount] = useState({});
+  const [pagination, setPagination] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const limit = 10;
   // Fetch membership plans
   const loadMembershipPlans = async () => {
     try {
       setLoading(true);
-      const response = await membershipPlanService.getAllPlans();
-      setPlans(response.data || []);
+      setError(null);
+
+      const filters = {
+        page: currentPage,
+        limit,
+      };
+
+      if (selectedStatus && selectedStatus !== "all") {
+        filters.status = selectedStatus;
+      }
+
+      if (debouncedSearch.trim()) {
+        filters.search = debouncedSearch.trim();
+      }
+
+      const response = await membershipPlanService.getAllPlans(filters);
+      if (response.success) {
+        setPlans(response.data || []);
+        setPagination(response.pagination || {});
+        setStatusCount(response.filter?.counts.status || {});
+      } else {
+        setError(response.message || "Failed to fetch membership plans.");
+      }
     } catch (error) {
       console.error("Error fetching membership plans:", error);
       setError("Failed to fetch membership plans.");
@@ -48,13 +85,40 @@ const MembershipPlansSection = () => {
 
   useEffect(() => {
     loadMembershipPlans();
-  }, []);
+  }, [selectedStatus, debouncedSearch, currentPage]);
 
   // Display features
   const displayFeatures = (features) => {
     if (!features || features.length === 0) return "No features listed";
     return Array.isArray(features) ? features.join(", ") : features;
   };
+
+  const handleStatusFilter = (status) => {
+    setSelectedStatus(status);
+    setCurrentPage(1); // Reset to first page on filter change
+  };
+
+  const handleSearch = (search) => {
+    setSearchTerm(search);
+    setCurrentPage(1); // Reset to first page on search change
+  };
+
+  const clearFilters = () => {
+    setSelectedStatus("all");
+    setSearchTerm("");
+    setDebouncedSearch("");
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
 
   // Open modal for creating plan
   const handleOpenCreate = () => {
@@ -124,6 +188,8 @@ const MembershipPlansSection = () => {
       </div>
     );
 
+  const hasActiveFilters = selectedStatus !== "all" || debouncedSearch !== "";
+
   return (
     <div className="w-full">
       <div className="max-w-full">
@@ -142,6 +208,99 @@ const MembershipPlansSection = () => {
           </p>
         </motion.div>
 
+        {/* Filter and Search Section */}
+
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="mb-6 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6"
+        >
+          {/* Search Bar */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Search Plans
+            </label>
+            <div className="relative">
+              <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search"
+                className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white transition-colors duration-200 outline-emerald-500"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => handleSearch("")}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                >
+                  <FiX className="w-5 h-5 cursor-pointer" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Status Filter - Fixed the label and variable names */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center">
+                <FiFilter className="w-5 h-5 text-emerald-600 mr-2" />
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Filter by Status
+                </label>
+              </div>
+
+              {hasActiveFilters && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={clearFilters}
+                  className="flex items-center px-3 py-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors duration-200 text-sm cursor-pointer"
+                >
+                  <FiX className="w-4 h-4 mr-1 cursor-pointer" />
+                  Clear All
+                </motion.button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {availableStatus.map((status) => {
+                // Fixed: Changed 'role' to 'status'
+                const count = statusCount[status.value] || 0;
+                const isSelected = selectedStatus === status.value;
+
+                return (
+                  <motion.button
+                    key={status.value}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => handleStatusFilter(status.value)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 cursor-pointer ${
+                      isSelected
+                        ? "bg-emerald-600 text-white shadow-lg"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                    }`}
+                  >
+                    <span>{status.label}</span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                        isSelected
+                          ? "bg-white/20 text-white"
+                          : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+
         {/* No plans */}
         {plans.length === 0 ? (
           <motion.div
@@ -150,18 +309,43 @@ const MembershipPlansSection = () => {
             className="text-center py-16 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700"
           >
             <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <FiStar className="w-8 h-8 text-gray-400" />
+              {hasActiveFilters ? (
+                <FiFilter className="w-8 h-8 text-gray-400" />
+              ) : (
+                <FiUser className="w-8 h-8 text-gray-400" />
+              )}
             </div>
-            <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">
-              No membership plans available.
-            </p>
-            {/* create plan button */}
-            <PlanButton onClick={handleOpenCreate}>
-              <div className="flex items-center">
-                <FiPlus className="w-4 h-4 mr-2" />
-                Create Your First Plan
-              </div>
-            </PlanButton>
+
+            {hasActiveFilters ? (
+              <>
+                <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">
+                  No membership plans match your filters
+                </p>
+                <p className="text-gray-400 dark:text-gray-500 text-sm mb-6">
+                  Try adjusting your search or status filter
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={clearFilters}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200"
+                >
+                  Clear Filters
+                </motion.button>
+              </>
+            ) : (
+              <>
+                <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">
+                  No membership plans available.
+                </p>
+                <PlanButton onClick={handleOpenCreate}>
+                  <div className="flex items-center">
+                    <FiPlus className="w-4 h-4 mr-2" />
+                    Create Your First Membership Plan
+                  </div>
+                </PlanButton>
+              </>
+            )}
           </motion.div>
         ) : (
           <motion.div
@@ -306,6 +490,65 @@ const MembershipPlansSection = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Pagination */}
+            {pagination.totalPages > 1 && (
+              <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  Page {pagination.currentPage} of {pagination.totalPages} —{" "}
+                  {pagination.totalRecords} total members
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <button
+                    disabled={!pagination.hasPrevPage}
+                    onClick={() => setCurrentPage((prev) => prev - 1)}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      pagination.hasPrevPage
+                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 cursor-pointer"
+                        : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Prev
+                  </button>
+
+                  {/* Numbered pages */}
+                  {Array.from(
+                    { length: Math.min(pagination.totalPages, 5) },
+                    (_, i) => {
+                      const startPage = Math.max(1, currentPage - 2);
+                      return startPage + i;
+                    }
+                  )
+                    .filter((page) => page <= pagination.totalPages)
+                    .map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setCurrentPage(page)}
+                        className={`px-3 py-1 rounded-md text-sm cursor-pointer ${
+                          currentPage === page
+                            ? "bg-emerald-600 text-white"
+                            : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                        }`}
+                      >
+                        {page}
+                      </button>
+                    ))}
+
+                  <button
+                    disabled={!pagination.hasNextPage}
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    className={`px-3 py-1 rounded-md text-sm ${
+                      pagination.hasNextPage
+                        ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 cursor-pointer"
+                        : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+                    }`}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
