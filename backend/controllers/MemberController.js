@@ -6,21 +6,42 @@ const createFilter = require("../utils/filters");
 
 exports.getAllMember = async (req, res) => {
   try {
-    const searchableFields = ["user.firstName", "user.lastName", "user.email"];
+    // Base filter from query (status, membershipPlan)
     const filterableFields = {
       status: "status",
       membershipPlan: "membershipPlan",
     };
 
-    const filter = createFilter.buildFilter(
+    // Leave searchableFields empty (we handle user manually)
+    const searchableFields = [];
+
+    let filter = createFilter.buildFilter(
       req.query,
       searchableFields,
       filterableFields
     );
+
+    // 🔍 Handle search against User collection
+    if (req.query.search) {
+      const users = await User.find({
+        $or: [
+          { firstName: { $regex: req.query.search, $options: "i" } },
+          { lastName: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+        ],
+      }).select("_id");
+
+      const userIds = users.map((user) => user._id);
+
+      //  Always set filter.user (if no match, force it to an impossible condition)
+      filter.user = { $in: userIds.length > 0 ? userIds : [null] };
+    }
+
+    // Sorting + pagination from utils
     const sort = createFilter.buildSort(req.query, { createdAt: -1 });
     const { page, limit, skip } = createFilter.buildPagination(req.query);
 
-    // Get members with population
+    // Query members
     const members = await Member.find(filter)
       .populate("user", "firstName lastName email phone")
       .populate("membershipPlan", "name price duration durationType")
@@ -28,18 +49,17 @@ exports.getAllMember = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
+    // Count filtered
     const totalFiltered = await Member.countDocuments(filter);
 
-    // Build counts for status filter (without any existing filters)
+    // Counts for filters (ignores applied filters)
     const statusCounts = await createFilter.buildCounts(Member, "status");
-
-    // Build counts for membershipPlan filter (without any existing filters)
     const membershipPlanCounts = await createFilter.buildCounts(
       Member,
       "membershipPlan"
     );
 
-    // Use the buildResponse utility to create consistent response
+    // Build response
     const response = createFilter.buildResponse(
       members,
       { page, limit },
