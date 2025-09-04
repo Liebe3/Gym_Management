@@ -32,7 +32,6 @@ const MembersForm = ({
   const [selectedUserActivePlan, setSelectedUserActivePlan] = useState(null);
   const [checkingActivePlan, setCheckingActivePlan] = useState(false);
 
-
   // --- Auto-calculate end date function ---
   const calculateEndDate = (startDateValue, planId) => {
     if (!startDateValue || !planId) return "";
@@ -63,7 +62,6 @@ const MembersForm = ({
     return end.toISOString().split("T")[0]; // YYYY-MM-DD
   };
 
-  
   useEffect(() => {
     if (mode === formModes.Update && selectedMember) {
       setForm({
@@ -375,9 +373,7 @@ const MembersForm = ({
               onChange={handleChange}
               required
               disabled={mode === formModes.Update} // Disable in update mode
-              className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 
-                     dark:border-gray-600 bg-white dark:bg-gray-900 
-                     text-gray-900 dark:text-white focus:outline-none 
+              className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none 
                       focus:ring-2 focus:ring-emerald-500 ${
                         mode === formModes.Update
                           ? "opacity-60 cursor-not-allowed"
@@ -424,7 +420,7 @@ const MembersForm = ({
               className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 
                      dark:border-gray-600 bg-white dark:bg-gray-900 
                      text-gray-900 dark:text-white focus:outline-none 
-                     focus:ring-2 focus:ring-emerald-500"
+                     focus:ring-2 focus:ring-emerald-500 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {mode === formModes.Create
@@ -446,7 +442,7 @@ const MembersForm = ({
               className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 
                      dark:border-gray-600 bg-white dark:bg-gray-900 
                      text-gray-900 dark:text-white focus:outline-none 
-                     focus:ring-2 focus:ring-emerald-500"
+                     focus:ring-2 focus:ring-emerald-500   [&::-webkit-calendar-picker-indicator]:text-amber-50  [&::-webkit-calendar-picker-indicator]:cursor-pointer "
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {mode === formModes.Create
@@ -536,7 +532,7 @@ const MembersForm = ({
             className="px-6 py-2 border border-gray-300 dark:border-gray-600 
                    text-gray-700 dark:text-gray-300 rounded-xl 
                    hover:bg-gray-50 dark:hover:bg-gray-800 
-                   transition duration-200"
+                   transition duration-200 cursor-pointer"
           >
             Reset
           </button>
@@ -550,7 +546,7 @@ const MembersForm = ({
             className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 
                    text-white rounded-xl font-medium shadow-lg 
                    transition duration-200 disabled:opacity-50 
-                   disabled:cursor-not-allowed"
+                   disabled:cursor-not-allowed cursor-pointer"
           >
             {loading
               ? mode === formModes.Create
