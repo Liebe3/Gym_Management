@@ -1,14 +1,48 @@
 import API from "../API/Api";
 
 const membershipPlanService = {
-  getAllPlans: async () => {
+  getAllPlans: async (filters = {}) => {
     try {
-      const response = await API.get("/membership-plans");
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== "" &&
+          value !== "all"
+        )
+          queryParams.append(key, value);
+      });
+
+      const queryString = queryParams.toString();
+      const endpoint = `/membership-plans${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      const response = await API.get(endpoint);
       return response.data;
     } catch (error) {
       console.error("Service error:", error);
       throw error;
     }
+  },
+
+  getMembershipPlans: async ({
+    status = null,
+    search = null,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    page = 1,
+    limit = 100,
+  }) => {
+    return membershipPlanService.getAllPlans({
+      status,
+      search,
+      sortBy,
+      sortOrder,
+      page,
+      limit,
+    });
   },
 
   createPlan: async (planData) => {
