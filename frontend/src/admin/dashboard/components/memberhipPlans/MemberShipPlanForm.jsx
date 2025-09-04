@@ -97,13 +97,13 @@ const MemberShipPlanForm = ({
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Price ($)
+              Price (₱)
             </label>
             <input
               value={form.price}
               type="number"
               name="price"
-              placeholder="29.99"
+              placeholder="999"
               required
               onChange={handleChange}
               className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -124,7 +124,7 @@ const MemberShipPlanForm = ({
               placeholder="1"
               required
               onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             />
           </div>
           <div>
@@ -136,7 +136,7 @@ const MemberShipPlanForm = ({
               name="durationType"
               onChange={handleChange}
               required
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
               <option value="days">Days</option>
               <option value="weeks">Weeks</option>
@@ -153,7 +153,7 @@ const MemberShipPlanForm = ({
               name="status"
               onChange={handleChange}
               required
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
@@ -202,13 +202,13 @@ const MemberShipPlanForm = ({
           <button
             type="button"
             onClick={() => setForm(initialForm)}
-            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition duration-200"
+            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition duration-200 cursor-pointer"
           >
             Reset
           </button>
           <button
             type="submit"
-            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow-lg transition duration-200"
+            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow-lg transition duration-200 cursor-pointer"
           >
             {mode === "create" ? "Create Plan" : "Update Plan"}
           </button>
