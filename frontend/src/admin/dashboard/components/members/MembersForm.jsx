@@ -97,10 +97,11 @@ const MembersForm = ({
   useEffect(() => {
     const fetchMemberShipPlans = async () => {
       try {
-        const memberShipPlansResponse =
-          await membershipPlanService.getAllPlans({
-            status: "active",   //get only the active plans
-          });
+        const memberShipPlansResponse = await membershipPlanService.getAllPlans(
+          {
+            status: "active", //get only the active plans
+          }
+        );
         setMembershipPlans(memberShipPlansResponse?.data || []);
       } catch (error) {
         console.error("Error fetching membership plans:", error);
@@ -117,7 +118,7 @@ const MembersForm = ({
     try {
       const response = await memberService.checkUserActiveMembership(userId);
       // Use the correct property from backend
-      setSelectedUserActivePlan(response.actviveMemberShip || null);
+      setSelectedUserActivePlan(response.existingMembership || null);
     } catch (error) {
       console.error("Error checking user active membership:", error);
       setSelectedUserActivePlan(null);
@@ -337,14 +338,16 @@ const MembersForm = ({
                   <FiAlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5 mr-2 flex-shrink-0" />
                   <div>
                     <p className="text-sm text-orange-800 dark:text-orange-200 font-medium">
-                      Active Membership Found
+                      Existing Membership Found
                     </p>
                     <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
-                      This user has an active{" "}
-                      {selectedUserActivePlan.membershipPlan?.name} plan until{" "}
-                      {new Date(
-                        selectedUserActivePlan.endDate
-                      ).toLocaleDateString()}
+                      This user already has a membership record (
+                      {selectedUserActivePlan.status}).
+                      {selectedUserActivePlan.status === "active"
+                        ? ` Active until ${new Date(
+                            selectedUserActivePlan.endDate
+                          ).toLocaleDateString()}.`
+                        : " This membership is inactive. Please update or reactivate it instead of creating a new one."}
                     </p>
                   </div>
                 </div>
