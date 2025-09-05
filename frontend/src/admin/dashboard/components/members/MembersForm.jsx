@@ -97,6 +97,7 @@ const MembersForm = ({
   useEffect(() => {
     const fetchMemberShipPlans = async () => {
       try {
+        setLoading(true);
         const memberShipPlansResponse = await membershipPlanService.getAllPlans(
           {
             status: "active", //get only the active plans
@@ -402,7 +403,7 @@ const MembersForm = ({
                 Membership plan cannot be changed when updating
               </p>
             )}
-            {membershipPlans.length === 0 && (
+            {!loading && membershipPlans.length === 0 && (
               <p className="text-xs text-red-500 mt-1">
                 No membership plans loaded. Check console for errors.
               </p>
