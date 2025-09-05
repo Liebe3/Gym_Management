@@ -105,6 +105,13 @@ exports.createMember = async (req, res) => {
       return res.status(404).json({ message: "Membership plan not found" });
     }
 
+    // Check if plan is active
+    if (plan.status !== "active") {
+      return res.status(400).json({
+        message: "Cannot assign inactive membership plan",
+      });
+    }
+
     if (!startDate) {
       return res.status(400).json({ message: "Start date is required" });
     }
@@ -157,11 +164,9 @@ exports.createMember = async (req, res) => {
       }
     }
 
-    // Fixed: Single check for existing active membership
+    // UPDATED: Check for ANY existing membership for this user
     const existingMember = await Member.findOne({
       user: userId,
-      status: { $in: ["active", "pending"] },
-      endDate: { $gte: new Date() },
     });
 
     if (existingMember) {
@@ -429,25 +434,24 @@ exports.checkUserActiveMemberShip = async (req, res) => {
     if (!userId) {
       return res.status(400).json({
         success: false,
-        message: "User ID is requred",
+        message: "User ID is required",
       });
     }
 
-    const actviveMemberShip = await Member.findOne({
+    // Check for ANY existing membership (any status)
+    const existingMembership = await Member.findOne({
       user: userId,
-      status: "active",
-      endDate: { $gte: new Date() },
     })
       .populate("user", "firstName lastName email")
       .populate("membershipPlan", "name price duration durationType");
 
     res.status(200).json({
       success: true,
-      actviveMemberShip: actviveMemberShip,
-      hasActiveMemberShip: !!actviveMemberShip,
+      existingMembership: existingMembership,
+      hasExistingMembership: !!existingMembership,
     });
   } catch (error) {
-    console.error("Error checking user active membership:", error);
+    console.error("Error checking user existing membership:", error);
     res.status(500).json({
       success: false,
       message: "Server error",
