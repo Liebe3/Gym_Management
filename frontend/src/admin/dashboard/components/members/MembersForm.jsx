@@ -98,7 +98,9 @@ const MembersForm = ({
     const fetchMemberShipPlans = async () => {
       try {
         const memberShipPlansResponse =
-          await membershipPlanService.getAllPlans();
+          await membershipPlanService.getAllPlans({
+            status: "active",   //get only the active plans
+          });
         setMembershipPlans(memberShipPlansResponse?.data || []);
       } catch (error) {
         console.error("Error fetching membership plans:", error);
