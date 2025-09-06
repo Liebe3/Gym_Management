@@ -51,6 +51,16 @@ const userService = {
       limit,
     });
   },
+
+  createUser: async (userData) => {
+    try {
+      const response = await API.post("/user", userData);
+      return response.data;
+    } catch (error) {
+      console.error("Service error", error);
+      throw error;
+    }
+  },
 };
 
 export default userService;
