@@ -25,6 +25,7 @@ export const deletePlan = (id) => API.delete(`/membership-plans/${id}`);
 
 //user API
 export const getAllUser = () => API.get("/user");
+export const createUser = (newUser) => API.post("/user", newUser)
 
 //member API
 export const getAllMember = () => API.get("/member");
