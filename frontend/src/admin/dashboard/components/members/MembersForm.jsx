@@ -85,7 +85,13 @@ const MembersForm = ({
     const fetchUser = async () => {
       try {
         const userResponse = await userService.getAllUser();
-        setUsers(userResponse?.data || []);
+        const allUsers = userResponse?.data || [];
+
+        // Filter out users with roles of 'trainer' or 'admin'
+        const filteredUsers = allUsers.filter(
+          (user) => user.role !== "trainer" && user.role !== "admin"
+        );
+        setUsers(filteredUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
       }
@@ -97,7 +103,6 @@ const MembersForm = ({
   useEffect(() => {
     const fetchMemberShipPlans = async () => {
       try {
-        setLoading(true);
         const memberShipPlansResponse = await membershipPlanService.getAllPlans(
           {
             status: "active", //get only the active plans
@@ -322,6 +327,13 @@ const MembersForm = ({
             {mode === formModes.Update && (
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 User cannot be changed when updating
+              </p>
+            )}
+
+            {/* Show info about filtered users */}
+            {users.length === 0 && (
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                No eligible users found (trainers and admins are excluded)
               </p>
             )}
 
