@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const bcrypt = require("bcryptjs");
 const createFilter = require("../utils/filters");
 
 exports.getAllUser = async (req, res) => {
@@ -50,11 +51,13 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ message: "Email already exist" });
     }
 
+    const hashedPassword = await bcrypt.hash(password, 10)
+
     const newUser = new User({
       firstName,
       lastName,
       email,
-      password,
+      password: hashedPassword,
       role,
     });
 
