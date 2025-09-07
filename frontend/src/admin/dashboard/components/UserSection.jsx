@@ -14,6 +14,8 @@ import {
 } from "react-icons/fi";
 import userService from "../../../services/userService";
 import Loading from "../../../components/ui/Loading";
+import CreateUserButton from "./ui/createUserButton";
+import UserModal from "../components/ui/UserModal";
 
 // Available roles from your schema
 const availableRoles = [
@@ -28,6 +30,11 @@ const UserSection = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [mode, setMode] = useState("create");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+
   const [selectedRole, setSelectedRole] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -121,6 +128,24 @@ const UserSection = () => {
       loadUsers();
     }
   }, [debouncedSearch, selectedRole, currentPage]);
+
+  const handleOpenCreate = () => {
+    setSelectedUser(null)
+    setMode("create");
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setMode("create");
+    setSelectedUser(null);
+  };
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+    loadUsers();
+  };
 
   if (loading)
     return (
@@ -302,12 +327,12 @@ const UserSection = () => {
                 <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">
                   No users available.
                 </p>
-                <button className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200">
+                <CreateUserButton onClick={handleOpenCreate} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200">
                   <div className="flex items-center">
                     <FiPlus className="w-4 h-4 mr-2" />
                     Create Your First User
                   </div>
-                </button>
+                </CreateUserButton>
               </>
             )}
           </motion.div>
@@ -318,7 +343,16 @@ const UserSection = () => {
             transition={{ delay: 0.3 }}
             className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden"
           >
-            {/* Table */}
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+              <CreateUserButton onClick={handleOpenCreate}>
+                <div className="flex items-center">
+                  <FiPlus className="w-4 h-4 mr-2" />
+                  Creat new User
+                </div>
+              </CreateUserButton>
+            </div>
+
+            {/* User Table */}
             <div className="overflow-x-auto">
               <table className="min-w-full">
                 <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -477,6 +511,14 @@ const UserSection = () => {
             )}
           </motion.div>
         )}
+
+        <UserModal
+          isModalOpen={isModalOpen}
+          mode={mode}
+          selectedUser={selectedUser}
+          handleCloseModal={handleCloseModal}
+          onSuccess={handleSuccess}
+        />
       </div>
     </div>
   );
