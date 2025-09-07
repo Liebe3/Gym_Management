@@ -7,7 +7,12 @@ export const AuthService = {
       const response = await API.post("/auth/register", userData);
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw {
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Error registering user",
+      };
     }
   },
 
@@ -21,7 +26,12 @@ export const AuthService = {
       }
       return response.data;
     } catch (error) {
-      throw error.response?.data || error.message;
+      throw {
+        message:
+          error.response?.data?.message ||
+          error.message ||
+          "Error loggin in user",
+      };
     }
   },
 
