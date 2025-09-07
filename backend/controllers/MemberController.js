@@ -352,7 +352,7 @@ exports.updateMember = async (req, res) => {
     if (status !== undefined && existingMember.user) {
       const user = await User.findById(existingMember.user._id);
       if (user) {
-        if (status === "active") {
+        if (status === "active" || status === "pending") {
           // Set user role to member when membership becomes active
           if (user.role !== "member") {
             user.role = "member";
