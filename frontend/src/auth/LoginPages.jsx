@@ -62,8 +62,7 @@ const LoginPage = () => {
         navigate(role === "admin" ? "/admin/dashboard" : "/login");
       }
     } catch (error) {
-      const errorMessage = error.response?.data.message || "Login failed";
-      showError(errorMessage);
+      showError(error.message);
     } finally {
       setLoading(false);
     }
