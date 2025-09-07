@@ -54,9 +54,7 @@ const RegisterPage = () => {
       setForm(initialFormState);
       navigate("/login");
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Error registering user";
-      showError(errorMessage);
+      showError(error.message);
     } finally {
       setLoading(false);
     }
