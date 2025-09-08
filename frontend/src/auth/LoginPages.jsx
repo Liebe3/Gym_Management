@@ -118,7 +118,7 @@ const LoginPage = () => {
               />
               <button
                 type="button"
-                className="absolute right-3 top-3 text-gray-600 dark:text-gray-400"
+                className="absolute right-3 top-3 text-gray-600 dark:text-gray-400 cursor-pointer"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
@@ -129,7 +129,7 @@ const LoginPage = () => {
           {/* Submit button */}
           <button
             type="submit"
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-medium shadow-lg transition duration-200"
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-xl font-medium shadow-lg transition duration-200 cursor-pointer"
           >
             Login
           </button>
