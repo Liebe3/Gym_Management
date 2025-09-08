@@ -4,9 +4,8 @@ import { useContext, useState } from "react";
 
 //libraries
 import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
-import { FaFacebook } from "react-icons/fa";
+import { FaFacebook, FaGithub } from "react-icons/fa";
 import { FcGoogle } from "react-icons/fc";
-import { FaGithub } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 
 //utilities
