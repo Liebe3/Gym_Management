@@ -1,29 +1,29 @@
-import { useState, useContext } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { useContext, useState } from "react";
 import { NavLink } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 
-import ThemeContext from "../../../pages/context/ThemeContext";
-import AuthContext from "../../../pages/context/AuthContext";
-import Loading from "../../../components/ui/Loading";
 import { useNavigate } from "react-router-dom";
+import Loading from "../../../components/ui/Loading";
+import AuthContext from "../../../pages/context/AuthContext";
+import ThemeContext from "../../../pages/context/ThemeContext";
 
 import {
-  MdDashboard,
-  MdPeople,
-  MdCardMembership,
-  MdList,
-  MdFitnessCenter,
-  MdPerson,
-  MdCalendarToday,
-  MdPayment,
   MdAnalytics,
-  MdSettings,
-  MdLogout,
+  MdCalendarToday,
+  MdCardMembership,
   MdChevronLeft,
   MdChevronRight,
+  MdDarkMode,
+  MdDashboard,
+  MdFitnessCenter,
   MdGroups,
   MdLightMode,
-  MdDarkMode,
+  MdList,
+  MdLogout,
+  MdPayment,
+  MdPeople,
+  MdPerson,
+  MdSettings,
 } from "react-icons/md";
 
 const iconMap = {
