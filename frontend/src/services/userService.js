@@ -61,6 +61,16 @@ const userService = {
       throw error;
     }
   },
+
+  deleteUser: async (userId) => {
+    try {
+      const reponse = await API.delete(`/user/${userId}`);
+      return reponse.data;
+    } catch (error) {
+      console.error("Service error", error);
+      throw error;
+    }
+  },
 };
 
 export default userService;
