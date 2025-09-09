@@ -1,4 +1,5 @@
 const User = require("../models/User");
+const Member = require("../models/Member");
 const bcrypt = require("bcryptjs");
 const createFilter = require("../utils/filters");
 
@@ -80,10 +81,12 @@ exports.deleteUser = async (req, res) => {
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
     }
+      //delete the user with membership 
+    await Member.deleteMany({ user: id });
 
     res
       .status(200)
-      .json({ success: true, message: "User delete successfully" });
+      .json({ success: true, message: "User and related memberships deleted" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
