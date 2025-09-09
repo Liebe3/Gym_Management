@@ -1,21 +1,26 @@
-import React, { useEffect, useState, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import {
-  FiUser,
-  FiMail,
-  FiEdit3,
-  FiTrash2,
-  FiPlus,
-  FiFilter,
-  FiX,
-  FiSearch,
   FiAlertCircle,
+  FiEdit3,
+  FiFilter,
+  FiMail,
+  FiPlus,
+  FiSearch,
   FiTag,
+  FiTrash2,
+  FiUser,
+  FiX,
 } from "react-icons/fi";
-import userService from "../../../services/userService";
 import Loading from "../../../components/ui/Loading";
-import CreateUserButton from "./ui/createUserButton";
+import {
+  showError,
+  showSuccess,
+  ShowWarning,
+} from "../../../pages/utils/Alert";
+import userService from "../../../services/userService";
 import UserModal from "../components/ui/UserModal";
+import CreateUserButton from "./ui/createUserButton";
 
 // Available roles from your schema
 const availableRoles = [
@@ -130,9 +135,23 @@ const UserSection = () => {
   }, [debouncedSearch, selectedRole, currentPage]);
 
   const handleOpenCreate = () => {
-    setSelectedUser(null)
+    setSelectedUser(null);
     setMode("create");
     setIsModalOpen(true);
+  };
+
+  const handleDelete = async (deleteId) => {
+    try {
+      const result = await ShowWarning("This action cannot be undone");
+      if (result.isConfirmed) {
+        await userService.deleteUser(deleteId);
+        showSuccess("Member has been deleted");
+        await loadUsers();
+      }
+    } catch (error) {
+      console.error("Error deleting member", error);
+      showError("Failed to delete the member");
+    }
   };
 
   const handleCloseModal = () => {
@@ -327,7 +346,10 @@ const UserSection = () => {
                 <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">
                   No users available.
                 </p>
-                <CreateUserButton onClick={handleOpenCreate} className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200">
+                <CreateUserButton
+                  onClick={handleOpenCreate}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200"
+                >
                   <div className="flex items-center">
                     <FiPlus className="w-4 h-4 mr-2" />
                     Create Your First User
@@ -435,6 +457,7 @@ const UserSection = () => {
 
                             {/* delete user action */}
                             <motion.button
+                              onClick={() => handleDelete(user._id)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
