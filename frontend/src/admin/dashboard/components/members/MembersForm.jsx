@@ -28,9 +28,14 @@ const MembersForm = ({
   const [form, setForm] = useState(initialForm);
   const [users, setUsers] = useState([]);
   const [membershipPlans, setMembershipPlans] = useState([]);
-  const [loading, setLoading] = useState(false);
+
   const [selectedUserActivePlan, setSelectedUserActivePlan] = useState(null);
   const [checkingActivePlan, setCheckingActivePlan] = useState(false);
+
+
+  const [loading, setLoading] = useState(false);
+  const [userLoading, setUserLoading] = useState(false);
+  const [planLoading, setPlanLoading ] = useState(false)
 
   // --- Auto-calculate end date function ---
   const calculateEndDate = (startDateValue, planId) => {
@@ -83,6 +88,7 @@ const MembersForm = ({
 
   useEffect(() => {
     const fetchUser = async () => {
+      setUserLoading(true);
       try {
         const userResponse = await userService.getAllUser();
         const allUsers = userResponse?.data || [];
@@ -94,6 +100,8 @@ const MembersForm = ({
         setUsers(filteredUsers);
       } catch (error) {
         console.error("Error fetching users:", error);
+      } finally {
+        setUserLoading(false);
       }
     };
 
@@ -102,6 +110,7 @@ const MembersForm = ({
 
   useEffect(() => {
     const fetchMemberShipPlans = async () => {
+      setPlanLoading(true);
       try {
         const memberShipPlansResponse = await membershipPlanService.getAllPlans(
           {
@@ -111,6 +120,8 @@ const MembersForm = ({
         setMembershipPlans(memberShipPlansResponse?.data || []);
       } catch (error) {
         console.error("Error fetching membership plans:", error);
+      } finally {
+        setPlanLoading(false);
       }
     };
     fetchMemberShipPlans();
@@ -242,8 +253,30 @@ const MembersForm = ({
     }
   };
 
+  // reset form
+  const handleReset = () => {
+    if (mode === formModes.Create) {
+      setForm(initialForm);
+      setSelectedUserActivePlan(null);
+    } else if (selectedMember) {
+      setForm({
+        userId: selectedMember.user?._id || "",
+        membershipPlanId: selectedMember.membershipPlan?._id || "",
+        startDate: selectedMember.startDate
+          ? new Date(selectedMember.startDate).toISOString().split("T")[0]
+          : "",
+        endDate: selectedMember.endDate
+          ? new Date(selectedMember.endDate).toISOString().split("T")[0]
+          : "",
+        status: selectedMember.status || "pending",
+        autoRenew: selectedMember.autoRenew || false,
+      });
+    }
+  };
+
   //update member
   const handleUpdateMember = async (event) => {
+    event.preventDefault();
     if (!selectedMember) {
       showError("No member selected for update");
       return;
@@ -274,7 +307,7 @@ const MembersForm = ({
       );
 
       if (result.success) {
-        showSuccess("Member updated Successfully");
+        showSuccess("Member updated successfully");
         if (onSuccess) onSuccess();
       } else {
         showError(result.message || "Error updating member");
@@ -306,14 +339,9 @@ const MembersForm = ({
               onChange={handleChange}
               required
               disabled={mode === formModes.Update} // Disable in update mode
-              className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 
-                     dark:border-gray-600 bg-white dark:bg-gray-900 
-                     text-gray-900 dark:text-white focus:outline-none 
-                     focus:ring-2 focus:ring-emerald-500 ${
-                       mode === formModes.Update
-                         ? "opacity-60 cursor-not-allowed"
-                         : ""
-                     }`}
+              className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                mode === formModes.Update ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             >
               <option value="">Select a user</option>
               {Array.isArray(users) &&
@@ -331,7 +359,7 @@ const MembersForm = ({
             )}
 
             {/* Show info about filtered users */}
-            {users.length === 0 && (
+            {!userLoading && users.length === 0 && (
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 No eligible users found (trainers and admins are excluded)
               </p>
@@ -415,9 +443,9 @@ const MembersForm = ({
                 Membership plan cannot be changed when updating
               </p>
             )}
-            {!loading && membershipPlans.length === 0 && (
+            {!planLoading && membershipPlans.length === 0 && (
               <p className="text-xs text-red-500 mt-1">
-                No membership plans loaded. Check console for errors.
+                No membership plans loaded.
               </p>
             )}
           </div>
@@ -435,10 +463,7 @@ const MembersForm = ({
               name="startDate"
               value={form.startDate}
               onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 
-                     dark:border-gray-600 bg-white dark:bg-gray-900 
-                     text-gray-900 dark:text-white focus:outline-none 
-                     focus:ring-2 focus:ring-emerald-500 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300  dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {mode === formModes.Create
@@ -457,10 +482,7 @@ const MembersForm = ({
               name="endDate"
               value={form.endDate}
               onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 
-                     dark:border-gray-600 bg-white dark:bg-gray-900 
-                     text-gray-900 dark:text-white focus:outline-none 
-                     focus:ring-2 focus:ring-emerald-500   [&::-webkit-calendar-picker-indicator]:text-amber-50  [&::-webkit-calendar-picker-indicator]:cursor-pointer "
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300  dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500   [&::-webkit-calendar-picker-indicator]:text-amber-50  [&::-webkit-calendar-picker-indicator]:cursor-pointer "
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {mode === formModes.Create
@@ -481,10 +503,7 @@ const MembersForm = ({
               name="status"
               value={form.status}
               onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 
-                     dark:border-gray-600 bg-white dark:bg-gray-900 
-                     text-gray-900 dark:text-white focus:outline-none 
-                     focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300  dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="pending">Pending</option>
               <option value="active">Active</option>
@@ -501,12 +520,9 @@ const MembersForm = ({
               checked={form.autoRenew}
               onChange={handleChange}
               disabled={mode === formModes.Update} // Disable in update mode
-              className={`h-4 w-4 text-emerald-600 focus:ring-emerald-500 
-                     border-gray-300 rounded ${
-                       mode === formModes.Update
-                         ? "opacity-60 cursor-not-allowed"
-                         : ""
-                     }`}
+              className={`h-4 w-4 text-emerald-600 focus:ring-emerald-500  border-gray-300 rounded ${
+                mode === formModes.Update ? "opacity-60 cursor-not-allowed" : ""
+              }`}
             />
             <label
               htmlFor="autoRenew"
@@ -521,36 +537,8 @@ const MembersForm = ({
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <button
             type="button"
-            onClick={() => {
-              if (mode === formModes.Create) {
-                setForm(initialForm);
-                setSelectedUserActivePlan(null);
-              } else {
-                // Reset to original member data in update mode
-                if (selectedMember) {
-                  setForm({
-                    userId: selectedMember.user?._id || "",
-                    membershipPlanId: selectedMember.membershipPlan?._id || "",
-                    startDate: selectedMember.startDate
-                      ? new Date(selectedMember.startDate)
-                          .toISOString()
-                          .split("T")[0]
-                      : "",
-                    endDate: selectedMember.endDate
-                      ? new Date(selectedMember.endDate)
-                          .toISOString()
-                          .split("T")[0]
-                      : "",
-                    status: selectedMember.status || "pending",
-                    autoRenew: selectedMember.autoRenew || false,
-                  });
-                }
-              }
-            }}
-            className="px-6 py-2 border border-gray-300 dark:border-gray-600 
-                   text-gray-700 dark:text-gray-300 rounded-xl 
-                   hover:bg-gray-50 dark:hover:bg-gray-800 
-                   transition duration-200 cursor-pointer"
+            onClick={handleReset}
+            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl  hover:bg-gray-50 dark:hover:bg-gray-800  transition duration-200 cursor-pointer"
           >
             Reset
           </button>
@@ -561,10 +549,7 @@ const MembersForm = ({
               (mode === formModes.Create &&
                 (selectedUserActivePlan || checkingActivePlan))
             }
-            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 
-                   text-white rounded-xl font-medium shadow-lg 
-                   transition duration-200 disabled:opacity-50 
-                   disabled:cursor-not-allowed cursor-pointer"
+            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700  text-white rounded-xl font-medium shadow-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading
               ? mode === formModes.Create
