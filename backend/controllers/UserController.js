@@ -73,6 +73,123 @@ exports.createUser = async (req, res) => {
   }
 };
 
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, email, password } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Member Id is required",
+      });
+    }
+
+    // Validate email format if provided
+    //  uncomment if the code is working and not need testing
+    // if (email) {
+    //   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    //   if (!emailRegex.test(email)) {
+    //     return res.status(400).json({
+    //       success: false,
+    //       message: "Please provide a valid email address",
+    //     });
+    //   }
+    // }
+
+    if (email) {
+      const existingUser = await User.findOne({ email, _id: { $ne: id } });
+      if (existingUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Email is already in use",
+        });
+      }
+    }
+
+    // Validate password requirements if provided
+    if (password) {
+      if (password.length < 8) {
+        return res.status(400).json({
+          success: false,
+          message: "Password must be at least 8 characters long",
+        });
+      }
+
+      // Optional: Add more password complexity requirements
+      // uncomment if the code is working and not need testing
+      // const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/;
+      // if (!passwordRegex.test(password)) {
+      //   return res.status(400).json({
+      //     success: false,
+      //     message: "Password must contain at least one uppercase letter, one lowercase letter, and one number",
+      //   });
+      // }
+    }
+
+    const isFirstNameEmpty = firstName && firstName.trim().length === 0;
+    if (isFirstNameEmpty) {
+      return res.status(400).json({
+        success: false,
+        message: "First name cannot be empty",
+      });
+    }
+
+    const isLastNameEmpty = lastName && lastName.trim().length === 0;
+    if (isLastNameEmpty) {
+      return res.status(400).json({
+        success: false,
+        message: "Last name cannot be empty",
+      });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Update fields only if they are provided
+    if (firstName) {
+      user.firstName = firstName;
+    }
+    if (lastName) {
+      user.lastName = lastName;
+    }
+    if (email) {
+      user.email = email;
+    }
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      user.password = hashedPassword;
+    }
+
+    await user.save();
+
+    const userResponse = {
+      id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+    };
+
+    res.status(200).json({
+      success: true,
+      message: "User updated successfully.",
+      data: userResponse,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -81,7 +198,7 @@ exports.deleteUser = async (req, res) => {
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
     }
-      //delete the user with membership 
+    //delete the user with membership
     await Member.deleteMany({ user: id });
 
     res
