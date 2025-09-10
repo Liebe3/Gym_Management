@@ -62,6 +62,16 @@ const userService = {
     }
   },
 
+  updateUser: async (userId, updateData) => {
+    try {
+      const response = await API.put(`/user/${userId}`, updateData);
+      return response.data;
+    } catch (error) {
+      console.error("Service error", error);
+      throw error;
+    }
+  },
+
   deleteUser: async (userId) => {
     try {
       const reponse = await API.delete(`/user/${userId}`);
