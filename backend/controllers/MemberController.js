@@ -376,8 +376,6 @@ exports.updateMember = async (req, res) => {
       }
     }
 
-    console.log("Updated member:", updatedMember.toJSON());
-
     res.status(200).json({
       success: true,
       message: "Member updated successfully",
