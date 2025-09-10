@@ -140,6 +140,12 @@ const UserSection = () => {
     setIsModalOpen(true);
   };
 
+  const handleOpenEdit = (user) => {
+    setMode("update")
+    setIsModalOpen(true)
+    setSelectedUser(user)
+  }
+
   const handleDelete = async (deleteId) => {
     try {
       const result = await ShowWarning("This action cannot be undone");
@@ -447,6 +453,7 @@ const UserSection = () => {
                           <div className="flex items-center space-x-1">
                             {/* edit user action */}
                             <motion.button
+                            onClick={() => handleOpenEdit(user)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
