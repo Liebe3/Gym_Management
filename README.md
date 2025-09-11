@@ -36,7 +36,7 @@ cd frontend && npm install
 
 ---
 
-### 2 Create the .env file
+### 2️⃣ Create the .env file
 Inside **backend/** create a `.env` file:
 ```bash
 MONGO_URI=your_mongodb_connection_string
@@ -52,7 +52,7 @@ npm run dev
 
 ---
 
-# Start frontend
+### 3️⃣ Start frontend
 cd frontend
 npm start
 
