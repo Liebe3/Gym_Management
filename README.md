@@ -32,21 +32,25 @@ git clone https://github.com/Liebe3/Gym_Management.git
 cd Gym_Management
 cd backend && npm install
 cd frontend && npm install
+```
 
 ---
 
-```
 ### 2 Create the .env file
 Inside **backend/** create a `.env` file:
 ```bash
 MONGO_URI=your_mongodb_connection_string
 PORT=5000
-
 ```
+
+---
+
 ### 3️⃣ Run the app
 # Start backend
 cd backend
 npm run dev
+
+---
 
 # Start frontend
 cd frontend
