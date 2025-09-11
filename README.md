@@ -54,7 +54,7 @@ npm run dev
 
 ### 3️⃣ Start frontend
 cd frontend
-npm start
+npm run dev
 
 
 
