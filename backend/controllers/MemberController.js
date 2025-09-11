@@ -252,7 +252,7 @@ exports.createMember = async (req, res) => {
 exports.updateMember = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, startDate, endDate } = req.body;
+    const { status, startDate, endDate, membershipPlanId } = req.body;
 
     // Validate member ID
     if (!id) {
@@ -276,6 +276,27 @@ exports.updateMember = async (req, res) => {
 
     // Prepare update object with only allowed fields
     const updateData = {};
+
+    // Validate and add membershipPlanId if provided
+    if (membershipPlanId !== undefined) {
+      const plan = await MembershipPlan.findById(membershipPlanId);
+      if (!plan) {
+        return res.status(404).json({
+          success: false,
+          message: "Membership plan not found",
+        });
+      }
+
+      // Check if plan is active
+      if (plan.status !== "active") {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot assign inactive membership plan",
+        });
+      }
+
+      updateData.membershipPlan = membershipPlanId;
+    }
 
     // Validate and add status if provided
     if (status !== undefined) {
