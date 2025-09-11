@@ -32,10 +32,9 @@ const MembersForm = ({
   const [selectedUserActivePlan, setSelectedUserActivePlan] = useState(null);
   const [checkingActivePlan, setCheckingActivePlan] = useState(false);
 
-
   const [loading, setLoading] = useState(false);
   const [userLoading, setUserLoading] = useState(false);
-  const [planLoading, setPlanLoading ] = useState(false)
+  const [planLoading, setPlanLoading] = useState(false);
 
   // --- Auto-calculate end date function ---
   const calculateEndDate = (startDateValue, planId) => {
@@ -299,6 +298,7 @@ const MembersForm = ({
         status: form.status,
         startDate: form.startDate,
         endDate: form.endDate,
+        membershipPlanId: form.membershipPlanId,
       };
 
       const result = await memberService.updateMember(
@@ -313,7 +313,7 @@ const MembersForm = ({
         showError(result.message || "Error updating member");
       }
     } catch (error) {
-      if (error.response?.data?.messge) {
+      if (error.response?.data?.message) {
         showError(error.response.data.message);
       } else {
         showError("Failed to update member");
@@ -418,13 +418,7 @@ const MembersForm = ({
               value={form.membershipPlanId}
               onChange={handleChange}
               required
-              disabled={mode === formModes.Update} // Disable in update mode
-              className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none 
-                      focus:ring-2 focus:ring-emerald-500 ${
-                        mode === formModes.Update
-                          ? "opacity-60 cursor-not-allowed"
-                          : ""
-                      }`}
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="">Select a plan</option>
               {Array.isArray(membershipPlans) && membershipPlans.length > 0 ? (
@@ -438,11 +432,6 @@ const MembersForm = ({
                 <option disabled>No plans available</option>
               )}
             </select>
-            {mode === formModes.Update && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                Membership plan cannot be changed when updating
-              </p>
-            )}
             {!planLoading && membershipPlans.length === 0 && (
               <p className="text-xs text-red-500 mt-1">
                 No membership plans loaded.
