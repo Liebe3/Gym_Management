@@ -50,6 +50,7 @@ PORT=5000
 cd backend
 npm run dev
 
+
 # Start frontend
 cd frontend
 npm run dev
