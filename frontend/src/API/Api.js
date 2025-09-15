@@ -16,26 +16,4 @@ API.interceptors.request.use((req) => {
   return req;
 });
 
-//Mebership Plans API
-export const getAllPlans = () => API.get("/membership-plans");
-export const createPlan = (newPlan) => API.post("/membership-plans", newPlan);
-export const updatePlan = (id, updatedPlan) =>
-  API.put(`/membership-plans/${id}`, updatedPlan);
-export const deletePlan = (id) => API.delete(`/membership-plans/${id}`);
-
-//user API
-export const getAllUser = () => API.get("/user");
-export const createUser = (newUser) => API.post("/user", newUser);
-export const updateUser = (id, updatedUser) => API.put(`/user/${id}`, updatedUser)
-export const deleteUser = (id) => API.delete(`/user/${id}`);
-
-//member API
-export const getAllMember = () => API.get("/member");
-export const createMember = (newMember) => API.post("/member", newMember);
-export const updateMember = (id, updateMember) =>
-  API.put(`/member/${id}`, updateMember); // Add this
-export const checkUserActiveMemberShip = (userId) =>
-  API.get(`/member/check-active/${userId}`);
-export const deletedMember = (id) => API.delete(`/member/${id}`);
-
 export default API;
