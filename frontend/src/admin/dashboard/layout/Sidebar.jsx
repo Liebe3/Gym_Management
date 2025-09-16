@@ -45,7 +45,7 @@ const sidebarLinks = [
   { name: "Dashboard", href: "/admin", icon: "dashboard" },
   { name: "Member", href: "/admin/member", icon: "groups" },
   { name: "User", href: "/admin/user", icon: "people" },
-  { name: "Trainers", href: "/admin/trainers", icon: "fitness_center" },
+  { name: "Trainer", href: "/admin/trainer", icon: "fitness_center" },
   { name: "Memberships", href: "/admin/memberships", icon: "card_membership" },
   {
     name: "Membership Plans",
