@@ -2,83 +2,22 @@ const Member = require("../models/Member");
 const User = require("../models/User");
 const MembershipPlan = require("../models/MemberShipPlan");
 const Payment = require("../models/Payment");
-const createFilter = require("../utils/filters");
+const { getAll } = require("./BaseController");
 
 exports.getAllMember = async (req, res) => {
-  try {
-    // Base filter from query (status, membershipPlan)
-    const filterableFields = {
-      status: "status",
-      membershipPlan: "membershipPlan",
-    };
-
-    // Leave searchableFields empty (we handle user manually)
-    const searchableFields = [];
-
-    let filter = createFilter.buildFilter(
-      req.query,
-      searchableFields,
-      filterableFields
-    );
-
-    // 🔍 Handle search against User collection
-    if (req.query.search) {
-      const users = await User.find({
-        $or: [
-          { firstName: { $regex: req.query.search, $options: "i" } },
-          { lastName: { $regex: req.query.search, $options: "i" } },
-          { email: { $regex: req.query.search, $options: "i" } },
-        ],
-      }).select("_id");
-
-      const userIds = users.map((user) => user._id);
-
-      //  Always set filter.user (if no match, force it to an impossible condition)
-      filter.user = { $in: userIds.length > 0 ? userIds : [null] };
-    }
-
-    // Sorting + pagination from utils
-    const sort = createFilter.buildSort(req.query, { createdAt: -1 });
-    const { page, limit, skip } = createFilter.buildPagination(req.query);
-
-    // Query members
-    const members = await Member.find(filter)
-      .populate("user", "firstName lastName email phone")
-      .populate("membershipPlan", "name price duration durationType")
-      .sort(sort)
-      .skip(skip)
-      .limit(limit);
-
-    // Count filtered
-    const totalFiltered = await Member.countDocuments(filter);
-
-    // Counts for filters (ignores applied filters)
-    const statusCounts = await createFilter.buildCounts(Member, "status");
-    const membershipPlanCounts = await createFilter.buildCounts(
-      Member,
-      "membershipPlan"
-    );
-
-    // Build response
-    const response = createFilter.buildResponse(
-      members,
-      { page, limit },
-      filter,
-      {
-        status: statusCounts,
-        membershipPlan: membershipPlanCounts,
-      },
-      totalFiltered
-    );
-
-    res.status(200).json(response);
-  } catch (error) {
-    console.error("Error fetching members:", error);
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
+  return getAll(Member, req, res, {
+    filterableFields: { status: "status", membershipPlan: "membershipPlan" },
+    populate: [
+      { path: "user", select: "firstName lastName email phone" },
+      { path: "membershipPlan", select: "name price duration durationType" },
+    ],
+    countableFields: ["status", "membershipPlan"],
+    customSearch: {
+      model: User,
+      fields: ["firstName", "lastName", "email"],
+      key: "user",
+    },
+  });
 };
 
 exports.createMember = async (req, res) => {
