@@ -44,7 +44,7 @@ const trainerSchema = new mongoose.Schema(
       default: 0,
     },
 
-    employmentStatus: {
+    status: {
       type: String,
       enum: ["active", "inactive", "on_leave", "terminated"],
       default: "active",
@@ -149,7 +149,7 @@ trainerSchema.index({ user: 1 });
 trainerSchema.index({ totalClients: 1 });
 trainerSchema.index({ activeClients: 1 });
 trainerSchema.index({ specializations: 1 });
-trainerSchema.index({ employmentStatus: 1 });
+trainerSchema.index({ status: 1 });
 trainerSchema.index({ workSchedule: 1 });
 
 module.exports = mongoose.model("Trainer", trainerSchema);
