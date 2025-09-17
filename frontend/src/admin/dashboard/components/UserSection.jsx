@@ -224,6 +224,7 @@ const UserSection = () => {
             </div>
           </div>
         </motion.div>
+        
         {/* Filter and Search Section */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
