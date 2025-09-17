@@ -1,32 +1,35 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import { FiAlertCircle } from "react-icons/fi";
+import Loading from "../../../components/ui/Loading";
 import {
-  FiCalendar,
-  FiMail,
-  FiStar,
-  FiTag,
-  FiUser,
-  FiUsers,
-  FiAlertCircle
-} from "react-icons/fi";
+  showError,
+  showSuccess,
+  ShowWarning,
+} from "../../../pages/utils/Alert";
 import trainerService from "../../../services/trainerService";
 import TrainerFilter from "./trainer/TrainerFilter";
-import TrainerRow from "./trainer/TrainerRow";
-import Loading from "../../../components/ui/Loading";
+import TrainerTable from "./trainer/TrainerTable";
+import TrainerModal from "./ui/TrainerModal";
 
 const TrainerSection = () => {
   const [trainers, setTrainers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Filter and search states
+  const [mode, setMode] = useState("create");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTrainer, setSelectedTrainer] = useState(null);
+
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusCount, setStatusCount] = useState({});
   const [pagination, setPagination] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 10;
 
+  // Load trainers with filters
   const loadTrainers = async () => {
     try {
       setLoading(true);
@@ -37,15 +40,16 @@ const TrainerSection = () => {
         limit,
       };
 
-      if (selectedStatus && selectedStatus !== "all") {
+      if (selectedStatus !== "all") {
         filters.status = selectedStatus;
       }
 
-      if (searchTerm.trim()) {
-        filters.search = searchTerm.trim();
+      if (debouncedSearch.trim()) {
+        filters.search = debouncedSearch.trim();
       }
 
       const response = await trainerService.getAllTrainer(filters);
+
       if (response.success) {
         setTrainers(response.data || []);
         setPagination(response.pagination || {});
@@ -54,50 +58,102 @@ const TrainerSection = () => {
         setError(response.message || "Failed to fetch trainers");
       }
     } catch (error) {
-      console.error("Error fetching trainers", error);
-      setError("Failede to fetch trainers");
+      console.error("Error fetching trainers:", error);
+      setError("Failed to fetch trainers");
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadTrainers();
-  }, [selectedStatus, searchTerm, currentPage]);
-
-  // Filter and search handlers
+  // Handle status filter change
   const handleStatusFilter = (status) => {
     setSelectedStatus(status);
     setCurrentPage(1);
   };
 
+  // Handle search
   const handleSearch = (search) => {
     setSearchTerm(search);
     setCurrentPage(1);
   };
 
+  // Clear all filters
   const clearFilters = () => {
     setSelectedStatus("all");
     setSearchTerm("");
+    setDebouncedSearch("");
     setCurrentPage(1);
   };
 
-  if (loading)
+  // Handle search debouncing
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim());
+    }, 500);
+
+    return () => clearTimeout(handler);
+  }, [searchTerm]);
+
+  // Load trainers when dependencies change
+  useEffect(() => {
+    loadTrainers();
+  }, [debouncedSearch, selectedStatus, currentPage]);
+
+  const handleOpenCreate = () => {
+    setSelectedTrainer(null);
+    setMode("create");
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (trainerId) => {
+    setMode("update");
+    setIsModalOpen(true);
+    setSelectedTrainer(trainerId);
+  };
+
+  const handleDelete = async (trainerId) => {
+    try {
+      const result = await ShowWarning("This action cannot be undone");
+      if (result.isConfirmed) {
+        await trainerService.deleteTrainer(trainerId);
+        showSuccess("Trainer has been deleted");
+        await loadTrainers();
+      }
+    } catch (error) {
+      console.error("Error deleting trainer:", error);
+      showError("Failed to delete the trainer");
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setMode("create");
+    setSelectedTrainer(null);
+  };
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    setSelectedTrainer(null);
+    loadTrainers();
+  };
+
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-evenly">
         <p className="text-emerald-600 font-bold text-xl tracking-wide animate-pulse mt-5">
-          Fetching members...
+          Fetching trainers...
         </p>
         <p className="text-gray-500 dark:text-gray-400 text-sm">
-          Please wait while we load the available members
+          Please wait while we load the available trainers
         </p>
         <div className="mt-[-100px]">
           <Loading />
         </div>
       </div>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <div className="flex items-center justify-center py-12">
         <motion.div
@@ -110,10 +166,14 @@ const TrainerSection = () => {
         </motion.div>
       </div>
     );
+  }
+
+  const hasActiveFilters = selectedStatus !== "all" || debouncedSearch !== "";
 
   return (
     <div className="w-full">
       <div className="max-w-full">
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -126,88 +186,37 @@ const TrainerSection = () => {
           </p>
         </motion.div>
 
-        {/* Filter and Search Section */}
-        <div>
-          <TrainerFilter
-            selectedStatus={selectedStatus}
-            handleStatusFilter={handleStatusFilter}
-            searchTerm={searchTerm}
-            handleSearch={handleSearch}
-            clearFilters={clearFilters}
-            statusCount={statusCount}
-          />
-        </div>
+        {/* Filter */}
+        <TrainerFilter
+          selectedStatus={selectedStatus}
+          handleStatusFilter={handleStatusFilter}
+          searchTerm={searchTerm}
+          handleSearch={handleSearch}
+          clearFilters={clearFilters}
+          statusCount={statusCount}
+        />
 
-        {/* Trainers Table */}
-        <div className="overflow-x-auto">
-          <div className="max-h-[500px] overflow-y-auto border border-gray-200 dark:border-gray-700 rounded-lg">
-            <table className="min-w-full">
-              <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-                <tr>
-                  <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                    <div className="flex items-center">
-                      <FiUser className="w-4 h-4 mr-2 text-emerald-600" />
-                      First Name
-                    </div>
-                  </th>
-                  <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                    <div className="flex items-center">
-                      <FiUser className="w-4 h-4 mr-2 text-emerald-600" />
-                      Last Name
-                    </div>
-                  </th>
-                  <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                    <div className="flex items-center">
-                      <FiMail className="w-4 h-4 mr-2 text-emerald-600" />
-                      Email
-                    </div>
-                  </th>
-                  <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden md:table-cell">
-                    <div className="flex items-center">
-                      <FiTag className="w-4 h-4 mr-2 text-emerald-600" />
-                      Specializations
-                    </div>
-                  </th>
-                  <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
-                    <div className="flex items-center">
-                      <FiStar className="w-4 h-4 mr-2 text-emerald-600" />
-                      Rating
-                    </div>
-                  </th>
-                  <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
-                    <div className="flex items-center">
-                      <FiUsers className="w-4 h-4 mr-2 text-emerald-600" />
-                      Clients
-                    </div>
-                  </th>
-                  <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                    Status
-                  </th>
-                  <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden xl:table-cell">
-                    <div className="flex items-center">
-                      <FiCalendar className="w-4 h-4 mr-2 text-emerald-600" />
-                      Schedule
-                    </div>
-                  </th>
-                  <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <AnimatePresence>
-                  {trainers.map((trainer, index) => (
-                    <TrainerRow
-                      key={trainer._id}
-                      trainer={trainer}
-                      index={index}
-                    />
-                  ))}
-                </AnimatePresence>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        {/* Table */}
+        <TrainerTable
+          trainers={trainers}
+          onEdit={handleOpenEdit}
+          onDelete={handleDelete}
+          handleOpenCreate={handleOpenCreate}
+          hasActiveFilters={hasActiveFilters}
+          clearFilters={clearFilters}
+          pagination={pagination}
+          currentPage={currentPage}
+          setCurrentPage={setCurrentPage}
+        />
+
+        {/* Modal */}
+        <TrainerModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          mode={mode}
+          trainerId={selectedTrainer}
+          onSuccess={handleSuccess}
+        />
       </div>
     </div>
   );
