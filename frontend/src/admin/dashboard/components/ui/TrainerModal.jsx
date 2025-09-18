@@ -43,7 +43,7 @@ const TrainerModal = ({
           >
             <Dialog.Panel className="w-full max-w-4xl max-h-[90vh] overflow-auto rounded-xl bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-700">
               {/* Modal Header */}
-              <div className="sticky top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-xl flex items-center justify-between">
+              <div className="sticky z-10 top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-xl flex items-center justify-between">
                 <Dialog.Title className="text-2xl font-bold text-emerald-600">
                   {mode === formModes.Create ? "Create Trainer" : "Update Trainer"}
                 </Dialog.Title>
