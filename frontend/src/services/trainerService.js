@@ -23,31 +23,53 @@ const trainerService = {
     }
   },
 
-  getTrainerbyStatus: async (status) => {
-    return trainerService.getAllTrainer({ status });
+  createTrainer: async (trainerData) => {
+    try {
+      const response = await API.post("/trainer", trainerData);
+      return response.data;
+    } catch (error) {
+      console.error("Service Error", error);
+      throw error;
+    }
   },
 
-  searchTrainer: async (searchTerm) => {
-    return trainerService.getAllTrainer({ search: searchTerm });
+   // Get trainer by ID
+  getTrainerById: async (trainerId) => {
+    try {
+      const response = await API.get(`/trainer/${trainerId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Get trainer by ID service error", error);
+      throw error;
+    }
   },
 
-  getFilteredTrainers: async ({
-    status = null,
-    search = null,
-    sortBy = "createdAt",
-    sortOrder = "desc",
-    page = 1,
-    limit = 100,
-  }) => {
-    return trainerService.getAllTrainer({
-      status,
-      search,
-      sortBy,
-      sortOrder,
-      page,
-      limit,
-    });
-  },
+
+  // getTrainerbyStatus: async (status) => {
+  //   return trainerService.getAllTrainer({ status });
+  // },
+
+  // searchTrainer: async (searchTerm) => {
+  //   return trainerService.getAllTrainer({ search: searchTerm });
+  // },
+
+  // getFilteredTrainers: async ({
+  //   status = null,
+  //   search = null,
+  //   sortBy = "createdAt",
+  //   sortOrder = "desc",
+  //   page = 1,
+  //   limit = 100,
+  // }) => {
+  //   return trainerService.getAllTrainer({
+  //     status,
+  //     search,
+  //     sortBy,
+  //     sortOrder,
+  //     page,
+  //     limit,
+  //   });
+  // },
 };
 
 export default trainerService;
