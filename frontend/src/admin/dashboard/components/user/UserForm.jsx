@@ -45,7 +45,10 @@ const UserForm = ({ selectedUser, onSuccess, mode = formModes.Create }) => {
       setForm(initialForm);
       if (onSuccess) onSuccess();
     } catch (error) {
-      const errorMessage = error?.message || "Failed to create user";
+      const errorMessage =
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to create user";
       console.error("Error details", error);
       showError(errorMessage);
     } finally {
