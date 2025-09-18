@@ -13,41 +13,20 @@ const trainerSchema = new mongoose.Schema(
       enum: ["male", "female", "other"],
     },
 
-    specializations: [
-      {
-        type: String,
-        enum: [
-          "weight_training",
-          "cardio",
-          "yoga",
-          "pilates",
-          "crossfit",
-          "bodybuilding",
-          "powerlifting",
-          "functional_training",
-          "zumba",
-          "martial_arts",
-          "swimming",
-          "personal_training",
-          "group_fitness",
-          "nutrition",
-          "rehabilitation",
-          "sports_specific",
-          "other",
-        ],
-      },
-    ],
-
-    experience: {
-      type: Number, // years of experience
-      min: 0,
-      default: 0,
-    },
-
     status: {
       type: String,
       enum: ["active", "inactive", "on_leave", "terminated"],
       default: "active",
+    },
+
+    specializations: [
+      { type: String, trim: true, minlength: 2, maxlength: 50 },
+    ],
+
+    experience: {
+      type: Number,
+      min: 0,
+      default: 0,
     },
 
     workSchedule: {
@@ -88,14 +67,6 @@ const trainerSchema = new mongoose.Schema(
       },
     },
 
-    // Performance & Metrics
-    rating: {
-      type: Number,
-      min: 0,
-      max: 5,
-      default: 0,
-    },
-
     totalClients: {
       type: Number,
       default: 0,
@@ -109,18 +80,6 @@ const trainerSchema = new mongoose.Schema(
     totalSessions: {
       type: Number,
       default: 0,
-    },
-
-    // Media & Profile
-    profileImage: {
-      type: String, // URL to image
-    },
-
-    socialMedia: {
-      instagram: String,
-      facebook: String,
-      twitter: String,
-      linkedin: String,
     },
 
     isAvailableForNewClients: {
@@ -151,5 +110,11 @@ trainerSchema.index({ activeClients: 1 });
 trainerSchema.index({ specializations: 1 });
 trainerSchema.index({ status: 1 });
 trainerSchema.index({ workSchedule: 1 });
+
+// Virtual for calculating availability status
+trainerSchema.virtual("availabilityStatus").get(function () {
+  if (this.status !== "active") return "unavailable";
+  return this.isAvailableForNewClients ? "available" : "busy";
+});
 
 module.exports = mongoose.model("Trainer", trainerSchema);
