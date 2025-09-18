@@ -4,12 +4,13 @@ import {
   FiEdit3,
   FiFilter,
   FiMail,
-  FiStar,
+  FiPlus,
   FiTag,
   FiTrash2,
   FiUser,
   FiUsers,
 } from "react-icons/fi";
+import { MdEventAvailable } from "react-icons/md";
 import CreateTrainerButton from "../ui/CreateTrainerButton";
 import StatusBadge from "./StatusBadge";
 import WorkSchedule from "./WorkSchedule";
@@ -63,7 +64,10 @@ const TrainerTable = ({
               No trainers available.
             </p>
             <CreateTrainerButton onClick={handleOpenCreate}>
-              <div className="flex items-center">Create Your First Trainer</div>
+              <div className="flex items-center">
+                <FiPlus className="w-4 h-4 mr-2" />
+                Create Your First Trainer
+              </div>
             </CreateTrainerButton>
           </>
         )}
@@ -80,7 +84,10 @@ const TrainerTable = ({
     >
       <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <CreateTrainerButton onClick={handleOpenCreate}>
-          <div className="flex items-center">Create New Trainer</div>
+          <div className="flex items-center">
+            <FiPlus className="w-4 h-4 mr-2" />
+            Create New Trainer
+          </div>
         </CreateTrainerButton>
       </div>
 
@@ -115,8 +122,8 @@ const TrainerTable = ({
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
                 <div className="flex items-center">
-                  <FiStar className="w-4 h-4 mr-2 text-emerald-600" />
-                  Rating
+                  <MdEventAvailable className="w-4 h-4 mr-2 text-emerald-600" />
+                  Availability
                 </div>
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
@@ -180,19 +187,14 @@ const TrainerTable = ({
                       )}
                     </div>
                   </td>
-                  <td className="py-3 px-4 hidden lg:table-cell text-gray-600 dark:text-gray-400">
-                    <div className="flex items-center">
-                      {trainer.rating && trainer.rating > 0 ? (
-                        <>
-                          <span className="text-yellow-500">★</span>
-                          <span className="ml-1">
-                            {trainer.rating.toFixed(1)}
-                          </span>
-                        </>
+                  <td className="py-3 px-4 hidden lg:table-cell">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
+                      {trainer.isAvailableForNewClients ? (
+                        <span className="text-emerald-700">Available</span>
                       ) : (
-                        <span>No rating</span>
+                        <span className="text-red-700">Not Available</span>
                       )}
-                    </div>
+                    </span>
                   </td>
                   <td className="py-3 px-4 hidden lg:table-cell">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300">
