@@ -1,6 +1,29 @@
 import { motion } from "framer-motion";
 import { FiClock } from "react-icons/fi";
 
+// 12-hour format with AM/PM
+const formatTime = (time24) => {
+  if (!time24) return "";
+  const [hourStr, minute] = time24.split(":");
+  let hour = parseInt(hourStr, 10);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  return `${hour}:${minute} ${ampm}`;
+};
+
+// start and end time validation
+const isEndTimeValid = (start, end) => {
+  if (!start || !end) return true;
+
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+
+  const startMinutes = sh * 60 + sm;
+  const endMinutes = eh * 60 + em;
+
+  return endMinutes > startMinutes;
+};
+
 const WorkScheduleInput = ({ value, onChange }) => {
   const handleWorkScheduleChange = (day, field, newValue) => {
     onChange({
@@ -53,11 +76,11 @@ const WorkScheduleInput = ({ value, onChange }) => {
                     <input
                       type="checkbox"
                       checked={schedule.isWorking}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         handleWorkScheduleChange(
                           day,
                           "isWorking",
-                          e.target.checked
+                          event.target.checked
                         )
                       }
                       className="sr-only peer"
@@ -72,8 +95,8 @@ const WorkScheduleInput = ({ value, onChange }) => {
                 {schedule.isWorking ? (
                   <div className="space-y-3">
                     <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                      {schedule.startTime || "00:00"} –{" "}
-                      {schedule.endTime || "00:00"}
+                      {formatTime(schedule.startTime) || "12:00 AM"} –
+                      {formatTime(schedule.endTime) || "12:00 AM"}
                     </p>
                     <div className="grid grid-cols-2 gap-3">
                       <div>
@@ -82,12 +105,12 @@ const WorkScheduleInput = ({ value, onChange }) => {
                         </label>
                         <input
                           type="time"
-                          value={schedule.startTime}
-                          onChange={(e) =>
+                          value={schedule.startTime || "9:00"}
+                          onChange={(event) =>
                             handleWorkScheduleChange(
                               day,
                               "startTime",
-                              e.target.value
+                              event.target.value
                             )
                           }
                           className="w-full text-sm border rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white"
@@ -99,22 +122,37 @@ const WorkScheduleInput = ({ value, onChange }) => {
                         </label>
                         <input
                           type="time"
-                          value={schedule.endTime}
-                          onChange={(e) =>
+                          value={schedule.endTime || ""}
+                          onChange={(event) =>
                             handleWorkScheduleChange(
                               day,
                               "endTime",
-                              e.target.value
+                              event.target.value
                             )
                           }
-                          className="w-full text-sm border rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white"
+                          className={`w-full text-sm border rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white ${
+                            !isEndTimeValid(
+                              schedule.startTime,
+                              schedule.endTime
+                            )
+                              ? "border-red-500"
+                              : ""
+                          }`}
                         />
+                        {!isEndTimeValid(
+                          schedule.startTime,
+                          schedule.endTime
+                        ) && (
+                          <p className="text-xs text-red-500 mt-1">
+                            End time must be later than start time
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
                 ) : (
                   <p className="text-center text-xs text-gray-500 italic">
-                    Day Off
+                    r Day Off
                   </p>
                 )}
               </motion.div>
