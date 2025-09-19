@@ -76,7 +76,7 @@ const UserSection = () => {
       if (response.success) {
         setUsers(response.data || []);
         setPagination(response.pagination || {});
-        setRoleCounts(response.filter?.counts || {});
+        setRoleCounts(response.filter?.counts?.role || {});
       } else {
         setError(response.message || "Failed to fetch users");
       }
@@ -141,10 +141,10 @@ const UserSection = () => {
   };
 
   const handleOpenEdit = (user) => {
-    setMode("update")
-    setIsModalOpen(true)
-    setSelectedUser(user)
-  }
+    setMode("update");
+    setIsModalOpen(true);
+    setSelectedUser(user);
+  };
 
   const handleDelete = async (deleteId) => {
     try {
@@ -224,7 +224,7 @@ const UserSection = () => {
             </div>
           </div>
         </motion.div>
-        
+
         {/* Filter and Search Section */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -454,7 +454,7 @@ const UserSection = () => {
                           <div className="flex items-center space-x-1">
                             {/* edit user action */}
                             <motion.button
-                            onClick={() => handleOpenEdit(user)}
+                              onClick={() => handleOpenEdit(user)}
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
