@@ -25,32 +25,6 @@ const memberService = {
     }
   },
 
-  getMemberbyStatus: async (status) => {
-    return memberService.getAllMember({ status });
-  },
-
-  searchMember: async (searchTerm) => {
-    return memberService.getAllMember({ search: searchTerm });
-  },
-
-  getFilteredMembers: async ({
-    status = null,
-    search = null,
-    sortBy = "createdAt",
-    sortOrder = "desc",
-    page = 1,
-    limit = 100,
-  }) => {
-    return memberService.getAllMember({
-      status,
-      search,
-      sortBy,
-      sortOrder,
-      page,
-      limit,
-    });
-  },
-
   createMember: async (memberData) => {
     try {
       const response = await API.post("/member", memberData);
