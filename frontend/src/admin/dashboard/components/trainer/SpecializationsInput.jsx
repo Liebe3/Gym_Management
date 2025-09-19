@@ -1,42 +1,44 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
 import { showError } from "../../../../pages/utils/Alert";
-import { useState } from "react";
 
 const SpecializationsInput = ({ value = [], onChange }) => {
   const [newSpecialization, setNewSpecialization] = useState("");
 
-  const handleAdd = () => {
-    const trimmed = newSpecialization.trim();
+  const handleAddSpecialization = () => {
+    const trimmedSpecialization = newSpecialization.trim();
 
-    if (!trimmed) return;
+    if (!trimmedSpecialization) return;
 
     // validation
-    if (trimmed.length < 2) {
+    if (trimmedSpecialization.length < 2) {
       showError("Specialization must be at least 2 characters long");
       return;
     }
-    if (trimmed.length > 50) {
+    if (trimmedSpecialization.length > 50) {
       showError("Specialization must be less than 50 characters");
       return;
     }
-    if (value.includes(trimmed)) {
+    if (value.includes(trimmedSpecialization)) {
       showError("This specialization already exists");
       return;
     }
 
-    onChange([...value, trimmed]);
+    onChange([...value, trimmedSpecialization]);
     setNewSpecialization("");
   };
 
-  const handleRemove = (spec) => {
-    onChange(value.filter((s) => s !== spec));
+  const handleRemoveSpecialization = (specializations) => {
+    onChange(
+      value.filter((specialization) => specialization !== specializations)
+    );
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleAdd();
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      handleAddSpecialization();
     }
   };
 
@@ -51,7 +53,7 @@ const SpecializationsInput = ({ value = [], onChange }) => {
         <input
           type="text"
           value={newSpecialization}
-          onChange={(e) => setNewSpecialization(e.target.value)}
+          onChange={(event) => setNewSpecialization(event.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Enter specialization (e.g., Yoga, Strength)"
           className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white outline-emerald-500"
@@ -59,7 +61,7 @@ const SpecializationsInput = ({ value = [], onChange }) => {
         />
         <motion.button
           type="button"
-          onClick={handleAdd}
+          onClick={handleAddSpecialization}
           disabled={!newSpecialization.trim()}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -76,17 +78,17 @@ const SpecializationsInput = ({ value = [], onChange }) => {
             Current specializations ({value.length}):
           </p>
           <div className="flex flex-wrap gap-2">
-            {value.map((spec, i) => (
+            {value.map((specializations, index) => (
               <motion.div
-                key={i}
+                key={index}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="flex items-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-200 px-3 py-1 rounded-full text-sm"
               >
-                <span>{spec}</span>
+                <span>{specializations}</span>
                 <button
                   type="button"
-                  onClick={() => handleRemove(spec)}
+                  onClick={() => handleRemoveSpecialization(specializations)}
                   className="ml-2 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-200"
                 >
                   <FiX className="w-3 h-3" />
