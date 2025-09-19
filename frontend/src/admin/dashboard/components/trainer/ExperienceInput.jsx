@@ -7,6 +7,7 @@ const ExperienceInput = ({ value, onChange }) => {
       <input
         type="number"
         min="0"
+        required
         value={value}
         onChange={(e) => onChange(parseInt(e.target.value) || 0)}
         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white outline-emerald-500"
