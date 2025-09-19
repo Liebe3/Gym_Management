@@ -62,7 +62,7 @@ const { getAll } = require("./BaseController");
       ) {
         return res.status(400).json({
           success: false,
-          message: "Specializations must be a non-empty array",
+          message: "Specializations must be empty",
         });
       }
 
@@ -74,12 +74,62 @@ const { getAll } = require("./BaseController");
         });
       }
 
-      // Validate work schedule structure if provided
-      if (workSchedule && typeof workSchedule !== "object") {
+      // Validate work schedule structure
+      if (!workSchedule || typeof workSchedule !== "object") {
         return res.status(400).json({
           success: false,
           message: "Work schedule must be an object",
         });
+      }
+
+      // Validate at least 1 working day
+      const workingDays = Object.entries(workSchedule).filter(
+        ([_, schedule]) => schedule.isWorking
+      );
+
+      if (workingDays.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: "Work schedule must have at least 1 working day",
+        });
+      }
+
+      // Validate time input for each working day
+      for (const [day, schedule] of workingDays) {
+        if (!schedule.startTime || !schedule.endTime) {
+          return res.status(400).json({
+            success: false,
+            message: `Working day '${day}' must have both startTime and endTime`,
+          });
+        }
+
+        //validate HH:MM format
+        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        if (
+          !timeRegex.test(schedule.startTime) ||
+          !timeRegex.test(schedule.endTime)
+        ) {
+          return res.status(400).json({
+            success: false,
+            message: `Working day '${day}' has invalid time format. Use HH:MM`,
+          });
+        }
+
+        // ✅ Validate endTime is after startTime
+        const [startHour, startMinute] = schedule.startTime
+          .split(":")
+          .map(Number);
+        const [endHour, endMinute] = schedule.endTime.split(":").map(Number);
+
+        const startTotalMinutes = startHour * 60 + startMinute;
+        const endTotalMinutes = endHour * 60 + endMinute;
+
+        if (endTotalMinutes <= startTotalMinutes) {
+          return res.status(400).json({
+            success: false,
+            message: `Working day '${day}' must have an end time later than start time`,
+          });
+        }
       }
 
       const trainerData = {
