@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { showError, showSuccess } from "../../../../pages/utils/Alert";
 import trainerService from "../../../../services/trainerService";
-import Availability from "./Availability";
+import TrainerAvailabity from "./TrainerAvailability";
 import ExperienceInput from "./ExperienceInput";
 import GenderSelect from "./GenderSelect";
 import SpecializationsInput from "./SpecializationsInput";
@@ -25,13 +25,6 @@ const initialForm = {
     saturday: { isWorking: false, startTime: "", endTime: "" },
     sunday: { isWorking: false, startTime: "", endTime: "" },
   },
-  profileImage: "",
-  socialMedia: {
-    instagram: "",
-    facebook: "",
-    twitter: "",
-    linkedin: "",
-  },
   isAvailableForNewClients: true,
 };
 
@@ -47,9 +40,7 @@ const TrainerForm = ({
 }) => {
   const [form, setForm] = useState(initialForm);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const [newSpecialization, setNewSpecialization] = useState("");
   const [selectedUserTrainerProfile, setSelectedUserTrainerProfile] =
     useState(null);
   const [checkingTrainerProfile, setCheckingTrainerProfile] = useState(false);
@@ -74,7 +65,7 @@ const TrainerForm = ({
         });
       }
     } catch (error) {
-      setError("Failed to load trainer data");
+      showError("Failed to load trainer data");
     } finally {
       setLoading(false);
     }
@@ -101,10 +92,16 @@ const TrainerForm = ({
   };
 
   const handleInputChange = (field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setForm((prev) => {
+      let updatedForm = { ...prev, [field]: value };
+
+      // Force availability to false if status is not active
+      if (field === "status" && value !== "active") {
+        updatedForm.isAvailableForNewClients = false;
+      }
+
+      return updatedForm;
+    });
 
     // Check trainer profile when user is selected (only in create mode)
     if (field === "userId") {
@@ -116,75 +113,36 @@ const TrainerForm = ({
     }
   };
 
-  const handleWorkScheduleChange = (day, field, value) => {
-    setForm((prev) => ({
-      ...prev,
-      workSchedule: {
-        ...prev.workSchedule,
-        [day]: {
-          ...prev.workSchedule[day],
-          [field]: value,
-        },
-      },
-    }));
-  };
-
-  // New function to add specialization
-  const handleAddSpecialization = () => {
-    const trimmedSpec = newSpecialization.trim();
-    if (trimmedSpec && !form.specializations.includes(trimmedSpec)) {
-      // Check length constraints (min 2, max 50 characters)
-      if (trimmedSpec.length < 2) {
-        showError("Specialization must be at least 2 characters long");
-        return;
-      }
-      if (trimmedSpec.length > 50) {
-        showError("Specialization must be less than 50 characters");
-        return;
-      }
-
-      setForm((prev) => ({
-        ...prev,
-        specializations: [...prev.specializations, trimmedSpec],
-      }));
-      setNewSpecialization("");
-    } else if (form.specializations.includes(trimmedSpec)) {
-      showError("This specialization already exists");
-    }
-  };
-
-  // New function to remove specialization
-  const handleRemoveSpecialization = (specializationToRemove) => {
-    setForm((prev) => ({
-      ...prev,
-      specializations: prev.specializations.filter(
-        (spec) => spec !== specializationToRemove
-      ),
-    }));
-  };
-
-  // Handle Enter key press in specialization input
-  const handleSpecializationKeyPress = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      handleAddSpecialization();
-    }
-  };
-
   const handleReset = () => {
     if (mode === formModes.Create) {
       setForm(initialForm);
       setSelectedUserTrainerProfile(null);
-      setNewSpecialization("");
     } else if (trainerId) {
       loadTrainerData();
-      setNewSpecialization("");
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    // Validate work schedule: at least 1 working day
+    const workingDays = Object.entries(form.workSchedule).filter(
+      ([_, day]) => day.isWorking
+    );
+
+    for (const [day, schedule] of workingDays) {
+      if (!schedule.startTime || !schedule.endTime) {
+        showError(
+          `Working day "${day}" must have both start time and end time`
+        );
+        return;
+      }
+    }
+
+    if (workingDays.length === 0) {
+      showError("Work schedule must have at least 1 working day");
+      return;
+    }
 
     // Frontend validation for existing trainer profile
     if (mode === formModes.Create && selectedUserTrainerProfile) {
@@ -218,15 +176,12 @@ const TrainerForm = ({
         if (mode === formModes.Create) {
           setForm(initialForm);
           setSelectedUserTrainerProfile(null);
-          setNewSpecialization("");
         }
       } else {
-        setError(response.message || "Operation failed");
         showError(response.message || "Operation failed");
       }
     } catch (error) {
       const errorMessage = error.response?.data?.message || "An error occurred";
-      setError(errorMessage);
       showError(errorMessage);
     } finally {
       setLoading(false);
@@ -247,16 +202,6 @@ const TrainerForm = ({
       animate={{ opacity: 1, y: 0 }}
       className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6"
     >
-      {error && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6"
-        >
-          <p className="text-red-600 dark:text-red-400">{error}</p>
-        </motion.div>
-      )}
-
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -307,9 +252,12 @@ const TrainerForm = ({
         />
 
         {/* Availability */}
-        <Availability
-          value={form.availability}
-          onChange={(val) => handleInputChange("availability", val)}
+        <TrainerAvailabity
+          value={form.isAvailableForNewClients}
+          onChange={(value) =>
+            handleInputChange("isAvailableForNewClients", value)
+          }
+          disabled={form.status !== "active"}
         />
 
         {/* Submit Buttons */}
