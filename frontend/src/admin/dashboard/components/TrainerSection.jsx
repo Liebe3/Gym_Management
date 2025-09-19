@@ -27,7 +27,7 @@ const TrainerSection = () => {
   const [statusCount, setStatusCount] = useState({});
   const [pagination, setPagination] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
-  const limit = 10;
+  const limit = 5;
 
   // Load trainers with filters
   const loadTrainers = async () => {
