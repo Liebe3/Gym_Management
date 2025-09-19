@@ -27,24 +27,6 @@ const membershipPlanService = {
     }
   },
 
-  getMembershipPlans: async ({
-    status = null,
-    search = null,
-    sortBy = "createdAt",
-    sortOrder = "desc",
-    page = 1,
-    limit = 100,
-  }) => {
-    return membershipPlanService.getAllPlans({
-      status,
-      search,
-      sortBy,
-      sortOrder,
-      page,
-      limit,
-    });
-  },
-
   createPlan: async (planData) => {
     try {
       const response = await API.post("/membership-plans", planData);
