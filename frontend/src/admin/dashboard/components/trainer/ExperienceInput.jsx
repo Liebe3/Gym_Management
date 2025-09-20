@@ -9,8 +9,8 @@ const ExperienceInput = ({ value, onChange }) => {
         min="0"
         required
         value={value}
-        onChange={(e) => onChange(parseInt(e.target.value) || 0)}
-        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white outline-emerald-500"
+        onChange={(event) => onChange(parseInt(event.target.value) || 0)}
+        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white outline-emerald-500 cursor-pointer"
       />
     </div>
   );
