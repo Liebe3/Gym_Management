@@ -244,7 +244,7 @@ const MemberSection = () => {
             </div>
           </div>
 
-          {/* Status Filter - Fixed the label and variable names */}
+          {/* Status Filter  */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center">
