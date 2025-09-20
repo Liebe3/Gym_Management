@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import userService from "../../../../services/userService";
 import { FiAlertTriangle, FiCheckCircle } from "react-icons/fi";
+import userService from "../../../../services/userService";
 
 const UserSelect = ({
   value,
@@ -37,10 +37,10 @@ const UserSelect = ({
       </label>
       <select
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(event) => onChange(event.target.value)}
         required
         disabled={mode === "update"}
-        className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+        className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer ${
           mode === "update" ? "opacity-60 cursor-not-allowed" : ""
         }`}
       >
