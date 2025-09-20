@@ -65,9 +65,10 @@ const SpecializationsInput = ({ value = [], onChange }) => {
           disabled={!newSpecialization.trim()}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition duration-200 disabled:cursor-not-allowed flex items-center"
+          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition duration-200 disabled:cursor-not-allowed flex items-center cursor-pointer"
         >
-          <FiPlus className="w-4 h-4" />
+          <FiPlus className="w-4 h-4 mr-2" />
+          Add
         </motion.button>
       </div>
 
@@ -89,7 +90,7 @@ const SpecializationsInput = ({ value = [], onChange }) => {
                 <button
                   type="button"
                   onClick={() => handleRemoveSpecialization(specializations)}
-                  className="ml-2 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-200"
+                  className="ml-2 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-200 cursor-pointer"
                 >
                   <FiX className="w-3 h-3" />
                 </button>
