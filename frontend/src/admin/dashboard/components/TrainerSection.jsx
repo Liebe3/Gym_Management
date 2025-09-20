@@ -194,6 +194,7 @@ const TrainerSection = () => {
           handleSearch={handleSearch}
           clearFilters={clearFilters}
           statusCount={statusCount}
+          debouncedSearch={debouncedSearch}
         />
 
         {/* Table */}
