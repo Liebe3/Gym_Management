@@ -53,7 +53,7 @@ const TrainerTable = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={clearFilters}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200"
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 cursor-pointer"
             >
               Clear Filters
             </motion.button>
@@ -114,19 +114,19 @@ const TrainerTable = ({
                   Email
                 </div>
               </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden md:table-cell">
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  md:table-cell">
                 <div className="flex items-center">
                   <FiTag className="w-4 h-4 mr-2 text-emerald-600" />
                   Specializations
                 </div>
               </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  lg:table-cell">
                 <div className="flex items-center">
                   <MdEventAvailable className="w-4 h-4 mr-2 text-emerald-600" />
                   Availability
                 </div>
               </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  lg:table-cell">
                 <div className="flex items-center">
                   <FiUsers className="w-4 h-4 mr-2 text-emerald-600" />
                   Clients
@@ -135,7 +135,7 @@ const TrainerTable = ({
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
                 Status
               </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden xl:table-cell">
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  xl:table-cell">
                 <div className="flex items-center">
                   <FiCalendar className="w-4 h-4 mr-2 text-emerald-600" />
                   Schedule
@@ -170,7 +170,7 @@ const TrainerTable = ({
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
                     {trainer.user?.email}
                   </td>
-                  <td className="py-3 px-4 hidden md:table-cell">
+                  <td className="py-3 px-4  md:table-cell">
                     <div className="flex flex-wrap gap-1">
                       {trainer.specializations?.slice(0, 2).map((spec) => (
                         <span
@@ -187,7 +187,7 @@ const TrainerTable = ({
                       )}
                     </div>
                   </td>
-                  <td className="py-3 px-4 hidden lg:table-cell">
+                  <td className="py-3 px-4  lg:table-cell">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium">
                       {trainer.isAvailableForNewClients ? (
                         <span className="text-emerald-700">Available</span>
@@ -196,7 +196,7 @@ const TrainerTable = ({
                       )}
                     </span>
                   </td>
-                  <td className="py-3 px-4 hidden lg:table-cell">
+                  <td className="py-3 px-4  lg:table-cell">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300">
                       {trainer.totalClients || 0} clients
                     </span>
@@ -204,7 +204,7 @@ const TrainerTable = ({
                   <td className="py-3 px-4">
                     <StatusBadge status={trainer.status} />
                   </td>
-                  <td className="py-3 px-4 hidden xl:table-cell">
+                  <td className="py-3 px-4  xl:table-cell">
                     <WorkSchedule schedule={trainer.workSchedule} />
                   </td>
                   <td className="py-3 px-4">
