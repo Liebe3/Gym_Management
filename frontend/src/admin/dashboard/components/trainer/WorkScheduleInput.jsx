@@ -62,7 +62,7 @@ const WorkScheduleInput = ({ value, onChange }) => {
                   }
                   ${
                     isWeekend
-                      ? "bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-gray-700 dark:to-gray-900"
+                      ? "border-emerald-300 bg-emerald-50 dark:bg-emerald-900/20"
                       : ""
                   }
                 `}
@@ -113,7 +113,7 @@ const WorkScheduleInput = ({ value, onChange }) => {
                               event.target.value
                             )
                           }
-                          className="w-full text-sm border rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white"
+                          className="w-full text-sm border rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white cursor-text [&::-webkit-calendar-picker-indicator]:cursor-pointer"
                         />
                       </div>
                       <div>
@@ -130,7 +130,7 @@ const WorkScheduleInput = ({ value, onChange }) => {
                               event.target.value
                             )
                           }
-                          className={`w-full text-sm border rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white ${
+                          className={`w-full text-sm border rounded-lg px-2 py-1 dark:bg-gray-700 dark:text-white cursor-text [&::-webkit-calendar-picker-indicator]:cursor-pointer ${
                             !isEndTimeValid(
                               schedule.startTime,
                               schedule.endTime
@@ -152,7 +152,7 @@ const WorkScheduleInput = ({ value, onChange }) => {
                   </div>
                 ) : (
                   <p className="text-center text-xs text-gray-500 italic">
-                    r Day Off
+                    Day Off
                   </p>
                 )}
               </motion.div>
