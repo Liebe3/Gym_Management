@@ -99,6 +99,12 @@ const TrainerSection = () => {
     loadTrainers();
   }, [debouncedSearch, selectedStatus, currentPage]);
 
+  const handleView = (trainerId) => {
+    setMode("view");
+    setSelectedTrainer(trainerId);
+    setIsModalOpen(true);
+  };
+
   const handleOpenCreate = () => {
     setSelectedTrainer(null);
     setMode("create");
@@ -202,6 +208,7 @@ const TrainerSection = () => {
           trainers={trainers}
           onEdit={handleOpenEdit}
           onDelete={handleDelete}
+          handleView={handleView}
           handleOpenCreate={handleOpenCreate}
           hasActiveFilters={hasActiveFilters}
           clearFilters={clearFilters}
