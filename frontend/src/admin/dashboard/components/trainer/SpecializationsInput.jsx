@@ -3,7 +3,7 @@ import { useState } from "react";
 import { FiPlus, FiX } from "react-icons/fi";
 import { showError } from "../../../../pages/utils/Alert";
 
-const SpecializationsInput = ({ value = [], onChange }) => {
+const SpecializationsInput = ({ value = [], onChange, disabled }) => {
   const [newSpecialization, setNewSpecialization] = useState("");
 
   const handleAddSpecialization = () => {
@@ -55,14 +55,20 @@ const SpecializationsInput = ({ value = [], onChange }) => {
           value={newSpecialization}
           onChange={(event) => setNewSpecialization(event.target.value)}
           onKeyPress={handleKeyPress}
+          disabled={disabled}
           placeholder="Enter specialization (e.g., Yoga, Strength)"
-          className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg dark:bg-gray-800 dark:text-white outline-emerald-500"
+          className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg outline-emerald-500
+    ${
+      disabled
+        ? "bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-400 cursor-not-allowed"
+        : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white cursor-pointer"
+    }`}
           maxLength={50}
         />
         <motion.button
           type="button"
           onClick={handleAddSpecialization}
-          disabled={!newSpecialization.trim()}
+          disabled={disabled || !newSpecialization.trim()} // disable based on prop too
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-400 text-white rounded-lg font-medium transition duration-200 disabled:cursor-not-allowed flex items-center cursor-pointer"
@@ -90,7 +96,12 @@ const SpecializationsInput = ({ value = [], onChange }) => {
                 <button
                   type="button"
                   onClick={() => handleRemoveSpecialization(specializations)}
-                  className="ml-2 text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-200 cursor-pointer"
+                  disabled={disabled}
+                  className={`ml-2 text-emerald-600 dark:text-emerald-400 ${
+                    !disabled
+                      ? "hover:text-emerald-800 dark:hover:text-emerald-200 cursor-pointer"
+                      : "opacity-50 cursor-not-allowed"
+                  }`}
                 >
                   <FiX className="w-3 h-3" />
                 </button>
