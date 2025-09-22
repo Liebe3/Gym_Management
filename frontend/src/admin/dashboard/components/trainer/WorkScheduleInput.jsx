@@ -24,7 +24,7 @@ const isEndTimeValid = (start, end) => {
   return endMinutes > startMinutes;
 };
 
-const WorkScheduleInput = ({ value, onChange }) => {
+const WorkScheduleInput = ({ value, onChange, disabled }) => {
   const handleWorkScheduleChange = (day, field, newValue) => {
     onChange({
       ...value,
@@ -72,10 +72,18 @@ const WorkScheduleInput = ({ value, onChange }) => {
                   <h4 className="font-semibold text-gray-800 dark:text-gray-100 capitalize">
                     {day}
                   </h4>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label
+                    className={`relative inline-flex items-center rounded-full
+                    ${
+                      disabled
+                        ? "cursor-not-allowed opacity-60"
+                        : "cursor-pointer"
+                    }`}
+                  >
                     <input
                       type="checkbox"
                       checked={schedule.isWorking}
+                      disabled={disabled}
                       onChange={(event) =>
                         handleWorkScheduleChange(
                           day,
@@ -83,7 +91,8 @@ const WorkScheduleInput = ({ value, onChange }) => {
                           event.target.checked
                         )
                       }
-                      className="sr-only peer"
+                      className={`sr-only peer
+                      ${disabled ? "cursor-not-allowed" : "cursor-pointer"}`}
                     />
                     <div className="w-10 h-5 bg-gray-300 peer-checked:bg-emerald-500 rounded-full relative transition">
                       <span className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-all peer-checked:left-5" />
@@ -106,6 +115,7 @@ const WorkScheduleInput = ({ value, onChange }) => {
                         <input
                           type="time"
                           value={schedule.startTime || "9:00"}
+                          disabled={disabled}
                           onChange={(event) =>
                             handleWorkScheduleChange(
                               day,
@@ -123,6 +133,7 @@ const WorkScheduleInput = ({ value, onChange }) => {
                         <input
                           type="time"
                           value={schedule.endTime || ""}
+                          disabled={disabled}
                           onChange={(event) =>
                             handleWorkScheduleChange(
                               day,
