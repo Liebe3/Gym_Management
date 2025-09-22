@@ -1,6 +1,6 @@
 import { FiCheckCircle, FiClock, FiXCircle, FiMinusCircle } from "react-icons/fi";
 
-const StatusBadge = ({ status }) => {
+const StatusBadge = ({ status, }) => {
   switch (status?.toLowerCase()) {
     case "active":
       return (
