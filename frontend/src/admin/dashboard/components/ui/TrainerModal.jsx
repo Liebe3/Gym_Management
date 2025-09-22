@@ -1,13 +1,13 @@
-import TrainerForm, { formModes } from "../trainer/TrainerForm";
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
+import TrainerForm, { formModes } from "../trainer/TrainerForm";
 
-const TrainerModal = ({ 
-  isOpen, 
-  onClose, 
-  mode = formModes.Create, 
-  trainerId = null, 
-  onSuccess 
+const TrainerModal = ({
+  isOpen,
+  onClose,
+  mode = formModes.Create,
+  trainerId = null,
+  onSuccess,
 }) => {
   const handleSuccess = (response) => {
     onSuccess && onSuccess(response);
@@ -45,7 +45,11 @@ const TrainerModal = ({
               {/* Modal Header */}
               <div className="sticky z-10 top-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 p-6 rounded-t-xl flex items-center justify-between">
                 <Dialog.Title className="text-2xl font-bold text-emerald-600">
-                  {mode === formModes.Create ? "Create Trainer" : "Update Trainer"}
+                  {mode === formModes.Create
+                    ? "Create Trainer"
+                    : mode === formModes.Update
+                    ? "Update Trainer"
+                    : "View Trainer"}
                 </Dialog.Title>
                 <button
                   onClick={onClose}
