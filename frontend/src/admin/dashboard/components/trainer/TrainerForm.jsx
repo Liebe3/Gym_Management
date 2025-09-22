@@ -2,11 +2,11 @@ import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { showError, showSuccess } from "../../../../pages/utils/Alert";
 import trainerService from "../../../../services/trainerService";
-import TrainerAvailabity from "./TrainerAvailability";
 import ExperienceInput from "./ExperienceInput";
 import GenderSelect from "./GenderSelect";
 import SpecializationsInput from "./SpecializationsInput";
 import StatusSelect from "./StatusSelect";
+import TrainerAvailabity from "./TrainerAvailability";
 import UserSelect from "./UserSelect";
 import WorkScheduleInput from "./WorkScheduleInput";
 
@@ -29,6 +29,7 @@ const initialForm = {
 };
 
 const formModes = {
+  View: "view",
   Create: "create",
   Update: "update",
 };
@@ -44,10 +45,11 @@ const TrainerForm = ({
   const [selectedUserTrainerProfile, setSelectedUserTrainerProfile] =
     useState(null);
   const [checkingTrainerProfile, setCheckingTrainerProfile] = useState(false);
+  const isViewMode = mode === formModes.View;
 
   // Load trainer data if updating
   useEffect(() => {
-    if (mode === formModes.Update && trainerId) {
+    if ((mode === formModes.Update || mode === formModes.View) && trainerId) {
       loadTrainerData();
     } else {
       setForm(initialForm);
@@ -211,6 +213,7 @@ const TrainerForm = ({
               value={form.userId}
               onChange={(value) => handleInputChange("userId", value)}
               mode={mode}
+              disabled={isViewMode}
               selectedUserTrainerProfile={selectedUserTrainerProfile}
               checkingTrainerProfile={checkingTrainerProfile}
             />
@@ -220,18 +223,21 @@ const TrainerForm = ({
           <GenderSelect
             value={form.gender}
             onChange={(value) => handleInputChange("gender", value)}
+            disabled={isViewMode}
           />
 
           {/* Experince input  */}
           <ExperienceInput
             value={form.experience}
             onChange={(value) => handleInputChange("experience", value)}
+            disabled={isViewMode}
           />
 
           {/* Status dropdown */}
           <StatusSelect
             value={form.status}
             onChange={(value) => handleInputChange("status", value)}
+            disabled={isViewMode}
           />
         </div>
 
@@ -241,6 +247,7 @@ const TrainerForm = ({
           onChange={(newSpecialization) =>
             handleInputChange("specializations", newSpecialization)
           }
+          disabled={isViewMode}
         />
 
         {/* workSchedule input */}
@@ -249,6 +256,7 @@ const TrainerForm = ({
           onChange={(newSchedule) =>
             handleInputChange("workSchedule", newSchedule)
           }
+          disabled={isViewMode}
         />
 
         {/* Availability */}
@@ -257,38 +265,40 @@ const TrainerForm = ({
           onChange={(value) =>
             handleInputChange("isAvailableForNewClients", value)
           }
-          disabled={form.status !== "active"}
+          disabled={isViewMode || form.status !== "active"}
         />
 
         {/* Submit Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            onClick={handleReset}
-            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition duration-200 cursor-pointer"
-          >
-            Reset
-          </button>
-          <motion.button
-            type="submit"
-            disabled={
-              loading ||
-              (mode === formModes.Create &&
-                (selectedUserTrainerProfile || checkingTrainerProfile))
-            }
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="flex items-center px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-xl font-medium shadow-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-          >
-            {loading
-              ? mode === formModes.Create
-                ? "Creating..."
-                : "Updating..."
-              : mode === formModes.Create
-              ? "Create Trainer"
-              : "Update Trainer"}
-          </motion.button>
-        </div>
+        {!isViewMode && (
+          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <button
+              type="button"
+              onClick={handleReset}
+              className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition duration-200 cursor-pointer"
+            >
+              Reset
+            </button>
+            <motion.button
+              type="submit"
+              disabled={
+                loading ||
+                (mode === formModes.Create &&
+                  (selectedUserTrainerProfile || checkingTrainerProfile))
+              }
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className="flex items-center px-6 py-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-400 text-white rounded-xl font-medium shadow-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {loading
+                ? mode === formModes.Create
+                  ? "Creating..."
+                  : "Updating..."
+                : mode === formModes.Create
+                ? "Create Trainer"
+                : "Update Trainer"}
+            </motion.button>
+          </div>
+        )}
       </form>
     </motion.div>
   );
