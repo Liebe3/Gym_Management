@@ -33,7 +33,7 @@ const trainerService = {
     }
   },
 
-   // Get trainer by ID
+  // Get trainer by ID
   getTrainerById: async (trainerId) => {
     try {
       const response = await API.get(`/trainer/${trainerId}`);
@@ -44,32 +44,25 @@ const trainerService = {
     }
   },
 
+  updateTrainer: async (trainerId, updateData) => {
+    try {
+      const response = await API.put(`/trainer/${trainerId}`, updateData);
+      return response.data;
+    } catch (error) {
+      console.error("Server error updating member");
+      throw error;
+    }
+  },
 
-  // getTrainerbyStatus: async (status) => {
-  //   return trainerService.getAllTrainer({ status });
-  // },
-
-  // searchTrainer: async (searchTerm) => {
-  //   return trainerService.getAllTrainer({ search: searchTerm });
-  // },
-
-  // getFilteredTrainers: async ({
-  //   status = null,
-  //   search = null,
-  //   sortBy = "createdAt",
-  //   sortOrder = "desc",
-  //   page = 1,
-  //   limit = 100,
-  // }) => {
-  //   return trainerService.getAllTrainer({
-  //     status,
-  //     search,
-  //     sortBy,
-  //     sortOrder,
-  //     page,
-  //     limit,
-  //   });
-  // },
+  deleteTrainer: async (trainerId) => {
+    try {
+      const response = await API.delete(`/trainer/${trainerId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Service error", error);
+      throw error;
+    }
+  },
 };
 
 export default trainerService;
