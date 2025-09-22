@@ -8,6 +8,7 @@ const UserSelect = ({
   mode,
   selectedUserTrainerProfile,
   checkingTrainerProfile,
+  disabled,
 }) => {
   const [users, setUsers] = useState([]);
   const [userLoading, setUserLoading] = useState(false);
@@ -39,10 +40,13 @@ const UserSelect = ({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         required
-        disabled={mode === "update"}
-        className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer ${
-          mode === "update" ? "opacity-60 cursor-not-allowed" : ""
-        }`}
+        disabled={disabled || mode === "update" || mode === "view"} // added view mode
+        className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-emerald-500
+    ${
+      disabled || mode === "update" || mode === "view"
+        ? "opacity-60 cursor-not-allowed bg-gray-100 dark:bg-gray-900 text-gray-400 dark:text-gray-400"
+        : "bg-white dark:bg-gray-900 text-gray-900 dark:text-white cursor-pointer"
+    }`}
       >
         <option value="">Select a user</option>
         {users.map((user) => (
