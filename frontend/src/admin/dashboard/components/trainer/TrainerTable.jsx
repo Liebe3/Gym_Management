@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   FiCalendar,
   FiEdit3,
+  FiEye,
   FiFilter,
   FiMail,
   FiPlus,
@@ -19,6 +20,7 @@ const TrainerTable = ({
   trainers = [],
   onEdit,
   onDelete,
+  handleView,
   handleOpenCreate,
   hasActiveFilters,
   clearFilters,
@@ -207,8 +209,21 @@ const TrainerTable = ({
                   <td className="py-3 px-4  xl:table-cell">
                     <WorkSchedule schedule={trainer.workSchedule} />
                   </td>
+
+                  {/* Actions */}
                   <td className="py-3 px-4">
                     <div className="flex items-center space-x-1">
+                      {/* view */}
+                      <motion.button
+                        onClick={() => handleView(trainer._id)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
+                        title="View Trainer"
+                      >
+                        <FiEye className="w-3 h-3" />
+                      </motion.button>
+                      {/* edit */}
                       <motion.button
                         onClick={() => onEdit(trainer._id)}
                         whileHover={{ scale: 1.05 }}
@@ -218,7 +233,7 @@ const TrainerTable = ({
                       >
                         <FiEdit3 className="w-3 h-3" />
                       </motion.button>
-
+                      {/* delete */}
                       <motion.button
                         onClick={() => onDelete(trainer._id)}
                         whileHover={{ scale: 1.05 }}
