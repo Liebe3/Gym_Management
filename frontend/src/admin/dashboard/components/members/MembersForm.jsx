@@ -89,7 +89,7 @@ const MembersForm = ({
     const fetchUser = async () => {
       setUserLoading(true);
       try {
-        const userResponse = await userService.getAllUser();
+        const userResponse = await userService.getAllUser({ all: true });
         const allUsers = userResponse?.data || [];
 
         // Filter out users with roles of 'trainer' or 'admin'
