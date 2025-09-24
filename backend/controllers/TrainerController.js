@@ -17,6 +17,7 @@ const { getAll } = require("./BaseController");
       fields: ["firstName", "lastName", "email"],
       key: "user",
     },
+    defaultSort: { createdAt: -1 }, // 👈 newest first
   });
 }),
   (exports.createTrainer = async (req, res) => {
