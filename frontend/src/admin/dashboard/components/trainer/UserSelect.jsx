@@ -17,7 +17,7 @@ const UserSelect = ({
     const fetchUsers = async () => {
       setUserLoading(true);
       try {
-        const userResponse = await userService.getAllUser();
+        const userResponse = await userService.getAllUser({ all: true });
         const allUsers = userResponse?.data || [];
         const trainerUsers = allUsers.filter((user) => user.role === "trainer");
         setUsers(trainerUsers);
