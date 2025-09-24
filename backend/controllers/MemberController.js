@@ -17,7 +17,9 @@ exports.getAllMember = async (req, res) => {
       fields: ["firstName", "lastName", "email"],
       key: "user",
     },
+     defaultSort: { createdAt: -1 }, // 👈 newest first
   });
+  
 };
 
 exports.createMember = async (req, res) => {
