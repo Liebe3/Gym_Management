@@ -1,16 +1,26 @@
-
 const User = require("../models/User");
 const Member = require("../models/Member");
 const bcrypt = require("bcryptjs");
 const { getAll } = require("./BaseController");
 
 exports.getAllUser = async (req, res) => {
-  return getAll(User, req, res, {
-    searchableFields: ["firstName", "lastName", "email"],
-    filterableFields: { role: "role" },
-    countableFields: ["role"], // for counts
-    excludeFields: ["password"], // never send password
-  });
+  try {
+    if (req.query.all === "true") {
+      const users = await User.find({}, "-password") // exclude password
+        .sort({ createdAt: -1 }); // newest first
+
+      return res.json({ success: true, data: users });
+    }
+
+    return getAll(User, req, res, {
+      searchableFields: ["firstName", "lastName", "email"],
+      filterableFields: { role: "role" },
+      countableFields: ["role"],
+      excludeFields: ["password"],
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 exports.createUser = async (req, res) => {
