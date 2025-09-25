@@ -2,6 +2,7 @@ const Member = require("../models/Member");
 const User = require("../models/User");
 const MembershipPlan = require("../models/MemberShipPlan");
 const Payment = require("../models/Payment");
+const Trainer = require("../models/Trainer");
 const { getAll } = require("./BaseController");
 
 exports.getAllMember = async (req, res) => {
@@ -10,6 +11,10 @@ exports.getAllMember = async (req, res) => {
     populate: [
       { path: "user", select: "firstName lastName email phone" },
       { path: "membershipPlan", select: "name price duration durationType" },
+      {
+        path: "trainer",
+        populate: { path: "user", select: "firstName lastName email" },
+      },
     ],
     countableFields: ["status", "membershipPlan"],
     customSearch: {
@@ -17,9 +22,8 @@ exports.getAllMember = async (req, res) => {
       fields: ["firstName", "lastName", "email"],
       key: "user",
     },
-     defaultSort: { createdAt: -1 }, // 👈 newest first
+    defaultSort: { createdAt: -1 }, // 👈 newest first
   });
-  
 };
 
 exports.createMember = async (req, res) => {
@@ -27,6 +31,7 @@ exports.createMember = async (req, res) => {
     const {
       userId,
       membershipPlanId,
+      trainerId,
       startDate,
       endDate,
       status,
@@ -44,6 +49,16 @@ exports.createMember = async (req, res) => {
     const plan = await MembershipPlan.findById(membershipPlanId);
     if (!plan) {
       return res.status(404).json({ message: "Membership plan not found" });
+    }
+
+    console.log("TrainerId received:", trainerId);
+
+    let trainer = null;
+    if (trainerId) {
+      trainer = await Trainer.findById(trainerId);
+      if (!trainer) {
+        return res.status(404).json({ message: "Trainer not found" });
+      }
     }
 
     // Check if plan is active
@@ -119,6 +134,7 @@ exports.createMember = async (req, res) => {
     const newMember = new Member({
       user: userId,
       membershipPlan: membershipPlanId,
+      trainer: trainerId,
       startDate: startDate || new Date(),
       endDate: calculatedEndDate,
       status: status || "pending", // Changed from "none" to "pending"
@@ -159,7 +175,14 @@ exports.createMember = async (req, res) => {
     // Get the populated member data
     const populatedMember = await Member.findById(newMember._id)
       .populate("user", "firstName lastName email phone role")
-      .populate("membershipPlan", "name price duration durationType");
+      .populate("membershipPlan", "name price duration durationType")
+      .populate({
+        path: "trainer",
+        populate: {
+          path: "user",
+          select: "firstName lastName email",
+        },
+      });
 
     console.log("Created member:", populatedMember.toJSON());
 
