@@ -13,6 +13,12 @@ const memberSchema = new mongoose.Schema(
       required: true,
     },
 
+    trainer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Trainer",
+      required: false
+    },
+
     status: {
       type: String,
       enum: ["active", "expired", "none", "pending"],
