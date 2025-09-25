@@ -1,31 +1,31 @@
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-  FiUser,
-  FiMail,
+  FiAlertCircle,
   FiCalendar,
   FiCheckCircle,
-  FiXCircle,
-  FiAlertCircle,
-  FiCreditCard,
   FiClock,
+  FiCreditCard,
   FiEdit3,
-  FiTrash2,
-  FiPlus,
-  FiMinusCircle,
-  FiSearch,
   FiFilter,
+  FiMail,
+  FiMinusCircle,
+  FiPlus,
+  FiSearch,
+  FiTrash2,
+  FiUser,
   FiX,
+  FiXCircle,
 } from "react-icons/fi";
-import memberService from "../../../services/memberService";
 import Loading from "../../../components/ui/Loading";
-import CreateMemberButon from "./ui/CreateMemberButon";
-import MemberModal from "../components/ui/MemberModal";
 import {
   showError,
   showSuccess,
   ShowWarning,
 } from "../../../pages/utils/Alert";
+import memberService from "../../../services/memberService";
+import MemberModal from "../components/ui/MemberModal";
+import CreateMemberButon from "./ui/CreateMemberButon";
 
 // Fixed: Updated availableStatus to match your backend status values
 const availableStatus = [
@@ -395,6 +395,12 @@ const MemberSection = () => {
                         Membership Plan
                       </div>
                     </th>
+                    <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden md:table-cell">
+                      <div className="flex items-center">
+                        <FiCreditCard className="w-4 h-4 mr-2 text-emerald-600" />
+                        Trainer
+                      </div>
+                    </th>
                     <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
                       <div className="flex items-center">
                         <FiCalendar className="w-4 h-4 mr-2 text-emerald-600" />
@@ -440,6 +446,13 @@ const MemberSection = () => {
                         </td>
                         <td className="py-3 px-4 hidden md:table-cell text-gray-600 dark:text-gray-400">
                           {member.membershipPlan?.name}
+                        </td>
+                        <td className="py-3 px-4 hidden md:table-cell text-gray-600 dark:text-gray-400">
+                          {member.trainer?.user
+                            ? `${member.trainer.user.firstName} ${
+                                member.trainer.user.lastName || ""
+                              }`.trim()
+                            : "Unassigned"}
                         </td>
                         <td className="py-3 px-4 hidden lg:table-cell text-gray-600 dark:text-gray-400">
                           {formatDate(member.startDate)}
