@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const trainerSchema = new mongoose.Schema(
   {
     user: {
