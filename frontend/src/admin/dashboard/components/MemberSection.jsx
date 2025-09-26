@@ -448,11 +448,17 @@ const MemberSection = () => {
                           {member.membershipPlan?.name}
                         </td>
                         <td className="py-3 px-4 hidden md:table-cell text-gray-600 dark:text-gray-400">
-                          {member.trainer?.user
-                            ? `${member.trainer.user.firstName} ${
+                          {member.trainer?.user ? (
+                            <span className="inline-flex items-center">
+                              {`${member.trainer.user.firstName} ${
                                 member.trainer.user.lastName || ""
-                              }`.trim()
-                            : "Unassigned"}
+                              }`}
+                            </span>
+                          ) : (
+                            <span className="text-red-400 dark:text-gray-500">
+                              Unassigned
+                            </span>
+                          )}
                         </td>
                         <td className="py-3 px-4 hidden lg:table-cell text-gray-600 dark:text-gray-400">
                           {formatDate(member.startDate)}
