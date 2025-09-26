@@ -9,11 +9,15 @@ exports.getAllMember = async (req, res) => {
   return getAll(Member, req, res, {
     filterableFields: { status: "status", membershipPlan: "membershipPlan" },
     populate: [
-      { path: "user", select: "firstName lastName email phone" },
+      { path: "user", select: "firstName lastName email" },
       { path: "membershipPlan", select: "name price duration durationType" },
       {
         path: "trainer",
-        populate: { path: "user", select: "firstName lastName email" },
+        match: { status: "active", isAvailableForNewClients: true }, //only active + available trainers
+        populate: {
+          path: "user",
+          select: "firstName lastName",
+        },
       },
     ],
     countableFields: ["status", "membershipPlan"],
@@ -241,6 +245,22 @@ exports.updateMember = async (req, res) => {
     // Prepare update object with only allowed fields
     const updateData = {};
 
+    if (req.body.trainerId !== undefined) {
+      if (req.body.trainerId) {
+        const trainer = await Trainer.findById(req.body.trainerId);
+        if (!trainer) {
+          return res.status(404).json({
+            success: false,
+            message: "Trainer not found",
+          });
+        }
+        updateData.trainer = req.body.trainerId;
+      } else {
+        // Allow setting trainer to null/undefined
+        updateData.trainer = null;
+      }
+    }
+
     // Validate and add membershipPlanId if provided
     if (membershipPlanId !== undefined) {
       const plan = await MembershipPlan.findById(membershipPlanId);
@@ -337,10 +357,16 @@ exports.updateMember = async (req, res) => {
     if (status !== undefined && existingMember.user) {
       const user = await User.findById(existingMember.user._id);
       if (user) {
-        if (status === "active" || status === "pending") {
+        if (status === "active") {
           // Set user role to member when membership becomes active
           if (user.role !== "member") {
             user.role = "member";
+            await user.save();
+          }
+        } else if (status === "pending") {
+          // Pending → role should be user
+          if (user.role !== "user") {
+            user.role = "user";
             await user.save();
           }
         } else if (status === "expired" || status === "none") {
@@ -392,7 +418,6 @@ exports.updateMember = async (req, res) => {
     });
   }
 };
-
 exports.deleteMember = async (req, res) => {
   try {
     const { id } = req.params;
@@ -402,14 +427,26 @@ exports.deleteMember = async (req, res) => {
       return res.status(404).json({ message: "Member not found" });
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Member deleted successfully" });
+    // Check if the user still has other active memberships
+    const activeMembership = await Member.findOne({
+      user: deletedMember.user,
+      status: "active",
+      endDate: { $gte: new Date() }, // still valid
+    });
+
+    if (!activeMembership) {
+      // No active memberships left → downgrade role
+      await User.findByIdAndUpdate(deletedMember.user, { role: "user" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Member deleted successfully",
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 exports.checkUserActiveMemberShip = async (req, res) => {
   try {
     const { userId } = req.params;
