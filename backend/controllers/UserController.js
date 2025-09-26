@@ -2,6 +2,7 @@ const User = require("../models/User");
 const Member = require("../models/Member");
 const bcrypt = require("bcryptjs");
 const { getAll } = require("./BaseController");
+const Trainer = require("../models/Trainer");
 
 exports.getAllUser = async (req, res) => {
   try {
@@ -180,6 +181,7 @@ exports.deleteUser = async (req, res) => {
     }
     //delete the user with membership
     await Member.deleteMany({ user: id });
+    await Trainer.deleteMany({ user: id });
 
     res
       .status(200)
