@@ -51,9 +51,9 @@ const getAll = async (Model, req, res, config = {}) => {
     );
 
     let queryChain = Model.find(filter);
-    populate.forEach(
-      (pop) => (queryChain = queryChain.populate(pop.path, pop.select))
-    );
+    populate.forEach((pop) => {
+      queryChain = queryChain.populate(pop);
+    });
 
     const documents = await queryChain.sort(sort).skip(skip).limit(limit);
     const totalFiltered = await Model.countDocuments(filter);
