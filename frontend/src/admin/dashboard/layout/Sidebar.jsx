@@ -42,7 +42,7 @@ const iconMap = {
 };
 
 const sidebarLinks = [
-  { name: "Dashboard", href: "/admin", icon: "dashboard" },
+  { name: "Dashboard", href: "/admin/dashboard", icon: "dashboard" },
   { name: "Member", href: "/admin/member", icon: "groups" },
   { name: "User", href: "/admin/user", icon: "people" },
   { name: "Trainer", href: "/admin/trainer", icon: "fitness_center" },
