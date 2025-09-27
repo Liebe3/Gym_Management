@@ -76,6 +76,7 @@ const MembersForm = ({
       setForm({
         userId: selectedMember.user?._id || "",
         membershipPlanId: selectedMember.membershipPlan?._id || "",
+        trainerId: selectedMember.trainer?._id || "",
         startDate: selectedMember.startDate
           ? new Date(selectedMember.startDate).toISOString().split("T")[0]
           : "",
@@ -262,7 +263,10 @@ const MembersForm = ({
     const fetchTrainers = async () => {
       try {
         setTrainersLoading(true);
-        const response = await trainerService.getAllTrainer({ all: true });
+        const response = await trainerService.getAllTrainer({
+          status: "active",
+          availability: true, // only available and active trainers
+        });
         const trainerlists = response?.data || [];
         SetTrainers(trainerlists);
       } catch (error) {
@@ -284,6 +288,7 @@ const MembersForm = ({
       setForm({
         userId: selectedMember.user?._id || "",
         membershipPlanId: selectedMember.membershipPlan?._id || "",
+        trainerId: selectedMember.trainer?._id || "",
         startDate: selectedMember.startDate
           ? new Date(selectedMember.startDate).toISOString().split("T")[0]
           : "",
@@ -322,6 +327,7 @@ const MembersForm = ({
         startDate: form.startDate,
         endDate: form.endDate,
         membershipPlanId: form.membershipPlanId,
+        trainerId: form.trainerId,
       };
 
       const result = await memberService.updateMember(
@@ -488,6 +494,24 @@ const MembersForm = ({
               </p>
             )}
           </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Status
+            </label>
+            <select
+              id="status"
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300  dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            >
+              <option value="pending">Pending</option>
+              <option value="active">Active</option>
+              <option value="expired">Expired</option>
+              <option value="none">None</option>
+            </select>
+          </div>
         </div>
 
         {/* Row 2: Start & End Date */}
@@ -531,26 +555,8 @@ const MembersForm = ({
           </div>
         </div>
 
-        {/* Row 3: Status & Auto Renew */}
+        {/* Row 3:  Auto Renew */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status
-            </label>
-            <select
-              id="status"
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300  dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="pending">Pending</option>
-              <option value="active">Active</option>
-              <option value="expired">Expired</option>
-              <option value="none">None</option>
-            </select>
-          </div>
-
           <div className="flex items-center mt-6">
             <input
               type="checkbox"
