@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { useEffect, useState } from "react";
 import { FiFilter, FiSearch, FiX } from "react-icons/fi";
 
 // Available status options for trainers
@@ -21,7 +20,6 @@ const TrainerFilter = ({
   debouncedSearch,
 }) => {
   const hasActiveFilters = selectedStatus !== "all" || debouncedSearch !== "";
-  
 
   return (
     <motion.div
