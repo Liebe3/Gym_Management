@@ -266,6 +266,7 @@ const MembersForm = ({
         const response = await trainerService.getAllTrainer({
           status: "active",
           availability: true, // only available and active trainers
+          all: true,
         });
         const trainerlists = response?.data || [];
         SetTrainers(trainerlists);
@@ -475,9 +476,10 @@ const MembersForm = ({
             <select
               id="trainerId"
               name="trainerId"
+              menuPlacement="bottom"
               value={form.trainerId}
               onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300  dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 overflow-y-auto"
             >
               <option value="">Select a trainer</option>
               {trainers.map((trainer) => (
