@@ -78,16 +78,22 @@ exports.updatePlan = async (req, res) => {
       }
     }
 
+    // Convert features string to array if it's a string
+    const featuresArray =
+      typeof features === "string"
+        ? features.split(",").map((feature) => feature.trim())
+        : features;
+
     const updatedPlan = await Plan.findByIdAndUpdate(
       id,
       {
-        name,
+        name: name?.trim(),
         price,
         duration,
         durationType,
-        description,
-        features,
-        status,
+        description: description?.trim(),
+        features: featuresArray,
+        status: status?.toLowerCase(),
       },
       { new: true, runValidators: true }
     );
