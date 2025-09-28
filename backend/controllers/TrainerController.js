@@ -3,10 +3,62 @@ const User = require("../models/User");
 const { getAll } = require("./BaseController");
 
 (exports.getAllTrainer = async (req, res) => {
+  // Check if 'all' parameter is requested
+  if (req.query.all === "true" || req.query.all === true) {
+    try {
+      const filter = {};
+
+      // Apply status filter if provided
+      if (req.query.status && req.query.status !== "all") {
+        filter.status = req.query.status;
+      }
+
+      // Apply availability filter if provided
+      if (req.query.availability !== undefined) {
+        filter.isAvailableForNewClients =
+          req.query.availability === "true" || req.query.availability === true;
+      }
+
+      // Handle search if provided
+      if (req.query.search) {
+        const userIds = await User.find({
+          $or: [
+            { firstName: { $regex: req.query.search, $options: "i" } },
+            { lastName: { $regex: req.query.search, $options: "i" } },
+            { email: { $regex: req.query.search, $options: "i" } },
+          ],
+        }).select("_id");
+
+        filter.$or = [
+          {
+            specializations: {
+              $elemMatch: { $regex: req.query.search, $options: "i" },
+            },
+          },
+          { user: { $in: userIds.map((u) => u._id) } },
+        ];
+      }
+
+      const trainers = await Trainer.find(filter)
+        .populate({ path: "user", select: "firstName lastName email phone" })
+        .sort({ createdAt: -1 });
+
+      return res.status(200).json({
+        success: true,
+        data: trainers,
+        total: trainers.length,
+      });
+    } catch (error) {
+      console.error("Error fetching all trainers:", error);
+      return res.status(500).json({ success: false, message: error.message });
+    }
+  }
+  
   return getAll(Trainer, req, res, {
     searchableFields: ["specializations"],
     filterableFields: {
       status: "status",
+
       availability: "isAvailableForNewClients",
     },
     arrayFields: ["specializations"],
