@@ -44,7 +44,7 @@ const MemberShipPlanTable = ({
         {hasActiveFilters ? (
           <>
             <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">
-              No trainers match your filters
+              No plans match your filters
             </p>
             <p className="text-gray-400 dark:text-gray-500 text-sm mb-6">
               Try adjusting your search or status filter
@@ -191,7 +191,7 @@ const MemberShipPlanTable = ({
                     <div className="flex items-center space-x-1">
                       {/* edit */}
                       <motion.button
-                        onClick={() => onEdit(plan._id)}
+                        onClick={() => onEdit(plan)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
@@ -223,7 +223,7 @@ const MemberShipPlanTable = ({
         <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="text-sm text-gray-500 dark:text-gray-400">
             Page {pagination.currentPage} of {pagination.totalPages} —{" "}
-            {pagination.totalRecords} total trainers
+            {pagination.totalRecords} total plans
           </div>
 
           <div className="flex items-center space-x-2">
