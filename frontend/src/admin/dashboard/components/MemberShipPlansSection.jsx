@@ -110,6 +110,7 @@ const MembershipPlansSection = () => {
 
   // Open modal for editing plan
   const handleEditPlan = (plan) => {
+    console.log("editin plan", plan)
     setSelectedPlan(plan);
     setMode("update");
     setIsModalOpen(true);
