@@ -55,6 +55,10 @@ const MemberShipPlanForm = ({
       if (mode === "create") {
         response = await membershipPlanService.createPlan(planData);
       } else {
+        if (!selectedPlan || !selectedPlan._id) {
+          throw new Error("No plan selected for update.");
+        }
+
         response = await membershipPlanService.updatePlan(
           selectedPlan._id,
           planData
@@ -62,7 +66,9 @@ const MemberShipPlanForm = ({
       }
 
       showSuccess(response.message || "Plan created successfully");
-      setForm(initialForm);
+      if (mode === "create") {
+        setForm(initialForm);
+      }
       if (onSuccess) onSuccess();
     } catch (error) {
       const errorMessage =
