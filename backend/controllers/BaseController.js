@@ -45,9 +45,12 @@ const getAll = async (Model, req, res, config = {}) => {
       req.query.sortOrder,
       config.defaultSort
     );
+    
+    // Pass the 'all' parameter to buildPagination
     const { page, limit, skip } = buildPagination(
       req.query.page,
-      req.query.limit
+      req.query.limit,
+      req.query.all 
     );
 
     let queryChain = Model.find(filter);
