@@ -36,11 +36,15 @@ const buildSort = (sortBy, sortOrder, defaultSort = { createdAt: -1 }) => {
 };
 
 // Pagination
-const buildPagination = (page = 1, limit = 10) => {
+const buildPagination = (page = 1, limit = 10, all = false) => {
+  // If 'all' is requested, return high limit to get all records
+  if (all === 'true' || all === true) {
+    return { page: 1, limit: Number.MAX_SAFE_INTEGER, skip: 0 };
+  }
+  
   const pageNum = parseInt(page, 10) || 1;
   const limitNum = parseInt(limit, 10) || 10;
   const skip = (pageNum - 1) * limitNum;
   return { page: pageNum, limit: limitNum, skip };
 };
-
 module.exports = { buildQuery, buildSort, buildPagination };
