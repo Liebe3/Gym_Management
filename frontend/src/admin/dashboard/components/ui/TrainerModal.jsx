@@ -48,7 +48,7 @@ const TrainerModal = ({
                   {mode === formModes.Create
                     ? "Create Trainer"
                     : mode === formModes.Update
-                    ? "Update Trainer"
+                    ? `Update Trainer`
                     : "View Trainer"}
                 </Dialog.Title>
                 <button
