@@ -9,6 +9,8 @@ const UserModal = ({
   handleCloseModal,
   onSuccess,
 }) => {
+
+
   return (
     <Transition show={isModalOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={handleCloseModal}>
@@ -48,8 +50,8 @@ const UserModal = ({
                       {mode === "create"
                         ? "Set up a new user for your gym"
                         : `Update ${
-                            selectedUser?.firstName || "this member"
-                          }'s membership details`}
+                            selectedUser?.firstName || "this user"
+                          }'s details`}
                     </p>
                   </div>
                   <button
