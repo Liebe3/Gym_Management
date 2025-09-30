@@ -1,12 +1,20 @@
 import { motion } from "framer-motion";
 import { FiFilter, FiSearch, FiX } from "react-icons/fi";
 
+// Available roles
+const availableRoles = [
+  { value: "all", label: "All Roles" },
+  { value: "admin", label: "Admin" },
+  { value: "trainer", label: "Trainer" },
+  { value: "member", label: "Member" },
+  { value: "user", label: "User" },
+];
+
 const UserFilter = ({
   searchTerm,
   handleSearch,
   selectedRole,
   handleRoleFilter,
-  availableRoles,
   roleCounts,
   clearFilters,
   debouncedSearch,
