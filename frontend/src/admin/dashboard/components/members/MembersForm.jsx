@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { FiAlertTriangle, FiCheckCircle } from "react-icons/fi";
-
+import { memo, useEffect, useState } from "react";
 import { showError, showSuccess } from "../../../../pages/utils/Alert";
 import memberService from "../../../../services/memberService";
 import membershipPlanService from "../../../../services/membershipPlansService";
-import trainerService from "../../../../services/trainerService";
-import userService from "../../../../services/userService";
+import MembershipPlanSelect from "./MemberShipPlanSelect";
+import StatusSelect from "./StatusSelect";
+import TrainerSelect from "./TrainerSelect";
+import UserSelect from "./UserSelect";
 
 const initialForm = {
   userId: "",
@@ -28,20 +28,54 @@ const MembersForm = ({
   onSuccess,
 }) => {
   const [form, setForm] = useState(initialForm);
-  const [users, setUsers] = useState([]);
   const [membershipPlans, setMembershipPlans] = useState([]);
+  const [planLoading, setPlanLoading] = useState(false);
 
   const [selectedUserActivePlan, setSelectedUserActivePlan] = useState(null);
   const [checkingActivePlan, setCheckingActivePlan] = useState(false);
 
-  const [trainers, SetTrainers] = useState([]);
-  const [trainersLoading, setTrainersLoading] = useState(false);
-
   const [loading, setLoading] = useState(false);
-  const [userLoading, setUserLoading] = useState(false);
-  const [planLoading, setPlanLoading] = useState(false);
 
-  // --- Auto-calculate end date function ---
+  // Load member data if updating
+  useEffect(() => {
+    if (mode === formModes.Update && selectedMember) {
+      setForm({
+        userId: selectedMember.user?._id || "",
+        membershipPlanId: selectedMember.membershipPlan?._id || "",
+        trainerId: selectedMember.trainer?._id || "",
+        startDate: selectedMember.startDate
+          ? new Date(selectedMember.startDate).toISOString().split("T")[0]
+          : "",
+        endDate: selectedMember.endDate
+          ? new Date(selectedMember.endDate).toISOString().split("T")[0]
+          : "",
+        status: selectedMember.status || "pending",
+        autoRenew: selectedMember.autoRenew || false,
+      });
+    } else {
+      setForm(initialForm);
+    }
+  }, [mode, selectedMember]);
+
+  // Fetch membership plans for end date calculation
+  useEffect(() => {
+    const fetchMemberShipPlans = async () => {
+      setPlanLoading(true);
+      try {
+        const res = await membershipPlanService.getAllPlans({
+          status: "active",
+        });
+        setMembershipPlans(res?.data || []);
+      } catch (err) {
+        console.error("Error fetching membership plans:", err);
+      } finally {
+        setPlanLoading(false);
+      }
+    };
+    fetchMemberShipPlans();
+  }, []);
+
+  // Auto-calculate end date function
   const calculateEndDate = (startDateValue, planId) => {
     if (!startDateValue || !planId) return "";
 
@@ -71,67 +105,6 @@ const MembersForm = ({
     return end.toISOString().split("T")[0]; // YYYY-MM-DD
   };
 
-  useEffect(() => {
-    if (mode === formModes.Update && selectedMember) {
-      setForm({
-        userId: selectedMember.user?._id || "",
-        membershipPlanId: selectedMember.membershipPlan?._id || "",
-        trainerId: selectedMember.trainer?._id || "",
-        startDate: selectedMember.startDate
-          ? new Date(selectedMember.startDate).toISOString().split("T")[0]
-          : "",
-        endDate: selectedMember.endDate
-          ? new Date(selectedMember.endDate).toISOString().split("T")[0]
-          : "",
-        status: selectedMember.status || "pending",
-        autoRenew: selectedMember.autoRenew || false,
-      });
-    } else {
-      setForm(initialForm);
-    }
-  }, [mode, selectedMember]);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      setUserLoading(true);
-      try {
-        const userResponse = await userService.getAllUser({ all: true });
-        const allUsers = userResponse?.data || [];
-
-        // Filter out users with roles of 'trainer' or 'admin'
-        const filteredUsers = allUsers.filter(
-          (user) => user.role !== "trainer" && user.role !== "admin"
-        );
-        setUsers(filteredUsers);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      } finally {
-        setUserLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    const fetchMemberShipPlans = async () => {
-      setPlanLoading(true);
-      try {
-        const memberShipPlansResponse = await membershipPlanService.getAllPlans(
-          {
-            status: "active", //get only the active plans
-          }
-        );
-        setMembershipPlans(memberShipPlansResponse?.data || []);
-      } catch (error) {
-        console.error("Error fetching membership plans:", error);
-      } finally {
-        setPlanLoading(false);
-      }
-    };
-    fetchMemberShipPlans();
-  }, []);
-
   // Function to check if selected user has an active membership
   const checkUserActivePlan = async (userId) => {
     if (!userId) return;
@@ -139,7 +112,6 @@ const MembersForm = ({
     setCheckingActivePlan(true);
     try {
       const response = await memberService.checkUserActiveMembership(userId);
-      // Use the correct property from backend
       setSelectedUserActivePlan(response.existingMembership || null);
     } catch (error) {
       console.error("Error checking user active membership:", error);
@@ -149,17 +121,15 @@ const MembersForm = ({
     }
   };
 
-  const handleChange = (event) => {
-    const { name, value, type, checked } = event.target;
-
+  const handleInputChange = (field, value) => {
     setForm((prev) => {
       const updatedForm = {
         ...prev,
-        [name]: type === "checkbox" ? checked : value,
+        [field]: value,
       };
 
-      // Auto-check end date if startDate or membershipPlanId changes
-      if (name === "startDate" || name === "membershipPlanId") {
+      // Auto-calculate end date if startDate or membershipPlanId changes
+      if (field === "startDate" || field === "membershipPlanId") {
         updatedForm.endDate = calculateEndDate(
           updatedForm.startDate,
           updatedForm.membershipPlanId
@@ -169,118 +139,16 @@ const MembersForm = ({
       return updatedForm;
     });
 
-    // Check active plan when user is selected
-    if (name === "userId") {
-      if (value && mode === formModes.Create) checkUserActivePlan(value);
-      else setSelectedUserActivePlan(null);
-    }
-  };
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-
-    if (mode === formModes.Create) {
-      await handleCreateMember(event);
-    } else {
-      await handleUpdateMember(event);
-    }
-  };
-
-  const handleCreateMember = async (event) => {
-    event.preventDefault();
-
-    // Frontend validation for active membership
-    if (selectedUserActivePlan) {
-      showError("This user already has an active membership plan");
-      return;
-    }
-
-    // Frontend validation for start/end dates
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // ignore time
-
-    if (form.startDate) {
-      const start = new Date(form.startDate);
-      if (start < today) {
-        showError("Start date cannot be in the past");
-        return;
-      }
-    }
-
-    if (form.startDate && form.endDate) {
-      const start = new Date(form.startDate);
-      const end = new Date(form.endDate);
-
-      if (end < start) {
-        showError("End date cannot be before start date");
-        return;
-      }
-
-      if (end < today) {
-        showError("End date cannot be in the past");
-        return;
-      }
-    }
-
-    setLoading(true);
-
-    try {
-      const submitData = {
-        userId: form.userId,
-        membershipPlanId: form.membershipPlanId,
-        trainerId: form.trainerId || undefined,
-        startDate: form.startDate,
-        endDate: form.endDate || undefined,
-        status: form.status,
-        autoRenew: form.autoRenew,
-      };
-
-      const result = await memberService.createMember(submitData);
-
-      if (result.success) {
-        setForm(initialForm);
+    // Check active plan when user is selected (only in create mode)
+    if (field === "userId") {
+      if (value && mode === formModes.Create) {
+        checkUserActivePlan(value);
+      } else {
         setSelectedUserActivePlan(null);
-        showSuccess("Member created successfully");
-        if (onSuccess) onSuccess();
-      } else {
-        console.error("Error creating member:", result.message);
-        showError(result.message || "Error creating member");
       }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      // Handle specific error messages from backend
-      if (error.response?.data?.message) {
-        showError(error.response.data.message);
-      } else {
-        showError("Failed to create member. Please try again.");
-      }
-    } finally {
-      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    const fetchTrainers = async () => {
-      try {
-        setTrainersLoading(true);
-        const response = await trainerService.getAllTrainer({
-          status: "active",
-          availability: true, // only available and active trainers
-          all: true,
-        });
-        const trainerlists = response?.data || [];
-        SetTrainers(trainerlists);
-      } catch (error) {
-        console.error("Error fetching trainers", error);
-      } finally {
-        setTrainersLoading(false);
-      }
-    };
-
-    fetchTrainers();
-  }, []);
-
-  // reset form
   const handleReset = () => {
     if (mode === formModes.Create) {
       setForm(initialForm);
@@ -302,12 +170,25 @@ const MembersForm = ({
     }
   };
 
-  //update member
-  const handleUpdateMember = async (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!selectedMember) {
-      showError("No member selected for update");
+
+    // Frontend validation for active membership (create mode only)
+    if (mode === formModes.Create && selectedUserActivePlan) {
+      showError("This user already has an active membership plan");
       return;
+    }
+
+    // Frontend validation for start/end dates
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (form.startDate) {
+      const start = new Date(form.startDate);
+      if (mode === formModes.Create && start < today) {
+        showError("Start date cannot be in the past");
+        return;
+      }
     }
 
     if (form.startDate && form.endDate) {
@@ -318,35 +199,61 @@ const MembersForm = ({
         showError("End date must be after start date");
         return;
       }
+
+      if (mode === formModes.Create && end < today) {
+        showError("End date cannot be in the past");
+        return;
+      }
     }
 
     setLoading(true);
 
     try {
-      const memberData = {
-        status: form.status,
-        startDate: form.startDate,
-        endDate: form.endDate,
+      let response;
+      const submitData = {
+        userId: form.userId,
         membershipPlanId: form.membershipPlanId,
-        trainerId: form.trainerId,
+        trainerId: form.trainerId || undefined,
+        startDate: form.startDate,
+        endDate: form.endDate || undefined,
+        status: form.status,
+        autoRenew: form.autoRenew,
       };
 
-      const result = await memberService.updateMember(
-        selectedMember._id,
-        memberData
-      );
-
-      if (result.success) {
-        showSuccess("Member updated successfully");
-        if (onSuccess) onSuccess();
+      if (mode === formModes.Create) {
+        response = await memberService.createMember(submitData);
       } else {
-        showError(result.message || "Error updating member");
+        // In update mode, don't send userId
+        delete submitData.userId;
+        response = await memberService.updateMember(
+          selectedMember._id,
+          submitData
+        );
+      }
+
+      if (response.success) {
+        showSuccess(
+          mode === formModes.Create
+            ? "Member created successfully"
+            : "Member updated successfully"
+        );
+        if (onSuccess) onSuccess();
+        if (mode === formModes.Create) {
+          setForm(initialForm);
+          setSelectedUserActivePlan(null);
+        }
+      } else {
+        showError(response.message || "Operation failed");
       }
     } catch (error) {
       if (error.response?.data?.message) {
         showError(error.response.data.message);
       } else {
-        showError("Failed to update member");
+        showError(
+          mode === formModes.Create
+            ? "Failed to create member"
+            : "Failed to update member"
+        );
       }
     } finally {
       setLoading(false);
@@ -358,164 +265,40 @@ const MembersForm = ({
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Row 1: User and Membership Plan */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              User
-            </label>
-            <select
-              id="userId"
-              name="userId"
-              value={form.userId}
-              onChange={handleChange}
-              required
-              disabled={mode === formModes.Update} // Disable in update mode
-              className={`mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                mode === formModes.Update ? "opacity-60 cursor-not-allowed" : ""
-              }`}
-            >
-              <option value="">Select a user</option>
-              {Array.isArray(users) &&
-                users.map((user) => (
-                  <option key={user._id} value={user._id}>
-                    {user.firstName} {user.lastName}
-                  </option>
-                ))}
-            </select>
+          <UserSelect
+            value={form.userId}
+            onChange={(value) => handleInputChange("userId", value)}
+            mode={mode}
+            selectedUserActivePlan={selectedUserActivePlan}
+            checkingActivePlan={checkingActivePlan}
+            disabled={false}
+          />
 
-            {mode === formModes.Update && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                User cannot be changed when updating
-              </p>
-            )}
-
-            {/* Show info about filtered users */}
-            {!userLoading && users.length === 0 && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                No eligible users found (trainers and admins are excluded)
-              </p>
-            )}
-
-            {/* Active Plan Warning - Only show in create mode */}
-            {mode === formModes.Create && checkingActivePlan && (
-              <div className="mt-2 flex items-center text-blue-600 dark:text-blue-400">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                <span className="text-xs">Checking active membership...</span>
-              </div>
-            )}
-
-            {mode === formModes.Create && selectedUserActivePlan && (
-              <div className="mt-2 p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-                <div className="flex items-start">
-                  <FiAlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400 mt-0.5 mr-2 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm text-orange-800 dark:text-orange-200 font-medium">
-                      Existing Membership Found
-                    </p>
-                    <p className="text-xs text-orange-700 dark:text-orange-300 mt-1">
-                      This user already has a membership record (
-                      {selectedUserActivePlan.status}).
-                      {selectedUserActivePlan.status === "active"
-                        ? ` Active until ${new Date(
-                            selectedUserActivePlan.endDate
-                          ).toLocaleDateString()}.`
-                        : " This membership is inactive. Please update or reactivate it instead of creating a new one."}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {mode === formModes.Create &&
-              form.userId &&
-              !checkingActivePlan &&
-              !selectedUserActivePlan && (
-                <div className="mt-2 flex items-center text-green-600 dark:text-green-400">
-                  <FiCheckCircle className="w-4 h-4 mr-2" />
-                  <span className="text-xs">
-                    User is available for new membership
-                  </span>
-                </div>
-              )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Membership Plan
-            </label>
-            <select
-              id="membershipPlanId"
-              name="membershipPlanId"
-              value={form.membershipPlanId}
-              onChange={handleChange}
-              required
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="">Select a plan</option>
-              {Array.isArray(membershipPlans) && membershipPlans.length > 0 ? (
-                membershipPlans.map((plan) => (
-                  <option key={plan._id} value={plan._id}>
-                    {plan.name} - ${plan.price} ({plan.duration}{" "}
-                    {plan.durationType})
-                  </option>
-                ))
-              ) : (
-                <option disabled>No plans available</option>
-              )}
-            </select>
-            {!planLoading && membershipPlans.length === 0 && (
-              <p className="text-xs text-red-500 mt-1">
-                No membership plans loaded.
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Assign Trainer
-            </label>
-            <select
-              id="trainerId"
-              name="trainerId"
-              value={form.trainerId}
-              onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 overflow-y-auto"
-            >
-              <option value="">Select a trainer</option>
-              {trainers.map((trainer) => (
-                <option key={trainer._id} value={trainer._id}>
-                  {trainer.user?.firstName} {trainer.user?.lastName}
-                  {trainer.specializations?.length > 0 &&
-                    ` (${trainer.specializations[0]})`}
-                </option>
-              ))}
-            </select>
-            {!trainersLoading && trainers.length === 0 && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                No trainers found
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Status
-            </label>
-            <select
-              id="status"
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300  dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="pending">Pending</option>
-              <option value="active">Active</option>
-              <option value="expired">Expired</option>
-              <option value="none">None</option>
-            </select>
-          </div>
+          <MembershipPlanSelect
+            value={form.membershipPlanId}
+            onChange={(value) => handleInputChange("membershipPlanId", value)}
+            disabled={false}
+            membershipPlans={membershipPlans}
+            planLoading={planLoading}
+          />
         </div>
 
-        {/* Row 2: Start & End Date */}
+        {/* Row 2: Trainer and Status */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TrainerSelect
+            value={form.trainerId}
+            onChange={(value) => handleInputChange("trainerId", value)}
+            disabled={false}
+          />
+
+          <StatusSelect
+            value={form.status}
+            onChange={(value) => handleInputChange("status", value)}
+            disabled={false}
+          />
+        </div>
+
+        {/* Row 3: Start & End Date */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -523,11 +306,9 @@ const MembersForm = ({
             </label>
             <input
               type="date"
-              id="startDate"
-              name="startDate"
               value={form.startDate}
-              onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300  dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+              onChange={(e) => handleInputChange("startDate", e.target.value)}
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {mode === formModes.Create
@@ -542,11 +323,9 @@ const MembersForm = ({
             </label>
             <input
               type="date"
-              id="endDate"
-              name="endDate"
               value={form.endDate}
-              onChange={handleChange}
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300  dark:border-gray-600 bg-white dark:bg-gray-900  text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500   [&::-webkit-calendar-picker-indicator]:text-amber-50  [&::-webkit-calendar-picker-indicator]:cursor-pointer "
+              onChange={(e) => handleInputChange("endDate", e.target.value)}
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
               {mode === formModes.Create
@@ -556,27 +335,20 @@ const MembersForm = ({
           </div>
         </div>
 
-        {/* Row 3:  Auto Renew */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="flex items-center mt-6">
-            <input
-              type="checkbox"
-              id="autoRenew"
-              name="autoRenew"
-              checked={form.autoRenew}
-              onChange={handleChange}
-              disabled={mode === formModes.Update} // Disable in update mode
-              className={`h-4 w-4 text-emerald-600 focus:ring-emerald-500  border-gray-300 rounded ${
-                mode === formModes.Update ? "opacity-60 cursor-not-allowed" : ""
-              }`}
-            />
-            <label
-              htmlFor="autoRenew"
-              className="ml-2 text-sm text-gray-700 dark:text-gray-300"
-            >
-              Auto Renew {mode === formModes.Update && "(Cannot be changed)"}
-            </label>
-          </div>
+        {/* Row 4: Auto Renew */}
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            checked={form.autoRenew}
+            onChange={(e) => handleInputChange("autoRenew", e.target.checked)}
+            disabled={mode === formModes.Update}
+            className={`h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded ${
+              mode === formModes.Update ? "opacity-60 cursor-not-allowed" : ""
+            }`}
+          />
+          <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+            Auto Renew {mode === formModes.Update && "(Cannot be changed)"}
+          </label>
         </div>
 
         {/* Actions */}
@@ -584,7 +356,7 @@ const MembersForm = ({
           <button
             type="button"
             onClick={handleReset}
-            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl  hover:bg-gray-50 dark:hover:bg-gray-800  transition duration-200 cursor-pointer"
+            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition duration-200 cursor-pointer"
           >
             Reset
           </button>
@@ -595,7 +367,7 @@ const MembersForm = ({
               (mode === formModes.Create &&
                 (selectedUserActivePlan || checkingActivePlan))
             }
-            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700  text-white rounded-xl font-medium shadow-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading
               ? mode === formModes.Create
@@ -611,4 +383,5 @@ const MembersForm = ({
   );
 };
 
+export { formModes };
 export default MembersForm;
