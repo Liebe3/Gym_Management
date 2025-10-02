@@ -66,21 +66,6 @@ const trainerSchema = new mongoose.Schema(
       },
     },
 
-    totalClients: {
-      type: Number,
-      default: 0,
-    },
-
-    activeClients: {
-      type: Number,
-      default: 0,
-    },
-
-    totalSessions: {
-      type: Number,
-      default: 0,
-    },
-
     isAvailableForNewClients: {
       type: Boolean,
       default: true,
@@ -104,8 +89,6 @@ const trainerSchema = new mongoose.Schema(
 );
 
 trainerSchema.index({ user: 1 });
-trainerSchema.index({ totalClients: 1 });
-trainerSchema.index({ activeClients: 1 });
 trainerSchema.index({ specializations: 1 });
 trainerSchema.index({ status: 1 });
 trainerSchema.index({ workSchedule: 1 });
