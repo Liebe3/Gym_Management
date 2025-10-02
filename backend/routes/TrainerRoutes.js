@@ -11,13 +11,17 @@ const {
   deleteTrainer,
 } = require("../controllers/TrainerController");
 
+const { getTrainerStats } = require("../controllers/TrainerStats");
+
 router.use(VerifyToken);
 router.use(VerifyAdmin);
 
 router.get("/", getAllTrainer);
+router.get("/:id/stats", getTrainerStats);
 router.get("/:id", getTrainerById);
+
 router.post("/", createTrainer);
 router.put("/:id", updateTrainer);
-router.delete("/:id", deleteTrainer)
+router.delete("/:id", deleteTrainer);
 
 module.exports = router;
