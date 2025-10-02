@@ -4,7 +4,6 @@ import {
   FiEdit3,
   FiEye,
   FiFilter,
-  FiMail,
   FiPlus,
   FiTag,
   FiTrash2,
@@ -101,21 +100,10 @@ const TrainerTable = ({
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
                 <div className="flex items-center">
                   <FiUser className="w-4 h-4 mr-2 text-emerald-600" />
-                  First Name
+                  Name
                 </div>
               </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                <div className="flex items-center">
-                  <FiUser className="w-4 h-4 mr-2 text-emerald-600" />
-                  Last Name
-                </div>
-              </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                <div className="flex items-center">
-                  <FiMail className="w-4 h-4 mr-2 text-emerald-600" />
-                  Email
-                </div>
-              </th>
+
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  md:table-cell">
                 <div className="flex items-center">
                   <FiTag className="w-4 h-4 mr-2 text-emerald-600" />
@@ -131,7 +119,7 @@ const TrainerTable = ({
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  lg:table-cell">
                 <div className="flex items-center">
                   <FiUsers className="w-4 h-4 mr-2 text-emerald-600" />
-                  Clients
+                  total/active
                 </div>
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
@@ -161,17 +149,10 @@ const TrainerTable = ({
                 >
                   <td className="py-3 px-4">
                     <div className="font-semibold text-gray-900 dark:text-white">
-                      {trainer.user?.firstName}
+                      {trainer.user?.firstName} {trainer.user?.lastName}
                     </div>
                   </td>
-                  <td className="py-3 px-4">
-                    <div className="font-semibold text-gray-900 dark:text-white">
-                      {trainer.user?.lastName}
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                    {trainer.user?.email}
-                  </td>
+
                   <td className="py-3 px-4  md:table-cell">
                     <div className="flex flex-wrap gap-1">
                       {trainer.specializations?.slice(0, 2).map((spec) => (
@@ -200,7 +181,7 @@ const TrainerTable = ({
                   </td>
                   <td className="py-3 px-4  lg:table-cell">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300">
-                      {trainer.totalClients || 0} clients
+                      {trainer.totalClients} / {trainer.activeClients} clients
                     </span>
                   </td>
                   <td className="py-3 px-4">
