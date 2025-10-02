@@ -44,6 +44,16 @@ const trainerService = {
     }
   },
 
+  getTrainerStats: async (trainerId) => {
+    try {
+      const response = await API.get(`/trainer/${trainerId}/stats`);
+      return response.data;
+    } catch (error) {
+      console.error("Get trainer stats service error", error);
+      throw error;
+    }
+  },
+
   updateTrainer: async (trainerId, updateData) => {
     try {
       const response = await API.put(`/trainer/${trainerId}`, updateData);
