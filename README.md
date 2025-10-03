@@ -16,7 +16,7 @@ Built with **React, Node.js, Express, and MongoDB**.
 ---
 
 ## 🛠️ Tech Stack
-- **Frontend:** React, Tailwind CSS, Reac-icons
+- **Frontend:** React, Tailwind CSS, Reac-icons, Framer Motion
 - **Backend:** Node.js, Express  
 - **Database:** MongoDB (Mongoose ODM)  
 - **State Management:** React hooks / context  
