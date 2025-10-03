@@ -21,6 +21,7 @@ Built with **React, Node.js, Express, and MongoDB**.
 - **Database:** MongoDB (Mongoose ODM)  
 - **State Management:** React hooks / context  
 - **Notification:** SweetAlert2
+- **Modal:** Headlessui
 - **API Testing:** Postman 
 
 ---
