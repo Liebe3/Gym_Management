@@ -46,12 +46,12 @@ PORT=5000
 ---
 
 ### 3️⃣ Run the app
-# Start backend
+## Start backend
 cd backend
 npm run dev
 
 
-# Start frontend
+## Start frontend
 cd frontend
 npm run dev
 
