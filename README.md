@@ -30,8 +30,10 @@ Built with **React, Node.js, Express, and MongoDB**.
 ```bash
 git clone https://github.com/Liebe3/Gym_Management.git
 cd Gym_Management
-cd backend && npm install
-cd frontend && npm install
+cd backend 
+npm install
+cd frontend
+npm install
 ```
 
 ---
