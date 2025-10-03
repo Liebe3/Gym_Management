@@ -40,7 +40,8 @@ cd frontend && npm install
 Inside **backend/** create a `.env` file:
 ```bash
 MONGO_URI=your_mongodb_connection_string
-PORT=5000
+PORT=your port
+JWT_SECRET=your_jwt_secret
 ```
 
 ---
