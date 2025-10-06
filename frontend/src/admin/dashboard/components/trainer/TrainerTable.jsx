@@ -119,7 +119,19 @@ const TrainerTable = ({
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  lg:table-cell">
                 <div className="flex items-center">
                   <FiUsers className="w-4 h-4 mr-2 text-emerald-600" />
-                  total/active
+                  Total Clients
+                </div>
+              </th>
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  lg:table-cell">
+                <div className="flex items-center">
+                  <FiUsers className="w-4 h-4 mr-2 text-emerald-600" />
+                  Active Clients
+                </div>
+              </th>
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  lg:table-cell">
+                <div className="flex items-center">
+                  <FiUsers className="w-4 h-4 mr-2 text-emerald-600" />
+                  Total Sessions
                 </div>
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
@@ -179,9 +191,23 @@ const TrainerTable = ({
                       )}
                     </span>
                   </td>
-                  <td className="py-3 px-4  lg:table-cell">
+                  <td className="py-3 px-4 lg:table-cell">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
+                      {trainer.totalClients ?? 0} clients
+                    </span>
+                  </td>
+
+                  {/* Active Clients - Green */}
+                  <td className="py-3 px-4 lg:table-cell">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+                      {trainer.activeClients ?? 0} active
+                    </span>
+                  </td>
+
+                  {/* Total Sessions - Purple */}
+                  <td className="py-3 px-4 lg:table-cell">
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300">
-                      {trainer.totalClients} / {trainer.activeClients} clients
+                      {trainer.totalSessions ?? 0} sessions
                     </span>
                   </td>
                   <td className="py-3 px-4">
