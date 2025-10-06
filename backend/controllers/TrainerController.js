@@ -1,8 +1,11 @@
 const Trainer = require("../models/Trainer");
 const User = require("../models/User");
+const Member = require("../models/Member");
+const Session = require("../models/Session");
 const { getAll } = require("./BaseController");
+const { addStatsToTrainers } = require("../utils/trainerStats");
 
-(exports.getAllTrainer = async (req, res) => {
+exports.getAllTrainer = async (req, res) => {
   // Check if 'all' parameter is requested
   if (req.query.all === "true" || req.query.all === true) {
     try {
@@ -40,199 +43,289 @@ const { getAll } = require("./BaseController");
       }
 
       const trainers = await Trainer.find(filter)
-        .populate({ path: "user", select: "firstName lastName email phone" })
+        .populate({ path: "user", select: "firstName lastName email" })
         .sort({ createdAt: -1 });
 
-      return res.status(200).json({
-        success: true,
-        data: trainers,
-        total: trainers.length,
-      });
+      // Get stats for all trainers
+      const trainersWithStats = await addStatsToTrainers(trainers);
+
+      const totalFiltered = await Trainer.countDocuments(filter);
+
+      const { buildCounts } = require("../utils/aggregationHelper");
+      const counts = {
+        status: await buildCounts(Trainer, "status"),
+        isAvailableForNewClients: await buildCounts(
+          Trainer,
+          "isAvailableForNewClients"
+        ),
+      };
+
+      const { buildResponse } = require("../utils/responseBuilder");
+      const response = buildResponse(
+        trainersWithStats,
+        { page: 1, limit: trainersWithStats.length, skip: 0 }, // fake pagination
+        filter,
+        counts,
+        totalFiltered
+      );
+
+      return res.status(200).json(response);
     } catch (error) {
       console.error("Error fetching all trainers:", error);
       return res.status(500).json({ success: false, message: error.message });
     }
   }
-  
-  return getAll(Trainer, req, res, {
-    searchableFields: ["specializations"],
-    filterableFields: {
-      status: "status",
 
-      availability: "isAvailableForNewClients",
-    },
-    arrayFields: ["specializations"],
-    populate: [{ path: "user", select: "firstName lastName email phone" }],
-    countableFields: ["status", "isAvailableForNewClients"],
-    customSearch: {
-      model: User,
-      fields: ["firstName", "lastName", "email"],
-      key: "user",
-    },
-    defaultSort: { createdAt: -1 }, // 👈 newest first
-  });
-}),
-  (exports.createTrainer = async (req, res) => {
-    try {
-      const {
-        userId,
-        gender,
-        status,
-        specializations,
-        experience,
-        workSchedule,
-        isAvailableForNewClients,
-      } = req.body;
+  // ✅ For paginated requests, also add stats
+  try {
+    const {
+      searchableFields = ["specializations"],
+      filterableFields = {
+        status: "status",
+        availability: "isAvailableForNewClients",
+      },
+      arrayFields = ["specializations"],
+      populate = [{ path: "user", select: "firstName lastName email" }],
+      countableFields = ["status", "isAvailableForNewClients"],
+      customSearch = {
+        model: User,
+        fields: ["firstName", "lastName", "email"],
+        key: "user",
+      },
+      defaultSort = { createdAt: -1 },
+    } = {};
 
-      if (!userId) {
+    // Use the base controller logic but intercept before sending response
+    const {
+      buildQuery,
+      buildSort,
+      buildPagination,
+    } = require("../utils/queryBuilder");
+    const {
+      buildCounts,
+      findRelatedIds,
+    } = require("../utils/aggregationHelper");
+
+    let filter = buildQuery(
+      req,
+      searchableFields,
+      filterableFields,
+      arrayFields
+    );
+
+    // Custom user search
+    if (customSearch && req.query.search) {
+      const userIds = await findRelatedIds(
+        customSearch.model,
+        req.query.search,
+        customSearch.fields
+      );
+      filter.$or = [
+        ...(filter.$or || []),
+        {
+          [customSearch.key]: {
+            $in: userIds.length > 0 ? userIds : [null],
+          },
+        },
+      ];
+    }
+
+    const sort = buildSort(req.query.sortBy, req.query.sortOrder, defaultSort);
+
+    const { page, limit, skip } = buildPagination(
+      req.query.page,
+      req.query.limit,
+      req.query.all
+    );
+
+    let queryChain = Trainer.find(filter);
+    populate.forEach((pop) => {
+      queryChain = queryChain.populate(pop);
+    });
+
+    const trainers = await queryChain.sort(sort).skip(skip).limit(limit);
+
+    // ✅ Add stats to paginated results
+    const trainersWithStats = await addStatsToTrainers(trainers);
+
+    const totalFiltered = await Trainer.countDocuments(filter);
+
+    const counts = {};
+    for (const field of countableFields) {
+      counts[field] = await buildCounts(Trainer, field);
+    }
+
+    const { buildResponse } = require("../utils/responseBuilder");
+    const response = buildResponse(
+      trainersWithStats, // ✅ Use trainersWithStats instead of trainers
+      { page, limit, skip },
+      filter,
+      counts,
+      totalFiltered
+    );
+
+    return res.status(200).json(response);
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.createTrainer = async (req, res) => {
+  try {
+    const {
+      userId,
+      gender,
+      status,
+      specializations,
+      experience,
+      workSchedule,
+      isAvailableForNewClients,
+    } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    const user = await User.findById(userId);
+    const isNotTrainer = !user || user.role !== "trainer";
+    if (isNotTrainer) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid user ID" });
+    }
+
+    // Check if trainer profile already exists
+    const existingTrainer = await Trainer.findOne({ user: userId });
+    if (existingTrainer) {
+      return res.status(400).json({
+        success: false,
+        message: "Trainer profile already exists for this user",
+      });
+    }
+
+    // Validate specializations if provided
+    if (
+      specializations &&
+      (!Array.isArray(specializations) || specializations.length === 0)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Specializations must be empty",
+      });
+    }
+
+    // Validate experience
+    if (experience && (typeof experience !== "number" || experience < 0)) {
+      return res.status(400).json({
+        success: false,
+        message: "Experience must be a non-negative number",
+      });
+    }
+
+    // Validate work schedule structure
+    if (!workSchedule || typeof workSchedule !== "object") {
+      return res.status(400).json({
+        success: false,
+        message: "Work schedule must be an object",
+      });
+    }
+
+    // Validate at least 1 working day
+    const workingDays = Object.entries(workSchedule).filter(
+      ([_, schedule]) => schedule.isWorking
+    );
+
+    if (workingDays.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Work schedule must have at least 1 working day",
+      });
+    }
+
+    // Validate time input for each working day
+    for (const [day, schedule] of workingDays) {
+      if (!schedule.startTime || !schedule.endTime) {
         return res.status(400).json({
           success: false,
-          message: "User ID is required",
+          message: `Working day '${day}' must have both startTime and endTime`,
         });
       }
 
-      const user = await User.findById(userId);
-      const isNotTrainer = !user || user.role !== "trainer";
-      if (isNotTrainer) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid user ID" });
-      }
-
-      // Check if trainer profile already exists
-      const existingTrainer = await Trainer.findOne({ user: userId });
-      if (existingTrainer) {
-        return res.status(400).json({
-          success: false,
-          message: "Trainer profile already exists for this user",
-        });
-      }
-
-      // Validate specializations if provided
+      const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
       if (
-        specializations &&
-        (!Array.isArray(specializations) || specializations.length === 0)
+        !timeRegex.test(schedule.startTime) ||
+        !timeRegex.test(schedule.endTime)
       ) {
         return res.status(400).json({
           success: false,
-          message: "Specializations must be empty",
+          message: `Working day '${day}' has invalid time format. Use HH:MM`,
         });
       }
 
-      // Validate experience
-      if (experience && (typeof experience !== "number" || experience < 0)) {
+      const [startHour, startMinute] = schedule.startTime
+        .split(":")
+        .map(Number);
+      const [endHour, endMinute] = schedule.endTime.split(":").map(Number);
+
+      const startTotalMinutes = startHour * 60 + startMinute;
+      const endTotalMinutes = endHour * 60 + endMinute;
+
+      if (endTotalMinutes <= startTotalMinutes) {
         return res.status(400).json({
           success: false,
-          message: "Experience must be a non-negative number",
+          message: `Working day '${day}' must have an end time later than start time`,
         });
       }
+    }
 
-      // Validate work schedule structure
-      if (!workSchedule || typeof workSchedule !== "object") {
-        return res.status(400).json({
-          success: false,
-          message: "Work schedule must be an object",
-        });
-      }
+    const trainerData = {
+      user: userId,
+      createdBy: req.user?.id,
+      lastUpdatedBy: req.user?.id,
+    };
 
-      // Validate at least 1 working day
-      const workingDays = Object.entries(workSchedule).filter(
-        ([_, schedule]) => schedule.isWorking
+    if (gender) trainerData.gender = gender;
+    if (status) trainerData.status = status;
+    if (specializations) trainerData.specializations = specializations;
+    if (experience !== undefined) trainerData.experience = experience;
+    if (workSchedule) trainerData.workSchedule = workSchedule;
+    if (isAvailableForNewClients !== undefined)
+      trainerData.isAvailableForNewClients = isAvailableForNewClients;
+
+    const newTrainer = new Trainer(trainerData);
+    await newTrainer.save();
+
+    await newTrainer.populate("user", "firstName lastName email");
+
+    res.status(201).json({
+      success: true,
+      message: "Trainer created successfully",
+      trainer: newTrainer,
+    });
+  } catch (error) {
+    if (error.name === "ValidationError") {
+      const validationErrors = Object.values(error.errors).map(
+        (err) => err.message
       );
-
-      if (workingDays.length === 0) {
-        return res.status(400).json({
-          success: false,
-          message: "Work schedule must have at least 1 working day",
-        });
-      }
-
-      // Validate time input for each working day
-      for (const [day, schedule] of workingDays) {
-        if (!schedule.startTime || !schedule.endTime) {
-          return res.status(400).json({
-            success: false,
-            message: `Working day '${day}' must have both startTime and endTime`,
-          });
-        }
-
-        //validate HH:MM format
-        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-        if (
-          !timeRegex.test(schedule.startTime) ||
-          !timeRegex.test(schedule.endTime)
-        ) {
-          return res.status(400).json({
-            success: false,
-            message: `Working day '${day}' has invalid time format. Use HH:MM`,
-          });
-        }
-
-        // ✅ Validate endTime is after startTime
-        const [startHour, startMinute] = schedule.startTime
-          .split(":")
-          .map(Number);
-        const [endHour, endMinute] = schedule.endTime.split(":").map(Number);
-
-        const startTotalMinutes = startHour * 60 + startMinute;
-        const endTotalMinutes = endHour * 60 + endMinute;
-
-        if (endTotalMinutes <= startTotalMinutes) {
-          return res.status(400).json({
-            success: false,
-            message: `Working day '${day}' must have an end time later than start time`,
-          });
-        }
-      }
-
-      const trainerData = {
-        user: userId,
-        createdBy: req.user?.id,
-        lastUpdatedBy: req.user?.id,
-      };
-
-      // Only add fields if they are provided
-      if (gender) trainerData.gender = gender;
-      if (status) trainerData.status = status;
-      if (specializations) trainerData.specializations = specializations;
-      if (experience !== undefined) trainerData.experience = experience;
-      if (workSchedule) trainerData.workSchedule = workSchedule;
-      if (isAvailableForNewClients !== undefined)
-        trainerData.isAvailableForNewClients = isAvailableForNewClients;
-
-      const newTrainer = new Trainer(trainerData);
-      await newTrainer.save();
-
-      // Populate user data before sending response
-      await newTrainer.populate("user", "firstName lastName email");
-
-      res.status(201).json({
-        success: true,
-        message: "Trainer created successfully",
-        trainer: newTrainer,
-      });
-    } catch (error) {
-      // Handle validation errors specifically
-      if (error.name === "ValidationError") {
-        const validationErrors = Object.values(error.errors).map(
-          (err) => err.message
-        );
-        return res.status(400).json({
-          success: false,
-          message: "Validation error",
-          errors: validationErrors,
-        });
-      }
-
-      res.status(500).json({
+      return res.status(400).json({
         success: false,
-        message: "Server Error",
-        error: error.message,
+        message: "Validation error",
+        errors: validationErrors,
       });
     }
-  });
 
-// Get trainer by ID for veiwling public profile
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
 exports.getTrainerById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -249,9 +342,12 @@ exports.getTrainerById = async (req, res) => {
       });
     }
 
+    // Reuse helper but wrap in array (it expects an array of trainers)
+    const [trainerWithStats] = await addStatsToTrainers([trainer]);
+
     res.status(200).json({
       success: true,
-      data: trainer,
+      data: trainerWithStats,
     });
   } catch (error) {
     console.error("Get trainer by ID error:", error);
@@ -290,7 +386,6 @@ exports.updateTrainer = async (req, res) => {
       });
     }
 
-    // Validate specializations if provided
     const isInvalidSpecializations =
       specializations &&
       (!Array.isArray(specializations) || specializations.length === 0);
@@ -302,7 +397,6 @@ exports.updateTrainer = async (req, res) => {
       });
     }
 
-    // validate experinece
     const isInvalidExperience =
       experience && (typeof experience !== "number" || experience < 0);
     if (isInvalidExperience) {
@@ -312,7 +406,6 @@ exports.updateTrainer = async (req, res) => {
       });
     }
 
-    // Validate work schedule if provided
     if (workSchedule) {
       if (typeof workSchedule !== "object") {
         return res.status(400).json({
@@ -321,7 +414,6 @@ exports.updateTrainer = async (req, res) => {
         });
       }
 
-      // Validate at least 1 working day
       const workingDays = Object.entries(workSchedule).filter(
         ([_, schedule]) => schedule.isWorking
       );
@@ -333,16 +425,14 @@ exports.updateTrainer = async (req, res) => {
         });
       }
 
-      // Validate time input for each working day
       for (const [day, schedule] of workingDays) {
         if (!schedule.startTime || !schedule.endTime) {
-          return req.status(400).json({
+          return res.status(400).json({
             success: false,
             message: `Working day '${day}' must have both startTime and endTime`,
           });
         }
 
-        //validate HH:MM format
         const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
         const isInvalidTimeFormat =
           !timeRegex.test(schedule.startTime) ||
@@ -350,11 +440,10 @@ exports.updateTrainer = async (req, res) => {
         if (isInvalidTimeFormat) {
           return res.status(400).json({
             success: false,
-            message: "Working day '${day}' has invalid time format. Use HH:MM",
+            message: `Working day '${day}' has invalid time format. Use HH:MM`,
           });
         }
 
-        // Validate endTime is after startTime
         const [startHour, startMinute] = schedule.startTime
           .split(":")
           .map(Number);
@@ -372,7 +461,7 @@ exports.updateTrainer = async (req, res) => {
         }
       }
     }
-    // Build update object with only provided fields
+
     const updateData = {
       lastUpdatedBy: req.user?.id,
     };
@@ -385,10 +474,9 @@ exports.updateTrainer = async (req, res) => {
     if (isAvailableForNewClients !== undefined)
       updateData.isAvailableForNewClients = isAvailableForNewClients;
 
-    // Update the trainer
     const updatedTrainer = await Trainer.findByIdAndUpdate(id, updateData, {
-      new: true, // Return updated document
-      runValidators: true, // Run mongoose validators
+      new: true,
+      runValidators: true,
     }).populate("user", "firstName lastName email phone");
 
     res.status(200).json({
@@ -397,7 +485,6 @@ exports.updateTrainer = async (req, res) => {
       trainer: updatedTrainer,
     });
   } catch (error) {
-    // Handle validation errors specifically
     if (error.name === "ValidationError") {
       const validationErrors = Object.values(error.errors).map(
         (err) => err.message
