@@ -13,7 +13,9 @@ const TrainerSelect = ({ value, onChange, disabled }) => {
           status: "active",
           availability: true, // only available and active trainers
           all: true,
+          // limit: 1000, // backup to fetch more if needed
         });
+
         const trainerLists = response?.data || [];
         setTrainers(trainerLists);
       } catch (error) {
