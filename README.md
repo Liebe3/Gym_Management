@@ -16,11 +16,12 @@ Built with **React, Node.js, Express, and MongoDB**.
 ---
 
 ## 🛠️ Tech Stack
-- **Frontend:** React, Tailwind CSS, Reac-icons
+- **Frontend:** React, Tailwind CSS, Reac-icons, Framer Motion
 - **Backend:** Node.js, Express  
 - **Database:** MongoDB (Mongoose ODM)  
 - **State Management:** React hooks / context  
 - **Notification:** SweetAlert2
+- **Modal:** Headlessui
 - **API Testing:** Postman 
 
 ---
@@ -30,8 +31,11 @@ Built with **React, Node.js, Express, and MongoDB**.
 ```bash
 git clone https://github.com/Liebe3/Gym_Management.git
 cd Gym_Management
-cd backend && npm install
-cd frontend && npm install
+cd backend 
+npm install
+cd frontend
+npm install
+
 ```
 
 ---
@@ -40,19 +44,20 @@ cd frontend && npm install
 Inside **backend/** create a `.env` file:
 ```bash
 MONGO_URI=your_mongodb_connection_string
-PORT=5000
+PORT=your port
+JWT_SECRET=your_jwt_secret
 ```
 
 ---
 
 ### 3️⃣ Run the app
-# Start backend
-cd backend
+## Start backend
+### cd backend
 npm run dev
 
 
-# Start frontend
-cd frontend
+## Start frontend
+### cd frontend
 npm run dev
 
 
