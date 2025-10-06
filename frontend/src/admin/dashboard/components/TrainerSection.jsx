@@ -14,6 +14,7 @@ import TrainerModal from "./ui/TrainerModal";
 
 const TrainerSection = () => {
   const [trainers, setTrainers] = useState([]);
+  // const [trainerStats, setTrainerStats] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -27,7 +28,7 @@ const TrainerSection = () => {
   const [statusCount, setStatusCount] = useState({});
   const [pagination, setPagination] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
-  const limit = 5;
+  const limit = 10;
 
   // Load trainers with filters
   const loadTrainers = async () => {
@@ -38,6 +39,7 @@ const TrainerSection = () => {
       const filters = {
         page: currentPage,
         limit,
+        // all: true, // ✅ Add this to get stats for all trainers
       };
 
       if (selectedStatus !== "all") {
@@ -64,6 +66,17 @@ const TrainerSection = () => {
       setLoading(false);
     }
   };
+
+  // const loadTrainerStats = async (trainerId) => {
+  //   try {
+  //     const response = await trainerService.getTrainerStats(trainerId);
+  //     if (response.success) {
+  //       setTrainerStats(response.data);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching trainer stats", error);
+  //   }
+  // };
 
   // Handle status filter change
   const handleStatusFilter = (status) => {
@@ -100,6 +113,7 @@ const TrainerSection = () => {
   }, [debouncedSearch, selectedStatus, currentPage]);
 
   const handleView = (trainerId) => {
+    // loadTrainerStats(trainerId);
     setMode("view");
     setSelectedTrainer(trainerId);
     setIsModalOpen(true);
