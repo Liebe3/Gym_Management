@@ -13,6 +13,9 @@ const trainerService = {
         )
           queryParams.append(key, value);
       });
+
+      // queryParams.append("all", "true");
+
       const queryString = queryParams.toString();
       const endpoint = `/trainer${queryString ? `?${queryString}` : ""}`;
       const response = await API.get(endpoint);
