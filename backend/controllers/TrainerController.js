@@ -1,8 +1,5 @@
 const Trainer = require("../models/Trainer");
 const User = require("../models/User");
-const Member = require("../models/Member");
-const Session = require("../models/Session");
-const { getAll } = require("./BaseController");
 const { addStatsToTrainers } = require("../utils/trainerStats");
 
 exports.getAllTrainer = async (req, res) => {
