@@ -7,6 +7,7 @@ const userRoutes = require("../routes/UserRoutes")
 const membershipPlansRoutes = require("../routes/MemberShipPlansRoutes");
 const memberRoutes = require("../routes/MemberRoutes");
 const trainerRoutes = require("../routes/TrainerRoutes")
+const sessionRoutes = require("../routes/SessionRoutes");
 
 dotenv.config();
 connectDB();
@@ -36,6 +37,7 @@ app.use("/api/user", userRoutes)
 app.use("/api/membership-plans", membershipPlansRoutes);
 app.use("/api/member", memberRoutes);
 app.use("/api/trainer", trainerRoutes)
+app.use("/api/session", sessionRoutes);
 
 // Test route
 app.get("/", (req, res) => {
