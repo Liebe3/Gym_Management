@@ -24,6 +24,7 @@ import {
   MdPeople,
   MdPerson,
   MdSettings,
+  MdCheckCircle ,
 } from "react-icons/md";
 
 const iconMap = {
@@ -39,6 +40,7 @@ const iconMap = {
   analytics: MdAnalytics,
   settings: MdSettings,
   theme: MdLightMode, // default, will swap dynamically
+  session: MdCheckCircle,
 };
 
 const sidebarLinks = [
@@ -46,6 +48,7 @@ const sidebarLinks = [
   { name: "Member", href: "/admin/member", icon: "groups" },
   { name: "User", href: "/admin/user", icon: "people" },
   { name: "Trainer", href: "/admin/trainer", icon: "fitness_center" },
+  { name: "Session", href: "/admin/session", icon: "session" },
   { name: "Memberships", href: "/admin/memberships", icon: "card_membership" },
   {
     name: "Membership Plans",
