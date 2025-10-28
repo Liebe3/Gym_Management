@@ -17,6 +17,8 @@ const SessionForm = ({ mode, selectedSession, handleCloseModal, onSuccess }) => 
     trainerId: "",
     memberId: "",
     date: "",
+    startTime: "", // ✅ Added
+    endTime: "",   // ✅ Added
     status: "scheduled",
     notes: "",
   });
@@ -49,8 +51,10 @@ const SessionForm = ({ mode, selectedSession, handleCloseModal, onSuccess }) => 
         trainerId: selectedSession.trainer?._id || "",
         memberId: selectedSession.member?._id || "",
         date: selectedSession.date
-          ? new Date(selectedSession.date).toISOString().slice(0, 16)
+          ? new Date(selectedSession.date).toISOString().slice(0, 10)
           : "",
+        startTime: selectedSession.startTime || "", // ✅ Added
+        endTime: selectedSession.endTime || "",     // ✅ Added
         status: selectedSession.status || "scheduled",
         notes: selectedSession.notes || "",
       });
@@ -67,7 +71,9 @@ const SessionForm = ({ mode, selectedSession, handleCloseModal, onSuccess }) => 
     const errs = {};
     if (!formData.trainerId) errs.trainerId = "Trainer is required";
     if (!formData.memberId) errs.memberId = "Member is required";
-    if (!formData.date) errs.date = "Date and time are required";
+    if (!formData.date) errs.date = "Date is required";
+    if (!formData.startTime) errs.startTime = "Start time is required"; // ✅ Added
+    if (!formData.endTime) errs.endTime = "End time is required";       // ✅ Added
     if (!formData.status) errs.status = "Status is required";
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -82,12 +88,13 @@ const SessionForm = ({ mode, selectedSession, handleCloseModal, onSuccess }) => 
 
     setLoading(true);
     try {
-      const [datePart, timePart] = formData.date.split("T");
+      // ✅ Fixed payload structure
       const payload = {
         trainerId: formData.trainerId,
         memberId: formData.memberId,
-        date: datePart,
-        time: timePart?.slice(0, 5),
+        date: formData.date,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
         status: formData.status,
         notes: formData.notes,
       };
@@ -101,6 +108,7 @@ const SessionForm = ({ mode, selectedSession, handleCloseModal, onSuccess }) => 
       }
 
       onSuccess();
+      handleCloseModal();
     } catch (error) {
       console.error(error);
       showError(error.response?.data?.message || "Failed to save session");
@@ -111,49 +119,48 @@ const SessionForm = ({ mode, selectedSession, handleCloseModal, onSuccess }) => 
 
   return (
     <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    className="bg-white dark:bg-gray-900 rounded-xl 50 shadow-lg border border-gray-200 dark:border-gray-700 p-6 dark:text-amber-50" 
-      >
-
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 dark:text-amber-50"
+    >
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
-      <TrainerSelect {...{ formData, trainers, handleChange, errors, isViewMode, loading, selectedSession }} />
-      <MemberSelect {...{ formData, members, handleChange, errors, isViewMode, loading, selectedSession }} />
-      <DateTimeInput {...{ formData, handleChange, errors, isViewMode, loading, selectedSession }} />
-      <StatusBadge {...{ formData, handleChange, errors, isViewMode, loading, selectedSession }} />
-      <NotesInput {...{ formData, handleChange, isViewMode, loading, selectedSession }} />
+        <TrainerSelect {...{ formData, trainers, handleChange, errors, isViewMode, loading, selectedSession }} />
+        <MemberSelect {...{ formData, members, handleChange, errors, isViewMode, loading, selectedSession }} />
+        <DateTimeInput {...{ formData, handleChange, errors, isViewMode, loading, selectedSession }} />
+        <StatusBadge {...{ formData, handleChange, errors, isViewMode, loading, selectedSession }} />
+        <NotesInput {...{ formData, handleChange, isViewMode, loading, selectedSession }} />
 
-      {/* Footer */}
-      {!isViewMode ? (
-        <div className="flex gap-3 pt-4">
-          <button
-            type="button"
-            onClick={handleCloseModal}
-            disabled={loading}
-            className="flex-1 px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition"
-          >
-            {loading ? "Saving..." : mode === "create" ? "Schedule" : "Update"}
-          </button>
-        </div>
-      ) : (
-        <div className="pt-4">
-          <button
-            type="button"
-            onClick={handleCloseModal}
-            className="w-full px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition"
-          >
-            Close
-          </button>
-        </div>
-      )}
-    </form>
+        {/* Footer */}
+        {!isViewMode ? (
+          <div className="flex gap-3 pt-4">
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              disabled={loading}
+              className="flex-1 px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+            >
+              {loading ? "Saving..." : mode === "create" ? "Schedule" : "Update"}
+            </button>
+          </div>
+        ) : (
+          <div className="pt-4">
+            <button
+              type="button"
+              onClick={handleCloseModal}
+              className="w-full px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition"
+            >
+              Close
+            </button>
+          </div>
+        )}
+      </form>
     </motion.div>
   );
 };
