@@ -1,3 +1,12 @@
+const formatTime = (time24) => {
+  if (!time24) return "";
+  const [hourStr, minute] = time24.split(":");
+  let hour = parseInt(hourStr, 10);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  hour = hour % 12 || 12;
+  return `${hour}:${minute} ${ampm}`;
+};
+
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FiCalendar,
@@ -7,6 +16,7 @@ import {
   FiPlus,
   FiTrash2,
   FiUser,
+  FiClock,
 } from "react-icons/fi";
 
 import { MdGroups } from "react-icons/md";
@@ -23,7 +33,6 @@ const SessionTable = ({
   pagination = {},
   currentPage,
   setCurrentPage,
-  formatDateTime,
 }) => {
   const getStatusColor = (status) => {
     switch (status) {
@@ -140,7 +149,19 @@ const SessionTable = ({
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
                 <div className="flex items-center">
                   <FiCalendar className="w-4 h-4 mr-2 text-emerald-600" />
-                  Date & Time
+                  Date
+                </div>
+              </th>
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
+                <div className="flex items-center">
+                  <FiClock className="w-4 h-4 mr-2 text-emerald-600" />
+                  Start Time
+                </div>
+              </th>
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
+                <div className="flex items-center">
+                  <FiClock className="w-4 h-4 mr-2 text-emerald-600" />
+                  End Time
                 </div>
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
@@ -187,10 +208,27 @@ const SessionTable = ({
 
                   <td className="py-3 px-4">
                     <div className="text-sm text-gray-900 dark:text-white">
-                      {formatDateTime(session.date)}
+                      {new Date(session.date).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "2-digit",
+                        day: "2-digit",
+                      })}
                     </div>
                   </td>
 
+                  {/* Start Time */}
+                  <td className="py-3 px-4 text-center align-middle">
+                    <div className="text-sm text-gray-900 dark:text-white font-medium">
+                      {formatTime(session.startTime) || "N/A"}
+                    </div>
+                  </td>
+
+                  {/* End Time */}
+                  <td className="py-3 px-4 text-center align-middle">
+                    <div className="text-sm text-gray-900 dark:text-white font-medium">
+                      {formatTime(session.endTime) || "N/A"}
+                    </div>
+                  </td>
                   <td className="py-3 px-4">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
@@ -249,8 +287,8 @@ const SessionTable = ({
       {pagination.totalPages > 1 && (
         <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="text-sm text-gray-500 dark:text-gray-400">
-            Page {currentPage} of {pagination.totalPages} —{" "}
-            {pagination.total} total sessions
+            Page {currentPage} of {pagination.totalPages} — {pagination.total}{" "}
+            total sessions
           </div>
 
           <div className="flex items-center space-x-2">
