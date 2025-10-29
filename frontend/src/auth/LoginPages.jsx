@@ -58,7 +58,16 @@ const LoginPage = () => {
 
         localStorage.setItem("token", response.token);
         const role = jwtDecode(response.token).role;
-        navigate(role === "admin" ? "/admin/dashboard" : "/login");
+
+        // Redirect based on role
+        if (role === "admin") {
+          navigate("/admin/dashboard");
+        } else if (role === "trainer") {
+          navigate("/trainer/dashboard");
+        } else {
+          // Optional fallback for unexpected roles
+          navigate("/unauthorized");
+        }
       }
     } catch (error) {
       showError(error.message);
