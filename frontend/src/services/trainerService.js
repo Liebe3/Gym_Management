@@ -76,6 +76,27 @@ const trainerService = {
       throw error;
     }
   },
+
+  //Trainer endpoints
+  getMyProfile: async () => {
+    try {
+      const response = await API.get("/trainer-panel/profile");
+      return response.data;
+    } catch (error) {
+      console.error("Get my profile service error", error);
+      throw error;
+    }
+  },
+
+  updateMyProfile: async (updateData) => {
+    try {
+      const response = await API.put("/trainer-panel/profile", updateData);
+      return response.data;
+    } catch (error) {
+      console.error("Update my profile service error", error);
+      throw error;
+    }
+  },
 };
 
 export default trainerService;
