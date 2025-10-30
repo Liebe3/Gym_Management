@@ -5,7 +5,7 @@ import TrainerDashboard from "../trainerPanel/TrainerDashboard";
 import MySessions from "../trainerPanel/MySessions";
 import MyMembers from "../trainerPanel/MyMembers";
 import Reports from "../trainerPanel/Reports";
-import Profile from "../trainerPanel/Profile";
+import Profile from "../trainerPanel/profile/Profile";
 
 export const TrainerRoutes = (
   <>
