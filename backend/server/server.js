@@ -9,6 +9,8 @@ const memberRoutes = require("../routes/MemberRoutes");
 const trainerRoutes = require("../routes/TrainerRoutes")
 const sessionRoutes = require("../routes/SessionRoutes");
 
+const trainerProfileRoutes = require("../routes/trainer/TrainerProfileRoutes");
+
 dotenv.config();
 connectDB();
 
@@ -31,13 +33,17 @@ app.use(
 
 app.use(express.json());
 
-// Routes
+// Admin Panel Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes)
 app.use("/api/membership-plans", membershipPlansRoutes);
 app.use("/api/member", memberRoutes);
 app.use("/api/trainer", trainerRoutes)
 app.use("/api/session", sessionRoutes);
+
+
+// Trainer Panel Routes
+app.use("/api/trainer-panel", trainerProfileRoutes);
 
 // Test route
 app.get("/", (req, res) => {
