@@ -7,13 +7,17 @@ const { getAll } = require("./BaseController");
 const validateSessionTimeRange = (startTime, endTime, trainerSchedule) => {
   const [sessionStartHour, sessionStartMin] = startTime.split(":").map(Number);
   const [sessionEndHour, sessionEndMin] = endTime.split(":").map(Number);
-  
+
   const sessionStartMinutes = sessionStartHour * 60 + sessionStartMin;
   const sessionEndMinutes = sessionEndHour * 60 + sessionEndMin;
 
-  const [scheduleStartHour, scheduleStartMin] = trainerSchedule.startTime.split(":").map(Number);
-  const [scheduleEndHour, scheduleEndMin] = trainerSchedule.endTime.split(":").map(Number);
-  
+  const [scheduleStartHour, scheduleStartMin] = trainerSchedule.startTime
+    .split(":")
+    .map(Number);
+  const [scheduleEndHour, scheduleEndMin] = trainerSchedule.endTime
+    .split(":")
+    .map(Number);
+
   const scheduleStartMinutes = scheduleStartHour * 60 + scheduleStartMin;
   const scheduleEndMinutes = scheduleEndHour * 60 + scheduleEndMin;
 
@@ -232,13 +236,15 @@ exports.getMemberSessions = async (req, res) => {
 
 exports.createSession = async (req, res) => {
   try {
-    const { trainerId, memberId, date, startTime, endTime, status, notes } = req.body;
+    const { trainerId, memberId, date, startTime, endTime, status, notes } =
+      req.body;
 
     // Validate required fields
     if (!trainerId || !memberId || !date || !startTime || !endTime) {
       return res.status(400).json({
         success: false,
-        message: "Trainer ID, Member ID, date, start time, and end time are required",
+        message:
+          "Trainer ID, Member ID, date, start time, and end time are required",
       });
     }
 
@@ -259,8 +265,8 @@ exports.createSession = async (req, res) => {
     }
 
     // Validate end time is after start time
-    const [startHour, startMin] = startTime.split(':').map(Number);
-    const [endHour, endMin] = endTime.split(':').map(Number);
+    const [startHour, startMin] = startTime.split(":").map(Number);
+    const [endHour, endMin] = endTime.split(":").map(Number);
     const startMinutes = startHour * 60 + startMin;
     const endMinutes = endHour * 60 + endMin;
 
@@ -303,10 +309,26 @@ exports.createSession = async (req, res) => {
       });
     }
 
+    // Check if member is assigned to this trainer
+    if (!member.trainer) {
+      return res.status(400).json({
+        success: false,
+        message: "Member does not have an assigned trainer",
+      });
+    }
+
+    if (member.trainer.toString() !== trainerId) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "This member is not assigned to the selected trainer. Please select a member assigned to this trainer.",
+      });
+    }
+
     // Parse session date (keep time as 00:00:00 to avoid timezone issues)
     const sessionDate = new Date(date);
     sessionDate.setHours(0, 0, 0, 0);
-    
+
     // Validate date is not in the past
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -335,7 +357,11 @@ exports.createSession = async (req, res) => {
     if (!validateSessionTimeRange(startTime, endTime, trainerSchedule)) {
       return res.status(400).json({
         success: false,
-        message: `Session time ${formatTo12Hour(startTime)} - ${formatTo12Hour(endTime)} is outside trainer's working hours (${formatTo12Hour(trainerSchedule.startTime)} - ${formatTo12Hour(trainerSchedule.endTime)})`,
+        message: `Session time ${formatTo12Hour(startTime)} - ${formatTo12Hour(
+          endTime
+        )} is outside trainer's working hours (${formatTo12Hour(
+          trainerSchedule.startTime
+        )} - ${formatTo12Hour(trainerSchedule.endTime)})`,
       });
     }
 
@@ -347,23 +373,31 @@ exports.createSession = async (req, res) => {
     });
 
     for (const existingSession of overlappingSessions) {
-      const [existingStartHour, existingStartMin] = existingSession.startTime.split(':').map(Number);
-      const [existingEndHour, existingEndMin] = existingSession.endTime.split(':').map(Number);
-      
+      const [existingStartHour, existingStartMin] = existingSession.startTime
+        .split(":")
+        .map(Number);
+      const [existingEndHour, existingEndMin] = existingSession.endTime
+        .split(":")
+        .map(Number);
+
       const existingStartMinutes = existingStartHour * 60 + existingStartMin;
       const existingEndMinutes = existingEndHour * 60 + existingEndMin;
 
       // Check if times overlap
-      const hasOverlap = (
-        (startMinutes >= existingStartMinutes && startMinutes < existingEndMinutes) ||
-        (endMinutes > existingStartMinutes && endMinutes <= existingEndMinutes) ||
-        (startMinutes <= existingStartMinutes && endMinutes >= existingEndMinutes)
-      );
+      const hasOverlap =
+        (startMinutes >= existingStartMinutes &&
+          startMinutes < existingEndMinutes) ||
+        (endMinutes > existingStartMinutes &&
+          endMinutes <= existingEndMinutes) ||
+        (startMinutes <= existingStartMinutes &&
+          endMinutes >= existingEndMinutes);
 
       if (hasOverlap) {
         return res.status(400).json({
           success: false,
-          message: `Trainer already has a session scheduled from ${formatTo12Hour(existingSession.startTime)} to ${formatTo12Hour(existingSession.endTime)}`,
+          message: `Trainer already has a session scheduled from ${formatTo12Hour(
+            existingSession.startTime
+          )} to ${formatTo12Hour(existingSession.endTime)}`,
         });
       }
     }
@@ -427,7 +461,7 @@ exports.updateSession = async (req, res) => {
     const { id } = req.params;
     const { date, startTime, endTime, status, notes } = req.body;
 
-    const existingSession = await Session.findById(id).populate('trainer');
+    const existingSession = await Session.findById(id).populate("trainer");
     if (!existingSession) {
       return res.status(404).json({
         success: false,
@@ -439,7 +473,7 @@ exports.updateSession = async (req, res) => {
 
     // Validate time formats if provided
     const timeRegex = /^([0-1]\d|2[0-3]):([0-5]\d)$/;
-    
+
     if (startTime && !timeRegex.test(startTime)) {
       return res.status(400).json({
         success: false,
@@ -459,8 +493,8 @@ exports.updateSession = async (req, res) => {
     const finalEndTime = endTime || existingSession.endTime;
 
     // Validate end time is after start time
-    const [startHour, startMin] = finalStartTime.split(':').map(Number);
-    const [endHour, endMin] = finalEndTime.split(':').map(Number);
+    const [startHour, startMin] = finalStartTime.split(":").map(Number);
+    const [endHour, endMin] = finalEndTime.split(":").map(Number);
     const startMinutes = startHour * 60 + startMin;
     const endMinutes = endHour * 60 + endMin;
 
@@ -475,7 +509,7 @@ exports.updateSession = async (req, res) => {
     if (date !== undefined) {
       const newDate = new Date(date);
       newDate.setHours(0, 0, 0, 0);
-      
+
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
@@ -504,10 +538,18 @@ exports.updateSession = async (req, res) => {
       });
     }
 
-    if (!validateSessionTimeRange(finalStartTime, finalEndTime, trainerSchedule)) {
+    if (
+      !validateSessionTimeRange(finalStartTime, finalEndTime, trainerSchedule)
+    ) {
       return res.status(400).json({
         success: false,
-        message: `Session time ${formatTo12Hour(finalStartTime)} - ${formatTo12Hour(finalEndTime)} is outside trainer's working hours (${formatTo12Hour(trainerSchedule.startTime)} - ${formatTo12Hour(trainerSchedule.endTime)})`,
+        message: `Session time ${formatTo12Hour(
+          finalStartTime
+        )} - ${formatTo12Hour(
+          finalEndTime
+        )} is outside trainer's working hours (${formatTo12Hour(
+          trainerSchedule.startTime
+        )} - ${formatTo12Hour(trainerSchedule.endTime)})`,
       });
     }
 
@@ -520,22 +562,27 @@ exports.updateSession = async (req, res) => {
     });
 
     for (const otherSession of overlappingSessions) {
-      const [otherStartHour, otherStartMin] = otherSession.startTime.split(':').map(Number);
-      const [otherEndHour, otherEndMin] = otherSession.endTime.split(':').map(Number);
-      
+      const [otherStartHour, otherStartMin] = otherSession.startTime
+        .split(":")
+        .map(Number);
+      const [otherEndHour, otherEndMin] = otherSession.endTime
+        .split(":")
+        .map(Number);
+
       const otherStartMinutes = otherStartHour * 60 + otherStartMin;
       const otherEndMinutes = otherEndHour * 60 + otherEndMin;
 
-      const hasOverlap = (
+      const hasOverlap =
         (startMinutes >= otherStartMinutes && startMinutes < otherEndMinutes) ||
         (endMinutes > otherStartMinutes && endMinutes <= otherEndMinutes) ||
-        (startMinutes <= otherStartMinutes && endMinutes >= otherEndMinutes)
-      );
+        (startMinutes <= otherStartMinutes && endMinutes >= otherEndMinutes);
 
       if (hasOverlap) {
         return res.status(400).json({
           success: false,
-          message: `Trainer already has a session scheduled from ${formatTo12Hour(otherSession.startTime)} to ${formatTo12Hour(otherSession.endTime)}`,
+          message: `Trainer already has a session scheduled from ${formatTo12Hour(
+            otherSession.startTime
+          )} to ${formatTo12Hour(otherSession.endTime)}`,
         });
       }
     }
@@ -549,7 +596,9 @@ exports.updateSession = async (req, res) => {
       if (!validStatuses.includes(status)) {
         return res.status(400).json({
           success: false,
-          message: `Invalid status. Must be one of: ${validStatuses.join(", ")}`,
+          message: `Invalid status. Must be one of: ${validStatuses.join(
+            ", "
+          )}`,
         });
       }
       updateData.status = status;
