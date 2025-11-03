@@ -3,7 +3,7 @@ import ProtectedRoute from "./ProtectedRoutes";
 import TrainerLayout from "../trainerPanel/components/TrainerLayout";
 import TrainerDashboard from "../trainerPanel/TrainerDashboard";
 import MySessions from "../trainerPanel/MySessions";
-import MyMembers from "../trainerPanel/MyMembers";
+import MyMembers from "../trainerPanel/clients/MyMembers";
 import Reports from "../trainerPanel/Reports";
 import Profile from "../trainerPanel/profile/Profile";
 
