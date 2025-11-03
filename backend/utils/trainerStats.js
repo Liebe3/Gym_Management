@@ -32,6 +32,26 @@ const addStatsToTrainers = async (trainers) => {
     },
   ]);
 
+  // Get upcoming sessions for each trainer (scheduled sessions with date >= today)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const upcomingSessions = await Session.find({
+    trainer: { $in: trainerIds },
+    date: { $gte: today },
+    status: "scheduled",
+  })
+  
+    .populate({
+      path: "member",
+      populate: {
+        path: "user",
+        select: "firstName lastName email",
+      },
+    })
+    .sort({ date: 1, startTime: 1 })
+    .limit(50); // Limit to avoid performance issues
+
   // Convert results to maps for quick lookup
   const memberStatsMap = {};
   memberStats.forEach((stat) => {
@@ -41,6 +61,16 @@ const addStatsToTrainers = async (trainers) => {
   const sessionStatsMap = {};
   sessionStats.forEach((stat) => {
     sessionStatsMap[stat._id.toString()] = stat;
+  });
+
+  // Group upcoming sessions by trainer
+  const upcomingSessionsMap = {};
+  upcomingSessions.forEach((session) => {
+    const trainerId = session.trainer.toString();
+    if (!upcomingSessionsMap[trainerId]) {
+      upcomingSessionsMap[trainerId] = [];
+    }
+    upcomingSessionsMap[trainerId].push(session);
   });
 
   // Merge stats into trainers
@@ -54,6 +84,7 @@ const addStatsToTrainers = async (trainers) => {
       totalClients: trainerMemberStats.totalClients || 0,
       activeClients: trainerMemberStats.activeClients || 0,
       totalSessions: trainerSessionStats.totalSessions || 0,
+      upcomingSessions: upcomingSessionsMap[trainerId] || [],
     };
   });
 };
