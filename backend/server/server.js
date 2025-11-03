@@ -3,13 +3,14 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("../config/db");
 const authRoutes = require("../routes/AuthRoutes");
-const userRoutes = require("../routes/UserRoutes")
+const userRoutes = require("../routes/UserRoutes");
 const membershipPlansRoutes = require("../routes/MemberShipPlansRoutes");
 const memberRoutes = require("../routes/MemberRoutes");
-const trainerRoutes = require("../routes/TrainerRoutes")
+const trainerRoutes = require("../routes/TrainerRoutes");
 const sessionRoutes = require("../routes/SessionRoutes");
 
 const trainerProfileRoutes = require("../routes/trainer/TrainerProfileRoutes");
+const trainerClientsRoutes = require("../routes/trainer/TrainerClientsRoutes");
 
 dotenv.config();
 connectDB();
@@ -35,15 +36,15 @@ app.use(express.json());
 
 // Admin Panel Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes)
+app.use("/api/user", userRoutes);
 app.use("/api/membership-plans", membershipPlansRoutes);
 app.use("/api/member", memberRoutes);
-app.use("/api/trainer", trainerRoutes)
+app.use("/api/trainer", trainerRoutes);
 app.use("/api/session", sessionRoutes);
-
 
 // Trainer Panel Routes
 app.use("/api/trainer-panel", trainerProfileRoutes);
+app.use("/api/trainer-panel", trainerClientsRoutes);
 
 // Test route
 app.get("/", (req, res) => {
