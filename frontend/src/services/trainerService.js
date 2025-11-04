@@ -97,6 +97,44 @@ const trainerService = {
       throw error;
     }
   },
+
+  // Get trainer's clients with filters
+  getMyClients: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== "" &&
+          value !== "all"
+        ) {
+          queryParams.append(key, value);
+        }
+      });
+
+      const queryString = queryParams.toString();
+      const endpoint = `/trainer-panel/clients${
+        queryString ? `?${queryString}` : ""
+      }`;
+      const response = await API.get(endpoint);
+      return response.data;
+    } catch (error) {
+      console.error("Get my clients service error", error);
+      throw error;
+    }
+  },
+
+  // Get single client details
+  getClientById: async (memberId) => {
+    try {
+      const response = await API.get(`/trainer-panel/clients/${memberId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Get client by ID service error", error);
+      throw error;
+    }
+  },
 };
 
 export default trainerService;
