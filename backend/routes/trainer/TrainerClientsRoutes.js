@@ -8,224 +8,232 @@ const Trainer = require("../../models/Trainer");
 const User = require("../../models/User");
 const { buildCounts } = require("../../utils/aggregationHelper");
 
+const {
+  getTrainerClients,
+  getClientDetails,
+} = require("../../controllers/trainer/TrainerClientsController");
+
 router.use(VerifyToken);
 router.use(VerifyTrainer);
 
-// Get trainer clients with filters and stats
-router.get("/clients", async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { status, search, page = 1, limit = 10, all = false } = req.query;
+router.get("/clients", getTrainerClients);
+router.get("/clients/:memberId", getClientDetails);
 
-    // Find trainer by user ID
-    const trainer = await Trainer.findOne({ user: userId });
-    if (!trainer) {
-      return res.status(404).json({
-        success: false,
-        message: "Trainer not found",
-      });
-    }
+// // Get trainer clients with filters and stats
+// router.get("/clients", async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const { status, search, page = 1, limit = 10, all = false } = req.query;
 
-    // Build filter
-    const filter = { trainer: trainer._id };
+//     // Find trainer by user ID
+//     const trainer = await Trainer.findOne({ user: userId });
+//     if (!trainer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Trainer not found",
+//       });
+//     }
 
-    // Apply status filter
-    if (status && status !== "all") {
-      filter.status = status;
-    }
+//     // Build filter
+//     const filter = { trainer: trainer._id };
 
-    // Apply search filter
-    if (search) {
-      const userIds = await User.find({
-        $or: [
-          { firstName: { $regex: search, $options: "i" } },
-          { lastName: { $regex: search, $options: "i" } },
-          { email: { $regex: search, $options: "i" } },
-        ],
-      }).select("_id");
+//     // Apply status filter
+//     if (status && status !== "all") {
+//       filter.status = status;
+//     }
 
-      filter.user = { $in: userIds.map((u) => u._id) };
-    }
+//     // Apply search filter
+//     if (search) {
+//       const userIds = await User.find({
+//         $or: [
+//           { firstName: { $regex: search, $options: "i" } },
+//           { lastName: { $regex: search, $options: "i" } },
+//           { email: { $regex: search, $options: "i" } },
+//         ],
+//       }).select("_id");
 
-    // Pagination
-    const isAll = all === "true" || all === true;
-    const pageNum = parseInt(page) || 1;
-    const limitNum = isAll ? Number.MAX_SAFE_INTEGER : parseInt(limit) || 10;
-    const skip = (pageNum - 1) * limitNum;
+//       filter.user = { $in: userIds.map((u) => u._id) };
+//     }
 
-    // Fetch members with populated data
-    const members = await Member.find(filter)
-      .populate({
-        path: "user",
-        select: "firstName lastName email phone profilePicture",
-      })
-      .populate({
-        path: "membershipPlan",
-        select: "name price duration durationType",
-      })
-      .sort({ startDate: -1 })
-      .skip(skip)
-      .limit(limitNum);
+//     // Pagination
+//     const isAll = all === "true" || all === true;
+//     const pageNum = parseInt(page) || 1;
+//     const limitNum = isAll ? Number.MAX_SAFE_INTEGER : parseInt(limit) || 10;
+//     const skip = (pageNum - 1) * limitNum;
 
-    const total = await Member.countDocuments(filter);
+//     // Fetch members with populated data
+//     const members = await Member.find(filter)
+//       .populate({
+//         path: "user",
+//         select: "firstName lastName email phone profilePicture",
+//       })
+//       .populate({
+//         path: "membershipPlan",
+//         select: "name price duration durationType",
+//       })
+//       .sort({ startDate: -1 })
+//       .skip(skip)
+//       .limit(limitNum);
 
-    // Get next session for each member
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+//     const total = await Member.countDocuments(filter);
 
-    const memberIds = members.map((m) => m._id);
+//     // Get next session for each member
+//     const today = new Date();
+//     today.setHours(0, 0, 0, 0);
 
-    const nextSessions = await Session.find({
-      member: { $in: memberIds },
-      trainer: trainer._id,
-      date: { $gte: today },
-      status: "scheduled",
-    })
-      .sort({ date: 1, startTime: 1 })
-      .limit(memberIds.length);
+//     const memberIds = members.map((m) => m._id);
 
-    // Create map of member to next session
-    const nextSessionMap = {};
-    nextSessions.forEach((session) => {
-      const memberId = session.member.toString();
-      if (!nextSessionMap[memberId]) {
-        nextSessionMap[memberId] = session;
-      }
-    });
+//     const nextSessions = await Session.find({
+//       member: { $in: memberIds },
+//       trainer: trainer._id,
+//       date: { $gte: today },
+//       status: "scheduled",
+//     })
+//       .sort({ date: 1, startTime: 1 })
+//       .limit(memberIds.length);
 
-    // Combine data
-    const clientsData = members.map((member) => {
-      const memberObj = member.toObject();
-      const memberId = member._id.toString();
+//     // Create map of member to next session
+//     const nextSessionMap = {};
+//     nextSessions.forEach((session) => {
+//       const memberId = session.member.toString();
+//       if (!nextSessionMap[memberId]) {
+//         nextSessionMap[memberId] = session;
+//       }
+//     });
 
-      return {
-        ...memberObj,
-        nextSession: nextSessionMap[memberId] || null,
-      };
-    });
+//     // Combine data
+//     const clientsData = members.map((member) => {
+//       const memberObj = member.toObject();
+//       const memberId = member._id.toString();
 
-    // Get status counts
-    const statusCounts = await buildCounts(Member, "status", {
-      trainer: trainer._id,
-    });
+//       return {
+//         ...memberObj,
+//         nextSession: nextSessionMap[memberId] || null,
+//       };
+//     });
 
-    // Calculate stats
-    const totalClients = await Member.countDocuments({ trainer: trainer._id });
-    const activeClients = await Member.countDocuments({
-      trainer: trainer._id,
-      status: "active",
-    });
-    const pendingClients = await Member.countDocuments({
-      trainer: trainer._id,
-      status: "pending",
-    });
-    const expiredClients = await Member.countDocuments({
-      trainer: trainer._id,
-      status: "expired",
-    });
+//     // Get status counts
+//     const statusCounts = await buildCounts(Member, "status", {
+//       trainer: trainer._id,
+//     });
 
-    res.status(200).json({
-      success: true,
-      data: clientsData,
-      pagination: {
-        currentPage: pageNum,
-        limit: limitNum,
-        total,
-        totalPages: Math.ceil(total / limitNum),
-        hasNextPage: pageNum < Math.ceil(total / limitNum),
-        hasPrevPage: pageNum > 1,
-      },
-      stats: {
-        totalClients,
-        activeClients,
-        pendingClients,
-        expiredClients,
-      },
-      counts: statusCounts,
-    });
-  } catch (error) {
-    console.error("Get trainer clients error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-      error: error.message,
-    });
-  }
-});
+//     // Calculate stats
+//     const totalClients = await Member.countDocuments({ trainer: trainer._id });
+//     const activeClients = await Member.countDocuments({
+//       trainer: trainer._id,
+//       status: "active",
+//     });
+//     const pendingClients = await Member.countDocuments({
+//       trainer: trainer._id,
+//       status: "pending",
+//     });
+//     const expiredClients = await Member.countDocuments({
+//       trainer: trainer._id,
+//       status: "expired",
+//     });
 
-// Get single client details
-// Get single client details
-router.get("/clients/:memberId", async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const { memberId } = req.params;
+//     res.status(200).json({
+//       success: true,
+//       data: clientsData,
+//       pagination: {
+//         currentPage: pageNum,
+//         limit: limitNum,
+//         total,
+//         totalPages: Math.ceil(total / limitNum),
+//         hasNextPage: pageNum < Math.ceil(total / limitNum),
+//         hasPrevPage: pageNum > 1,
+//       },
+//       stats: {
+//         totalClients,
+//         activeClients,
+//         pendingClients,
+//         expiredClients,
+//       },
+//       counts: statusCounts,
+//     });
+//   } catch (error) {
+//     console.error("Get trainer clients error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Server Error",
+//       error: error.message,
+//     });
+//   }
+// });
 
-    const trainer = await Trainer.findOne({ user: userId });
-    if (!trainer) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Trainer not found" });
-    }
+// // Get single client details
+// // Get single client details
+// router.get("/clients/:memberId", async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+//     const { memberId } = req.params;
 
-    const member = await Member.findOne({ _id: memberId, trainer: trainer._id })
-      .populate({
-        path: "user",
-        select: "firstName lastName email phone profilePicture",
-      })
-      .populate({
-        path: "membershipPlan",
-        select: "name price duration durationType features",
-      });
+//     const trainer = await Trainer.findOne({ user: userId });
+//     if (!trainer) {
+//       return res
+//         .status(404)
+//         .json({ success: false, message: "Trainer not found" });
+//     }
 
-    if (!member) {
-      return res
-        .status(404)
-        .json({
-          success: false,
-          message: "Client not found or not assigned to this trainer",
-        });
-    }
+//     const member = await Member.findOne({ _id: memberId, trainer: trainer._id })
+//       .populate({
+//         path: "user",
+//         select: "firstName lastName email phone profilePicture",
+//       })
+//       .populate({
+//         path: "membershipPlan",
+//         select: "name price duration durationType features",
+//       });
 
-    // Get session statistics
-    const [totalSessions, completedSessions, upcomingSessions] =
-      await Promise.all([
-        Session.countDocuments({ member: memberId, trainer: trainer._id }),
-        Session.countDocuments({
-          member: memberId,
-          trainer: trainer._id,
-          status: "completed",
-        }),
-        Session.find({
-          member: memberId,
-          trainer: trainer._id,
-          date: { $gte: new Date() },
-          status: "scheduled",
-        })
-          .sort({ date: 1, startTime: 1 })
-          .limit(5),
-      ]);
+//     if (!member) {
+//       return res
+//         .status(404)
+//         .json({
+//           success: false,
+//           message: "Client not found or not assigned to this trainer",
+//         });
+//     }
 
-    // Attach nextSession (first upcoming session) for DRY consistency
-    const nextSession = upcomingSessions[0] || null;
+//     // Get session statistics
+//     const [totalSessions, completedSessions, upcomingSessions] =
+//       await Promise.all([
+//         Session.countDocuments({ member: memberId, trainer: trainer._id }),
+//         Session.countDocuments({
+//           member: memberId,
+//           trainer: trainer._id,
+//           status: "completed",
+//         }),
+//         Session.find({
+//           member: memberId,
+//           trainer: trainer._id,
+//           date: { $gte: new Date() },
+//           status: "scheduled",
+//         })
+//           .sort({ date: 1, startTime: 1 })
+//           .limit(5),
+//       ]);
 
-    res.status(200).json({
-      success: true,
-      data: {
-        ...member.toObject(),
-        nextSession, // <- added here
-        sessionStats: {
-          totalSessions,
-          completedSessions,
-          upcomingSessions,
-        },
-      },
-    });
-  } catch (error) {
-    console.error("Get client details error:", error);
-    res
-      .status(500)
-      .json({ success: false, message: "Server Error", error: error.message });
-  }
-});
+//     // Attach nextSession (first upcoming session) for DRY consistency
+//     const nextSession = upcomingSessions[0] || null;
+
+//     res.status(200).json({
+//       success: true,
+//       data: {
+//         ...member.toObject(),
+//         nextSession, // <- added here
+//         sessionStats: {
+//           totalSessions,
+//           completedSessions,
+//           upcomingSessions,
+//         },
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Get client details error:", error);
+//     res
+//       .status(500)
+//       .json({ success: false, message: "Server Error", error: error.message });
+//   }
+// });
 
 module.exports = router;
