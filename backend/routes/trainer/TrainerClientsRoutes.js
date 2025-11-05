@@ -15,20 +15,14 @@ router.use(VerifyTrainer);
 router.get("/clients", async (req, res) => {
   try {
     const userId = req.user.id;
-    const { 
-      status, 
-      search, 
-      page = 1, 
-      limit = 10,
-      all = false
-    } = req.query;
+    const { status, search, page = 1, limit = 10, all = false } = req.query;
 
     // Find trainer by user ID
     const trainer = await Trainer.findOne({ user: userId });
     if (!trainer) {
-      return res.status(404).json({ 
-        success: false, 
-        message: "Trainer not found" 
+      return res.status(404).json({
+        success: false,
+        message: "Trainer not found",
       });
     }
 
@@ -54,9 +48,9 @@ router.get("/clients", async (req, res) => {
     }
 
     // Pagination
-    const isAll = all === 'true' || all === true;
+    const isAll = all === "true" || all === true;
     const pageNum = parseInt(page) || 1;
-    const limitNum = isAll ? Number.MAX_SAFE_INTEGER : (parseInt(limit) || 10);
+    const limitNum = isAll ? Number.MAX_SAFE_INTEGER : parseInt(limit) || 10;
     const skip = (pageNum - 1) * limitNum;
 
     // Fetch members with populated data
@@ -80,7 +74,7 @@ router.get("/clients", async (req, res) => {
     today.setHours(0, 0, 0, 0);
 
     const memberIds = members.map((m) => m._id);
-    
+
     const nextSessions = await Session.find({
       member: { $in: memberIds },
       trainer: trainer._id,
@@ -103,7 +97,7 @@ router.get("/clients", async (req, res) => {
     const clientsData = members.map((member) => {
       const memberObj = member.toObject();
       const memberId = member._id.toString();
-      
+
       return {
         ...memberObj,
         nextSession: nextSessionMap[memberId] || null,
@@ -111,21 +105,23 @@ router.get("/clients", async (req, res) => {
     });
 
     // Get status counts
-    const statusCounts = await buildCounts(Member, "status", { trainer: trainer._id });
+    const statusCounts = await buildCounts(Member, "status", {
+      trainer: trainer._id,
+    });
 
     // Calculate stats
     const totalClients = await Member.countDocuments({ trainer: trainer._id });
-    const activeClients = await Member.countDocuments({ 
-      trainer: trainer._id, 
-      status: "active" 
+    const activeClients = await Member.countDocuments({
+      trainer: trainer._id,
+      status: "active",
     });
-    const pendingClients = await Member.countDocuments({ 
-      trainer: trainer._id, 
-      status: "pending" 
+    const pendingClients = await Member.countDocuments({
+      trainer: trainer._id,
+      status: "pending",
     });
-    const expiredClients = await Member.countDocuments({ 
-      trainer: trainer._id, 
-      status: "expired" 
+    const expiredClients = await Member.countDocuments({
+      trainer: trainer._id,
+      status: "expired",
     });
 
     res.status(200).json({
@@ -149,14 +145,15 @@ router.get("/clients", async (req, res) => {
     });
   } catch (error) {
     console.error("Get trainer clients error:", error);
-    res.status(500).json({ 
-      success: false, 
+    res.status(500).json({
+      success: false,
       message: "Server Error",
-      error: error.message 
+      error: error.message,
     });
   }
 });
 
+// Get single client details
 // Get single client details
 router.get("/clients/:memberId", async (req, res) => {
   try {
@@ -165,16 +162,12 @@ router.get("/clients/:memberId", async (req, res) => {
 
     const trainer = await Trainer.findOne({ user: userId });
     if (!trainer) {
-      return res.status(404).json({
-        success: false,
-        message: "Trainer not found",
-      });
+      return res
+        .status(404)
+        .json({ success: false, message: "Trainer not found" });
     }
 
-    const member = await Member.findOne({
-      _id: memberId,
-      trainer: trainer._id,
-    })
+    const member = await Member.findOne({ _id: memberId, trainer: trainer._id })
       .populate({
         path: "user",
         select: "firstName lastName email phone profilePicture",
@@ -185,34 +178,41 @@ router.get("/clients/:memberId", async (req, res) => {
       });
 
     if (!member) {
-      return res.status(404).json({
-        success: false,
-        message: "Client not found or not assigned to this trainer",
-      });
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "Client not found or not assigned to this trainer",
+        });
     }
 
     // Get session statistics
-    const [totalSessions, completedSessions, upcomingSessions] = await Promise.all([
-      Session.countDocuments({ member: memberId, trainer: trainer._id }),
-      Session.countDocuments({ 
-        member: memberId, 
-        trainer: trainer._id, 
-        status: "completed" 
-      }),
-      Session.find({
-        member: memberId,
-        trainer: trainer._id,
-        date: { $gte: new Date() },
-        status: "scheduled",
-      })
-        .sort({ date: 1, startTime: 1 })
-        .limit(5),
-    ]);
+    const [totalSessions, completedSessions, upcomingSessions] =
+      await Promise.all([
+        Session.countDocuments({ member: memberId, trainer: trainer._id }),
+        Session.countDocuments({
+          member: memberId,
+          trainer: trainer._id,
+          status: "completed",
+        }),
+        Session.find({
+          member: memberId,
+          trainer: trainer._id,
+          date: { $gte: new Date() },
+          status: "scheduled",
+        })
+          .sort({ date: 1, startTime: 1 })
+          .limit(5),
+      ]);
+
+    // Attach nextSession (first upcoming session) for DRY consistency
+    const nextSession = upcomingSessions[0] || null;
 
     res.status(200).json({
       success: true,
       data: {
         ...member.toObject(),
+        nextSession, // <- added here
         sessionStats: {
           totalSessions,
           completedSessions,
@@ -222,11 +222,9 @@ router.get("/clients/:memberId", async (req, res) => {
     });
   } catch (error) {
     console.error("Get client details error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Server Error",
-      error: error.message,
-    });
+    res
+      .status(500)
+      .json({ success: false, message: "Server Error", error: error.message });
   }
 });
 
