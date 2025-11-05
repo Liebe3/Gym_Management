@@ -12,8 +12,6 @@ const Pagination = ({
     const pages = [];
     const maxVisible = 5;
 
-    console.log(totalRecords);
-
     if (totalPages <= maxVisible) {
       for (let i = 1; i <= totalPages; i++) {
         pages.push(i);
