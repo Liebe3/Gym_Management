@@ -1,13 +1,14 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { FaClock, FaUserCheck, FaUsers, FaUserTimes } from "react-icons/fa";
+import { FiFilter, FiUser } from "react-icons/fi";
 import trainerService from "../../services/trainerService";
 
 import ClientFilter from "./ClientsFilter";
 // import ClientsTable from "./ClientsTable";
-import Pagination from "./ClientsPagination";
-import ClientsCard from "./ClientsCard";
 import Loading from "../../components/ui/Loading";
+import ClientsCard from "./ClientsCard";
+import Pagination from "./ClientsPagination";
 
 const MyClients = () => {
   const [clients, setClients] = useState([]);
@@ -81,24 +82,24 @@ const MyClients = () => {
 
   const handleStatusFilter = (status) => {
     setSelectedStatus(status);
-    setPagination(prev => ({ ...prev, currentPage: 1 })); // Reset to page 1 on filter change
+    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset to page 1 on filter change
   };
 
   const handleSearch = (value) => {
     setSearchTerm(value);
-    setPagination(prev => ({ ...prev, currentPage: 1 })); // Reset to page 1 on search
+    setPagination((prev) => ({ ...prev, currentPage: 1 })); // Reset to page 1 on search
   };
 
   const clearFilters = () => {
     setSelectedStatus("all");
     setSearchTerm("");
     setDebouncedSearch("");
-    setPagination(prev => ({ ...prev, currentPage: 1 }));
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
   const handlePageChange = (page) => {
-    setPagination(prev => ({ ...prev, currentPage: page }));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setPagination((prev) => ({ ...prev, currentPage: page }));
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const getStatusBadge = (status) => {
@@ -116,6 +117,8 @@ const MyClients = () => {
   if (loading) {
     return <Loading />;
   }
+
+  const hasActiveFilters = selectedStatus !== "all" || debouncedSearch !== "";
 
   return (
     <div className="p-6 space-y-6">
@@ -233,16 +236,40 @@ const MyClients = () => {
       {/* Clients Grid */}
       {clients.length === 0 ? (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-12 text-center border border-gray-200 dark:border-gray-700"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center py-16 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700"
         >
-          <FaUsers className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400 text-lg">
-            {debouncedSearch || selectedStatus !== "all"
-              ? "No clients found matching your filters"
-              : "No clients assigned yet"}
-          </p>
+          <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+            {hasActiveFilters ? (
+              <FiFilter className="w-8 h-8 text-gray-400" />
+            ) : (
+              <FiUser className="w-8 h-8 text-gray-400" />
+            )}
+          </div>
+
+          {hasActiveFilters ? (
+            <>
+              <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">
+                No clients match your filters
+              </p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mb-6">
+                Try adjusting your search or status filter
+              </p>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={clearFilters}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 cursor-pointer"
+              >
+                Clear Filters
+              </motion.button>
+            </>
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400 text-lg mb-2">
+              You currently have no clients assigned.
+            </p>
+          )}
         </motion.div>
       ) : (
         <>
