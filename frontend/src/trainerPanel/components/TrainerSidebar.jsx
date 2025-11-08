@@ -34,7 +34,7 @@ const iconMap = {
 
 const trainerLinks = [
   { name: "Dashboard", href: "/trainer/dashboard", icon: "dashboard" },
-  { name: "My Sessions", href: "/trainer/schedule", icon: "calendar" },
+  { name: "My Sessions", href: "/trainer/Sessions", icon: "calendar" },
   { name: "My Clients", href: "/trainer/client", icon: "clients" },
   { name: "Reports", href: "/trainer/report", icon: "analytics" },
   { name: "Profile", href: "/trainer/profile", icon: "profile" },
