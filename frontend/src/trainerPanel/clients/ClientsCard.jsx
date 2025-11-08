@@ -34,8 +34,7 @@ const ClientCard = ({ client, getStatusBadge }) => {
   };
 
   const handleViewSessions = () => {
-    // Use window.location for navigation
-    window.location.href = `/trainer/clients/${client._id}/sessions`;
+    navigate(`/trainer/clients/${client._id}/sessions`);
   };
 
   return (
