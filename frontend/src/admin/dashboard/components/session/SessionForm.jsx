@@ -30,6 +30,7 @@ const SessionForm = ({
   const [trainers, setTrainers] = useState([]);
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const isViewMode = mode === "view";
 
@@ -60,7 +61,12 @@ const SessionForm = ({
   }, []);
 
   useEffect(() => {
-    if (selectedSession) {
+    if (selectedSession && (mode === "update" || mode === "view")) {
+      setFormLoading(true);
+
+      // Wait for trainers/members to finish loading first
+      if (trainers.length === 0 || members.length === 0) return;
+
       setFormData({
         trainerId: selectedSession.trainer?._id || "",
         memberId: selectedSession.member?._id || "",
@@ -72,8 +78,10 @@ const SessionForm = ({
         status: selectedSession.status || "scheduled",
         notes: selectedSession.notes || "",
       });
+
+      setFormLoading(false);
     }
-  }, [selectedSession, mode]);
+  }, [selectedSession, mode, trainers, members]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -148,6 +156,14 @@ const SessionForm = ({
       setLoading(false);
     }
   };
+
+  if (loading || formLoading) {
+    return (
+      <div className="flex justify-center items-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
