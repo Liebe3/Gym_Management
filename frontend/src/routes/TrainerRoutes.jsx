@@ -1,4 +1,5 @@
 import { Route } from "react-router-dom";
+import ClientsProfile from "../trainerPanel/clients/ClientsProfile";
 import MyClients from "../trainerPanel/clients/MyClients";
 import TrainerLayout from "../trainerPanel/components/TrainerLayout";
 import MySessions from "../trainerPanel/MySessions";
@@ -6,7 +7,6 @@ import Profile from "../trainerPanel/profile/Profile";
 import Reports from "../trainerPanel/Reports";
 import TrainerDashboard from "../trainerPanel/TrainerDashboard";
 import ProtectedRoute from "./ProtectedRoutes";
-import ClientsProfile from "../trainerPanel/clients/ClientsProfile";
 
 export const TrainerRoutes = (
   <>
@@ -20,7 +20,18 @@ export const TrainerRoutes = (
     />
 
     <Route
-      path="/trainer/schedule"
+      path="/trainer/sessions"
+      element={
+        <ProtectedRoute allowedRoles={["trainer"]}>
+          <TrainerLayout>
+            <MySessions />
+          </TrainerLayout>
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/trainer/clients/:id/sessions"
       element={
         <ProtectedRoute allowedRoles={["trainer"]}>
           <TrainerLayout>
