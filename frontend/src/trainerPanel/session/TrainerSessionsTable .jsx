@@ -1,12 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FiCalendar,
+  FiClock,
   FiEdit2,
   FiEye,
   FiFilter,
   FiPlus,
   FiTrash2,
-  FiClock,
   FiUser,
 } from "react-icons/fi";
 
@@ -129,33 +129,35 @@ const TrainerSessionsTable = ({
           <thead className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
             <tr>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                <div className="flex items-center">
+                <div className="flex items-center whitespace-nowrap">
                   <FiUser className="w-4 h-4 mr-2 text-emerald-600" />
                   Client
                 </div>
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                <div className="flex items-center">
+                <div className="flex items-center whitespace-nowrap">
                   <FiCalendar className="w-4 h-4 mr-2 text-emerald-600" />
                   Date
                 </div>
               </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
-                <div className="flex items-center">
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
+                <div className="flex items-center justify-start whitespace-nowrap">
                   <FiClock className="w-4 h-4 mr-2 text-emerald-600" />
                   Start Time
                 </div>
               </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm hidden lg:table-cell">
-                <div className="flex items-center">
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
+                <div className="flex items-center justify-start whitespace-nowrap">
                   <FiClock className="w-4 h-4 mr-2 text-emerald-600" />
                   End Time
                 </div>
               </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                Status
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm min-w-[120px]">
+                <div className="flex items-center justify-start whitespace-nowrap">
+                  Status
+                </div>
               </th>
-              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm w-1/8">
                 Actions
               </th>
             </tr>
@@ -173,18 +175,18 @@ const TrainerSessionsTable = ({
                   className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
                 >
                   <td className="py-3 px-4">
-                    <div className="font-semibold text-gray-900 dark:text-white">
+                    <div className="font-semibold text-gray-900 dark:text-white whitespace-nowrap">
                       {getClientName(session.member)}
                     </div>
                     {session.member?.user?.email && (
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                      <div className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                         {session.member.user.email}
                       </div>
                     )}
                   </td>
 
                   <td className="py-3 px-4">
-                    <div className="text-sm text-gray-900 dark:text-white">
+                    <div className="text-sm text-gray-900 dark:text-white whitespace-nowrap">
                       {new Date(session.date).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "short",
@@ -193,29 +195,34 @@ const TrainerSessionsTable = ({
                     </div>
                   </td>
 
-                  <td className="py-3 px-4 text-center align-middle hidden lg:table-cell">
-                    <div className="text-sm text-gray-900 dark:text-white font-medium">
+                  <td className="py-3 px-4">
+                    <div className="flex items-center text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                      <div className="w-4 mr-2" />
                       {formatTime(session.startTime) || "N/A"}
                     </div>
                   </td>
 
-                  <td className="py-3 px-4 text-center align-middle hidden lg:table-cell">
-                    <div className="text-sm text-gray-900 dark:text-white font-medium">
+                  <td className="py-3 px-4">
+                    <div className="flex items-center text-sm text-gray-900 dark:text-white whitespace-nowrap">
+                      <div className="w-4 mr-2" />
                       {formatTime(session.endTime) || "N/A"}
                     </div>
                   </td>
 
-                  <td className="py-3 px-4">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                        session.status
-                      )}`}
-                    >
-                      {session.status}
-                    </span>
+                  <td className="py-3 px-4 min-w-[120px]">
+                    <div className="flex items-center">
+                      <span
+                        className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium w-24 ${getStatusColor(
+                          session.status
+                        )}`}
+                      >
+                        {session.status.charAt(0).toUpperCase() +
+                          session.status.slice(1)}
+                      </span>
+                    </div>
                   </td>
 
-                  <td className="py-3 px-4">
+                  <td className="py-3 px-4 w-1/8">
                     <div className="flex items-center space-x-1">
                       <motion.button
                         onClick={() => onView(session)}
