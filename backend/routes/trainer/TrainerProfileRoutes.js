@@ -23,9 +23,7 @@ router.put("/profile", updateTrainerProfile);
 //     // Find trainer by user ID, not by trainer ID
 //     const trainer = await Trainer.findOne({ user: userId }).populate({
 //       path: "user",
-//       select: "firstName lastName email phone profilePicture",
-//     });
-
+//       select: "firstName lastName email phone profilePicture", 
 //     if (!trainer) {
 //       return res.status(404).json({
 //         success: false,
