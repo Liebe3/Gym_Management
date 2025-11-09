@@ -1,8 +1,227 @@
+import { motion } from "framer-motion";
+import { useCallback, useEffect, useState } from "react";
+import Loading from "../components/ui/Loading";
+import { showError, showSuccess } from "../pages/utils/Alert";
+import sessionService from "../services/sessionService";
+import TrainerSessionForm from "./session/TrainerSessionForm";
+import TrainerSessionModal from "./session/TrainerSessionModal";
+import TrainerSessionsFilter from "./session/TrainerSessionsFilter";
+import TrainerSessionsTable from "./session/TrainerSessionsTable ";
+
 const MySessions = () => {
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({});
+  const [statusCount, setStatusCount] = useState({});
+
+  // Filters
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create");
+  const [selectedSession, setSelectedSession] = useState(null);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+      setCurrentPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch sessions
+  const fetchSessions = useCallback(async () => {
+    setLoading(true);
+    try {
+      const filters = {
+        page: currentPage,
+        limit: 10,
+        status: selectedStatus !== "all" ? selectedStatus : undefined,
+        search: debouncedSearch || undefined,
+      };
+
+      // Remove undefined values from filters
+      Object.keys(filters).forEach(
+        (key) => filters[key] === undefined && delete filters[key]
+      );
+
+      const response = await sessionService.getMySessions(filters);
+
+      if (response.success) {
+        setSessions(response.data || []);
+        setPagination(response.pagination || {});
+
+        // FIXED: Extract status counts - check multiple possible locations
+        console.log("Session response:", response);
+        const counts = response.counts || response.filter?.counts || {};
+        setStatusCount(counts);
+      }
+    } catch (error) {
+      console.error("Fetch sessions error:", error);
+      showError("Failed to load sessions");
+    } finally {
+      setLoading(false);
+    }
+  }, [currentPage, selectedStatus, debouncedSearch]);
+
+  console.log("Status Count:", statusCount);
+
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
+
+  // Filter handlers
+  const handleStatusFilter = (status) => {
+    setSelectedStatus(status);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value) => {
+    setSearchTerm(value);
+  };
+
+  const clearFilters = () => {
+    setSelectedStatus("all");
+    setSearchTerm("");
+    setDebouncedSearch("");
+    setCurrentPage(1);
+  };
+
+  const hasActiveFilters = selectedStatus !== "all" || debouncedSearch !== "";
+
+  // Modal handlers
+  const handleOpenCreate = () => {
+    setModalMode("create");
+    setSelectedSession(null);
+    setIsModalOpen(true);
+  };
+
+  const handleView = (session) => {
+    setModalMode("view");
+    setSelectedSession(session);
+    setIsModalOpen(true);
+  };
+
+  const handleEdit = (session) => {
+    setModalMode("update");
+    setSelectedSession(session);
+    setIsModalOpen(true);
+  };
+
+  const handleDelete = async (sessionId) => {
+    if (!window.confirm("Are you sure you want to delete this session?")) {
+      return;
+    }
+
+    try {
+      const response = await sessionService.deleteSession(sessionId);
+      if (response.success) {
+        showSuccess("Session deleted successfully");
+        fetchSessions();
+      }
+    } catch (error) {
+      console.error("Delete session error:", error);
+      showError(error.response?.data?.message || "Failed to delete session");
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSession(null);
+  };
+
+  const handleSuccess = async (sessionData) => {
+    try {
+      if (modalMode === "create") {
+        const response = await sessionService.createMySession(sessionData);
+        if (response.success) {
+          showSuccess("Session scheduled successfully");
+          fetchSessions();
+          handleCloseModal();
+        }
+      } else if (modalMode === "update") {
+        const response = await sessionService.updateMySession(
+          selectedSession._id,
+          sessionData
+        );
+        if (response.success) {
+          showSuccess("Session updated successfully");
+          fetchSessions();
+          handleCloseModal();
+        }
+      }
+    } catch (error) {
+      console.error("Session operation error:", error);
+      showError(error.response?.data?.message || "Operation failed");
+      throw error;
+    }
+  };
+
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
-    <div>
-      <h1 className="text-2xl font-bold">My Sessions</h1>
-      <p>Here you can view and manage your training sessions.</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8">
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6 }}
+        className="mb-6"
+      >
+        <h2 className="text-3xl font-bold text-emerald-600 mb-2">
+          My Sessions
+        </h2>
+        <p className="text-gray-500 dark:text-gray-400">
+          Manage your training sessions with clients
+        </p>
+      </motion.div>
+      
+      {/* Filter Component */}
+      <TrainerSessionsFilter
+        selectedStatus={selectedStatus}
+        handleStatusFilter={handleStatusFilter}
+        searchTerm={searchTerm}
+        handleSearchChange={handleSearchChange}
+        clearFilters={clearFilters}
+        statusCount={statusCount}
+      />
+      {/* Loading State */}
+      <TrainerSessionsTable
+        sessions={sessions}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onView={handleView}
+        handleOpenCreate={handleOpenCreate}
+        hasActiveFilters={hasActiveFilters}
+        clearFilters={clearFilters}
+        pagination={pagination}
+        currentPage={currentPage}
+        setCurrentPage={setCurrentPage}
+      />
+      {/* Modal */}
+      <TrainerSessionModal
+        isModalOpen={isModalOpen}
+        mode={modalMode}
+        selectedSession={selectedSession}
+        handleCloseModal={handleCloseModal}
+        onSuccess={handleSuccess}
+      >
+        <TrainerSessionForm
+          onSubmit={handleSuccess}
+          onCancel={handleCloseModal}
+          loading={loading}
+          mode={modalMode}
+          selectedSession={selectedSession}
+        />
+      </TrainerSessionModal>
     </div>
   );
 };
