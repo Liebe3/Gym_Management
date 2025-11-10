@@ -1,6 +1,7 @@
 const Session = require("../models/Session");
 const Member = require("../models/Member");
 const Trainer = require("../models/Trainer");
+const User = require("../models/User");
 const { getAll } = require("./BaseController");
 
 // Helper function to validate session time range against trainer schedule
@@ -686,11 +687,12 @@ exports.deleteSession = async (req, res) => {
   }
 };
 
-// Get trainer's own sessions
+// Get trainer's own sessions - MANUAL FIX
 exports.getMySessions = async (req, res) => {
   try {
     const userId = req.user.id;
     const trainer = await Trainer.findOne({ user: userId });
+    
     if (!trainer) {
       return res.status(404).json({
         success: false,
@@ -698,19 +700,45 @@ exports.getMySessions = async (req, res) => {
       });
     }
 
-    const { status, startDate, endDate, page = 1, limit = 10 } = req.query;
+    const { status, startDate, endDate, search, page = 1, limit = 10 } = req.query;
 
     const baseFilter = { trainer: trainer._id };
     let filter = { ...baseFilter };
 
+    // Status filter
     if (status && status !== "all") {
       filter.status = status;
     }
 
+    // Date range filter
     if (startDate || endDate) {
       filter.date = {};
       if (startDate) filter.date.$gte = new Date(startDate);
       if (endDate) filter.date.$lte = new Date(endDate);
+    }
+
+    // ✅ ADD SEARCH FUNCTIONALITY
+    if (search) {
+      // Find users matching the search term
+      const users = await User.find({
+        $or: [
+          { firstName: { $regex: search, $options: "i" } },
+          { lastName: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+        ],
+      }).select("_id");
+
+      const userIds = users.map((u) => u._id);
+
+      // Find members with those user IDs
+      const members = await Member.find({
+        user: { $in: userIds },
+      }).select("_id");
+
+      const memberIds = members.map((m) => m._id);
+
+      // Add member filter
+      filter.member = { $in: memberIds.length > 0 ? memberIds : [null] };
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -730,7 +758,7 @@ exports.getMySessions = async (req, res) => {
 
     const total = await Session.countDocuments(filter);
 
-    // Calculate status counts
+    // Calculate status counts (based on baseFilter, not including search)
     const statusCounts = await Session.aggregate([
       { $match: baseFilter },
       {
@@ -775,6 +803,7 @@ exports.getMySessions = async (req, res) => {
     });
   }
 };
+
 
 // Create session for trainer's own clients
 exports.createMySession = async (req, res) => {
