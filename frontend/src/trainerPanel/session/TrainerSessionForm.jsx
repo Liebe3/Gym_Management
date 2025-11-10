@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { showError } from "../../pages/utils/Alert"
-import trainerService from "../../services/trainerService"
 import DateTimeInput from "../../admin/dashboard/components/session/DateTimeInput";
+import { showError } from "../../pages/utils/Alert";
+import trainerService from "../../services/trainerService";
 
+import NotesInput from "../../admin/dashboard/components/session/NotesInput";
 import StatusBadge from "../../admin/dashboard/components/session/StatusBadge";
-import NotesInput from "../../admin/dashboard/components/session/NotesInput"
 import TrainerClientSelect from "./TrainerClientSelect";
 
 const TrainerSessionForm = ({ onSubmit, onCancel, loading }) => {
@@ -23,6 +23,8 @@ const TrainerSessionForm = ({ onSubmit, onCancel, loading }) => {
   const [trainerProfile, setTrainerProfile] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
   const [errors, setErrors] = useState({});
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const loadTrainerData = async () => {
@@ -95,16 +97,21 @@ const TrainerSessionForm = ({ onSubmit, onCancel, loading }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isSubmitting) return;
+
     if (!validateForm()) {
       showError("Please fill in all required fields correctly");
       return;
     }
 
     try {
+      setIsSubmitting(true);
       await onSubmit(formData);
     } catch (error) {
       // Error is handled in parent component
       console.error("Submit error:", error);
+    } finally {
+      setIsSubmitting(false); // stop submitting
     }
   };
 
@@ -184,17 +191,17 @@ const TrainerSessionForm = ({ onSubmit, onCancel, loading }) => {
           <button
             type="button"
             onClick={onCancel}
-            disabled={loading}
+            disabled={loading || isSubmitting}
             className="flex-1 px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
           >
             Cancel
           </button>
           <button
             type="submit"
-            disabled={loading || clients.length === 0}
+            disabled={loading || isSubmitting || clients.length === 0}
             className="flex-1 px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg shadow-emerald-500/30"
           >
-            {loading ? (
+            {loading || isSubmitting ? (
               <span className="flex items-center justify-center">
                 <svg
                   className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
