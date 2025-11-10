@@ -124,7 +124,7 @@ const SessionTable = ({
         <CreateScheduleButtons onClick={handleOpenCreate}>
           <div className="flex items-center">
             <FiPlus className="w-4 h-4 mr-2" />
-            Create New Schedule
+            Create New Session
           </div>
         </CreateScheduleButtons>
       </div>
