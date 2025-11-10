@@ -67,12 +67,20 @@ const SessionForm = ({
       // Wait for trainers/members to finish loading first
       if (trainers.length === 0 || members.length === 0) return;
 
+      // Format the date in local timezone
+      const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
       setFormData({
         trainerId: selectedSession.trainer?._id || "",
         memberId: selectedSession.member?._id || "",
-        date: selectedSession.date
-          ? new Date(selectedSession.date).toISOString().slice(0, 10)
-          : "",
+        date: formatDate(selectedSession.date),
         startTime: selectedSession.startTime || "",
         endTime: selectedSession.endTime || "",
         status: selectedSession.status || "scheduled",
@@ -236,7 +244,7 @@ const SessionForm = ({
               type="button"
               onClick={handleCloseModal}
               disabled={loading}
-              className="flex-1 px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition"
+              className="flex-1 px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition cursor-pointer"
             >
               Cancel
             </button>
@@ -245,7 +253,7 @@ const SessionForm = ({
               disabled={
                 loading || (formData.trainerId && filteredMembers.length === 0)
               }
-              className="flex-1 px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               {loading
                 ? "Saving..."
@@ -259,7 +267,7 @@ const SessionForm = ({
             <button
               type="button"
               onClick={handleCloseModal}
-              className="w-full px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition"
+              className="w-full px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition cursor-pointer"
             >
               Close
             </button>
