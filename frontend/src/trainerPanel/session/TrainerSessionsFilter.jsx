@@ -25,13 +25,6 @@ const TrainerSessionsFilter = ({
       transition={{ duration: 0.4 }}
       className="mb-6 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6"
     >
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-          My Training Sessions
-        </h2>
-      </div>
-
       {/* Search Bar */}
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
