@@ -22,16 +22,18 @@ const StatusBadge = ({
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Status 
+        Status <span className="text-red-500">*</span>
       </label>
       {isViewMode ? (
-        <span
-          className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-            selectedSession?.status
-          )}`}
-        >
-          {selectedSession?.status || "N/A"}
-        </span>
+        <div className="flex items-center">
+          <span
+            className={`inline-block px-3 py-2 rounded-full text-sm font-medium ${getStatusColor(
+              selectedSession?.status || formData.status
+            )}`}
+          >
+            {selectedSession?.status || formData.status || "N/A"}
+          </span>
+        </div>
       ) : (
         <select
           name="status"
@@ -40,7 +42,7 @@ const StatusBadge = ({
           disabled={loading}
           className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border ${
             errors.status ? "border-red-500" : "border-gray-300 dark:border-gray-600"
-          } rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent`}
+          } rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           <option value="scheduled">Scheduled</option>
           <option value="completed">Completed</option>
