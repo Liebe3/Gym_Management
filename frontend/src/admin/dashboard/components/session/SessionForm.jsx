@@ -34,6 +34,17 @@ const SessionForm = ({
   const [errors, setErrors] = useState({});
   const isViewMode = mode === "view";
 
+  // Check if session is completed or cancelled (non-editable)
+  const isSessionFinalized = useMemo(() => {
+    if (mode === "update" && selectedSession) {
+      return selectedSession.status === "completed" || selectedSession.status === "cancelled";
+    }
+    return false;
+  }, [mode, selectedSession]);
+
+  // Effective view mode: true if in view mode OR session is finalized
+  const effectiveViewMode = isViewMode || isSessionFinalized;
+
   //  Filter members based on selected trainer
   const filteredMembers = useMemo(() => {
     if (!formData.trainerId) {
@@ -130,6 +141,13 @@ const SessionForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent submission if session is finalized
+    if (isSessionFinalized) {
+      showError("Cannot modify a completed or cancelled session");
+      return;
+    }
+
     if (!validateForm()) {
       showError("Please fill in all required fields");
       return;
@@ -179,17 +197,24 @@ const SessionForm = ({
       animate={{ opacity: 1, y: 0 }}
       className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 dark:text-amber-50"
     >
+      {/*Show warning banner if session is finalized */}
+      {isSessionFinalized && (
+        <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
+            ⚠️ This session is {selectedSession.status} and cannot be edited. You can only view the details.
+          </p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         <TrainerSelect
-          {...{
-            formData,
-            trainers,
-            handleChange,
-            errors,
-            isViewMode,
-            loading,
-            selectedSession,
-          }}
+          formData={formData}
+          trainers={trainers}
+          handleChange={handleChange}
+          errors={errors}
+          isViewMode={effectiveViewMode}
+          loading={loading}
+          selectedSession={selectedSession}
         />
 
         {/*  Pass filteredMembers instead of members */}
@@ -198,13 +223,13 @@ const SessionForm = ({
           members={filteredMembers}
           handleChange={handleChange}
           errors={errors}
-          isViewMode={isViewMode}
+          isViewMode={effectiveViewMode}
           loading={loading}
           selectedSession={selectedSession}
         />
 
         {/*  Show info message if trainer is selected but has no members */}
-        {formData.trainerId && filteredMembers.length === 0 && !isViewMode && (
+        {formData.trainerId && filteredMembers.length === 0 && !effectiveViewMode && (
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
             <p className="text-sm text-yellow-800 dark:text-yellow-200">
               This trainer has no assigned members yet. Please assign members to
@@ -214,31 +239,31 @@ const SessionForm = ({
         )}
 
         <DateTimeInput
-          {...{
-            formData,
-            handleChange,
-            errors,
-            isViewMode,
-            loading,
-            selectedSession,
-          }}
+          formData={formData}
+          handleChange={handleChange}
+          errors={errors}
+          isViewMode={effectiveViewMode}
+          loading={loading}
+          selectedSession={selectedSession}
         />
         <StatusBadge
-          {...{
-            formData,
-            handleChange,
-            errors,
-            isViewMode,
-            loading,
-            selectedSession,
-          }}
+          formData={formData}
+          handleChange={handleChange}
+          errors={errors}
+          isViewMode={effectiveViewMode}
+          loading={loading}
+          selectedSession={selectedSession}
         />
         <NotesInput
-          {...{ formData, handleChange, isViewMode, loading, selectedSession }}
+          formData={formData}
+          handleChange={handleChange}
+          isViewMode={effectiveViewMode}
+          loading={loading}
+          selectedSession={selectedSession}
         />
 
         {/* Footer */}
-        {!isViewMode ? (
+        {!effectiveViewMode ? (
           <div className="flex gap-3 pt-4">
             <button
               type="button"
