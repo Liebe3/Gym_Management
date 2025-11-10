@@ -116,7 +116,7 @@ const TrainerSessionsTable = ({
       <div className="p-4 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={handleOpenCreate}
-          className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 cursor-pointer"
+          className="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded transition-colors duration-200 cursor-pointer"
         >
           <FiPlus className="w-4 h-4 mr-2" />
           Schedule New Session
