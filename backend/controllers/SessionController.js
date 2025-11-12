@@ -687,12 +687,12 @@ exports.deleteSession = async (req, res) => {
   }
 };
 
-// Get trainer's own sessions - MANUAL FIX
+// TRAINER PANEL
 exports.getMySessions = async (req, res) => {
   try {
     const userId = req.user.id;
     const trainer = await Trainer.findOne({ user: userId });
-    
+
     if (!trainer) {
       return res.status(404).json({
         success: false,
@@ -700,7 +700,14 @@ exports.getMySessions = async (req, res) => {
       });
     }
 
-    const { status, startDate, endDate, search, page = 1, limit = 10 } = req.query;
+    const {
+      status,
+      startDate,
+      endDate,
+      search,
+      page = 1,
+      limit = 10,
+    } = req.query;
 
     const baseFilter = { trainer: trainer._id };
     let filter = { ...baseFilter };
@@ -717,7 +724,7 @@ exports.getMySessions = async (req, res) => {
       if (endDate) filter.date.$lte = new Date(endDate);
     }
 
-    // ✅ ADD SEARCH FUNCTIONALITY
+    // Add Search Functionality
     if (search) {
       // Find users matching the search term
       const users = await User.find({
@@ -804,11 +811,27 @@ exports.getMySessions = async (req, res) => {
   }
 };
 
-
-// Create session for trainer's own clients
+// Create session for trainer's own clients - FIXED
 exports.createMySession = async (req, res) => {
   try {
-    const trainerId = req.user.trainerId; // From auth middleware
+    const userId = req.user.id;
+    const trainer = await Trainer.findOne({ user: userId });
+
+    if (!trainer) {
+      return res.status(404).json({
+        success: false,
+        message: "Trainer profile not found",
+      });
+    }
+
+    if (trainer.status !== "active") {
+      return res.status(400).json({
+        success: false,
+        message: "Trainer account is not active",
+      });
+    }
+
+    const trainerId = trainer._id; // Use the trainer ID we just found
     const { memberId, date, startTime, endTime, status, notes } = req.body;
 
     // Validate required fields
@@ -841,15 +864,6 @@ exports.createMySession = async (req, res) => {
       });
     }
 
-    // Get trainer info
-    const trainer = await Trainer.findById(trainerId);
-    if (!trainer || trainer.status !== "active") {
-      return res.status(400).json({
-        success: false,
-        message: "Trainer account is not active",
-      });
-    }
-
     // Validate member exists and is assigned to this trainer
     const member = await Member.findById(memberId).populate("user");
     if (!member) {
@@ -867,7 +881,7 @@ exports.createMySession = async (req, res) => {
     }
 
     // CRITICAL: Verify member is assigned to this trainer
-    if (!member.trainer || member.trainer.toString() !== trainerId) {
+    if (!member.trainer || member.trainer.toString() !== trainerId.toString()) {
       return res.status(403).json({
         success: false,
         message: "You can only schedule sessions with your assigned clients",
@@ -999,11 +1013,24 @@ exports.createMySession = async (req, res) => {
 // Update trainer's own session
 exports.updateMySession = async (req, res) => {
   try {
-    const trainerId = req.user.trainerId;
-    const { id } = req.params;
+    const userId = req.user.id;
+    const trainer = await Trainer.findOne({ user: userId });
+
+    if (!trainer) {
+      return res.status(404).json({
+        success: false,
+        message: "Trainer profile not found",
+      });
+    }
+
+    const trainerId = trainer._id;
+
+    const { sessionId } = req.params;
     const { date, startTime, endTime, status, notes } = req.body;
 
-    const existingSession = await Session.findById(id).populate("trainer");
+    const existingSession = await Session.findById(sessionId).populate(
+      "trainer"
+    );
 
     if (!existingSession) {
       return res.status(404).json({
@@ -1013,27 +1040,179 @@ exports.updateMySession = async (req, res) => {
     }
 
     // Verify session belongs to this trainer
-    if (existingSession.trainer._id.toString() !== trainerId) {
+    if (existingSession.trainer._id.toString() !== trainerId.toString()) {
       return res.status(403).json({
         success: false,
         message: "You can only update your own sessions",
       });
     }
 
-    // Rest of the update logic is similar to the main updateSession
-    // ... (implement similar validation as in SessionController.updateSession)
+    // Prevent updating completed or cancelled sessions
+    if (
+      existingSession.status === "completed" ||
+      existingSession.status === "cancelled"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot update a ${existingSession.status} session`,
+      });
+    }
 
     const updateData = {};
-    if (date !== undefined) updateData.date = new Date(date);
+
+    // Validate time formats if provided
+    const timeRegex = /^([0-1]\d|2[0-3]):([0-5]\d)$/;
+
+    if (startTime && !timeRegex.test(startTime)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid start time format. Use HH:MM (24-hour format)",
+      });
+    }
+
+    if (endTime && !timeRegex.test(endTime)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid end time format. Use HH:MM (24-hour format)",
+      });
+    }
+
+    // Get the final start/end times (use existing if not provided)
+    const finalStartTime = startTime || existingSession.startTime;
+    const finalEndTime = endTime || existingSession.endTime;
+
+    // Validate end time is after start time
+    const [startHour, startMin] = finalStartTime.split(":").map(Number);
+    const [endHour, endMin] = finalEndTime.split(":").map(Number);
+    const startMinutes = startHour * 60 + startMin;
+    const endMinutes = endHour * 60 + endMin;
+
+    if (endMinutes <= startMinutes) {
+      return res.status(400).json({
+        success: false,
+        message: "End time must be after start time",
+      });
+    }
+
+    // Validate and update date
+    if (date !== undefined) {
+      const newDate = new Date(date);
+      newDate.setHours(0, 0, 0, 0);
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      if (newDate < today && existingSession.status === "scheduled") {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot reschedule to a past date",
+        });
+      }
+
+      updateData.date = newDate;
+    }
+
+    const finalDate = updateData.date || existingSession.date;
+
+    // Validate against trainer's work schedule
+    const dayOfWeek = finalDate
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+    const trainerSchedule = trainer.workSchedule[dayOfWeek];
+
+    if (!trainerSchedule || !trainerSchedule.isWorking) {
+      return res.status(400).json({
+        success: false,
+        message: `You are not available on ${dayOfWeek}s`,
+      });
+    }
+
+    if (
+      !validateSessionTimeRange(finalStartTime, finalEndTime, trainerSchedule)
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: `Session time ${formatTo12Hour(
+          finalStartTime
+        )} - ${formatTo12Hour(
+          finalEndTime
+        )} is outside your working hours (${formatTo12Hour(
+          trainerSchedule.startTime
+        )} - ${formatTo12Hour(trainerSchedule.endTime)})`,
+      });
+    }
+
+    // Check for overlapping sessions (excluding current session)
+    const overlappingSessions = await Session.find({
+      _id: { $ne: sessionId },
+      trainer: trainerId,
+      date: finalDate,
+      status: { $in: ["scheduled", "completed"] },
+    });
+
+    for (const otherSession of overlappingSessions) {
+      const [otherStartHour, otherStartMin] = otherSession.startTime
+        .split(":")
+        .map(Number);
+      const [otherEndHour, otherEndMin] = otherSession.endTime
+        .split(":")
+        .map(Number);
+
+      const otherStartMinutes = otherStartHour * 60 + otherStartMin;
+      const otherEndMinutes = otherEndHour * 60 + otherEndMin;
+
+      const hasOverlap =
+        (startMinutes >= otherStartMinutes && startMinutes < otherEndMinutes) ||
+        (endMinutes > otherStartMinutes && endMinutes <= otherEndMinutes) ||
+        (startMinutes <= otherStartMinutes && endMinutes >= otherEndMinutes);
+
+      if (hasOverlap) {
+        return res.status(400).json({
+          success: false,
+          message: `You already have a session scheduled from ${formatTo12Hour(
+            otherSession.startTime
+          )} to ${formatTo12Hour(otherSession.endTime)}`,
+        });
+      }
+    }
+
     if (startTime) updateData.startTime = startTime;
     if (endTime) updateData.endTime = endTime;
-    if (status) updateData.status = status;
-    if (notes !== undefined) updateData.notes = notes;
 
-    const updatedSession = await Session.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    }).populate({
+    // Validate and update status
+    if (status !== undefined) {
+      const validStatuses = ["scheduled", "completed", "cancelled"];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status. Must be one of: ${validStatuses.join(
+            ", "
+          )}`,
+        });
+      }
+      updateData.status = status;
+    }
+
+    // Update notes
+    if (notes !== undefined) {
+      updateData.notes = notes;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No valid fields provided for update",
+      });
+    }
+
+    const updatedSession = await Session.findByIdAndUpdate(
+      sessionId,
+      updateData,
+      {
+        new: true,
+        runValidators: true,
+      }
+    ).populate({
       path: "member",
       populate: {
         path: "user",
@@ -1048,6 +1227,15 @@ exports.updateMySession = async (req, res) => {
     });
   } catch (error) {
     console.error("Error updating session:", error);
+
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: "Validation failed",
+        errors: Object.values(error.errors).map((e) => e.message),
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: "Server error",
