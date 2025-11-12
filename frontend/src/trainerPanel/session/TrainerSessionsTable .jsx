@@ -228,7 +228,7 @@ const TrainerSessionsTable = ({
                         onClick={() => onView(session)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
                         title="View Session"
                       >
                         <FiEye className="w-3 h-3" />
@@ -238,7 +238,7 @@ const TrainerSessionsTable = ({
                         onClick={() => onEdit(session)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-lg transition-colors duration-200 shadow-sm cursor-pointer"
                         title="Edit Session"
                       >
                         <FiEdit2 className="w-3 h-3" />
