@@ -244,7 +244,8 @@ const TrainerSessionsTable = ({
                         <FiEdit2 className="w-3 h-3" />
                       </motion.button>
 
-                      <motion.button
+                        {/* if ever the trainer can delete the session. */}
+                      {/* <motion.button
                         onClick={() => onDelete(session._id)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -252,7 +253,7 @@ const TrainerSessionsTable = ({
                         title="Delete Session"
                       >
                         <FiTrash2 className="w-3 h-3" />
-                      </motion.button>
+                      </motion.button> */}
                     </div>
                   </td>
                 </motion.tr>
