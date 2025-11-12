@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
+import { FaClock, FaUserCheck, FaUsers, FaUserTimes } from "react-icons/fa";
 import Loading from "../components/ui/Loading";
-import { showError, showSuccess, ShowWarning } from "../pages/utils/Alert";
+import { showError, showSuccess } from "../pages/utils/Alert";
 import sessionService from "../services/sessionService";
 import TrainerSessionForm from "./session/TrainerSessionForm";
 import TrainerSessionModal from "./session/TrainerSessionModal";
@@ -111,8 +112,7 @@ const MySessions = () => {
     setIsModalOpen(true);
   };
 
-
-      // fix this if the trainer can delete sessions
+  // fix this if the trainer can delete sessions
   // const handleDelete = async (sessionId) => {
   //   try {
   //     const result = await ShowWarning("This action cannot be undone");
@@ -181,7 +181,94 @@ const MySessions = () => {
           Manage your training sessions with clients
         </p>
       </motion.div>
-      
+
+      {/* Stats Cards (Sessions) */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Total Sessions
+              </p>
+              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+                {statusCount?.all ?? 0}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+              <FaUsers className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Scheduled
+              </p>
+              <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+                {statusCount?.scheduled ?? 0}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
+              <FaUserCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Completed
+              </p>
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">
+                {statusCount?.completed ?? 0}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+              <FaClock className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+          </div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.3 }}
+          className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                Cancelled
+              </p>
+              <p className="text-3xl font-bold text-red-600 dark:text-red-400">
+                {statusCount?.cancelled ?? 0}
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
+              <FaUserTimes className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
       {/* Filter Component */}
       <TrainerSessionsFilter
         selectedStatus={selectedStatus}
@@ -197,7 +284,7 @@ const MySessions = () => {
         sessions={sessions}
         onEdit={handleEdit}
         // onDelete={handleDelete} // uncomment if delete is implemented
-        onView={handleView} 
+        onView={handleView}
         handleOpenCreate={handleOpenCreate}
         hasActiveFilters={hasActiveFilters}
         clearFilters={clearFilters}
