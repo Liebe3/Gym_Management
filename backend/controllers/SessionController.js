@@ -811,6 +811,73 @@ exports.getMySessions = async (req, res) => {
   }
 };
 
+
+// Get single session details for trainer
+exports.getMySessionById = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const trainer = await Trainer.findOne({ user: userId });
+
+    if (!trainer) {
+      return res.status(404).json({
+        success: false,
+        message: "Trainer profile not found",
+      });
+    }
+
+    const { sessionId } = req.params;
+
+    const session = await Session.findById(sessionId)
+      .populate({
+        path: "trainer",
+        populate: {
+          path: "user",
+          select: "firstName lastName email phone",
+        },
+      })
+      .populate({
+        path: "member",
+        populate: [
+          {
+            path: "user",
+            select: "firstName lastName email phone",
+          },
+          {
+            path: "membershipPlan",
+            select: "name price duration durationType",
+          },
+        ],
+      });
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    // Verify session belongs to this trainer
+    if (session.trainer._id.toString() !== trainer._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only view your own sessions",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: session,
+    });
+  } catch (error) {
+    console.error("Get my session by ID error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
 // Create session for trainer's own clients - FIXED
 exports.createMySession = async (req, res) => {
   try {
