@@ -37,7 +37,10 @@ const SessionForm = ({
   // Check if session is completed or cancelled (non-editable)
   const isSessionFinalized = useMemo(() => {
     if (mode === "update" && selectedSession) {
-      return selectedSession.status === "completed" || selectedSession.status === "cancelled";
+      return (
+        selectedSession.status === "completed" ||
+        selectedSession.status === "cancelled"
+      );
     }
     return false;
   }, [mode, selectedSession]);
@@ -141,7 +144,7 @@ const SessionForm = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Prevent submission if session is finalized
     if (isSessionFinalized) {
       showError("Cannot modify a completed or cancelled session");
@@ -201,7 +204,8 @@ const SessionForm = ({
       {isSessionFinalized && (
         <div className="mb-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
           <p className="text-sm text-yellow-800 dark:text-yellow-200 font-medium">
-            ⚠️ This session is {selectedSession.status} and cannot be edited. You can only view the details.
+            ⚠️ This session is {selectedSession.status} and cannot be edited.
+            You can only view the details.
           </p>
         </div>
       )}
@@ -213,6 +217,7 @@ const SessionForm = ({
           handleChange={handleChange}
           errors={errors}
           isViewMode={effectiveViewMode}
+          mode={mode}
           loading={loading}
           selectedSession={selectedSession}
         />
@@ -224,19 +229,22 @@ const SessionForm = ({
           handleChange={handleChange}
           errors={errors}
           isViewMode={effectiveViewMode}
+          mode={mode}
           loading={loading}
           selectedSession={selectedSession}
         />
 
         {/*  Show info message if trainer is selected but has no members */}
-        {formData.trainerId && filteredMembers.length === 0 && !effectiveViewMode && (
-          <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
-              This trainer has no assigned members yet. Please assign members to
-              this trainer first.
-            </p>
-          </div>
-        )}
+        {formData.trainerId &&
+          filteredMembers.length === 0 &&
+          !effectiveViewMode && (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+              <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                This trainer has no assigned members yet. Please assign members
+                to this trainer first.
+              </p>
+            </div>
+          )}
 
         <DateTimeInput
           formData={formData}
