@@ -8,7 +8,13 @@ import NotesInput from "../../admin/dashboard/components/session/NotesInput";
 import StatusBadge from "../../admin/dashboard/components/session/StatusBadge";
 import TrainerClientSelect from "./TrainerClientSelect";
 
-const TrainerSessionForm = ({ onSubmit, onCancel, loading }) => {
+const TrainerSessionForm = ({
+  onSubmit,
+  onCancel,
+  loading,
+  mode,
+  selectedSession,
+}) => {
   const [formData, setFormData] = useState({
     trainerId: "",
     memberId: "",
@@ -58,6 +64,30 @@ const TrainerSessionForm = ({ onSubmit, onCancel, loading }) => {
 
     loadTrainerData();
   }, []);
+
+  // If in update/view mode, populate formData from selectedSession
+  useEffect(() => {
+    if (selectedSession && (mode === "update" || mode === "view")) {
+      const formatDate = (dateString) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
+      setFormData({
+        trainerId: selectedSession.trainer?._id || "",
+        memberId: selectedSession.member?._id || "",
+        date: formatDate(selectedSession.date),
+        startTime: selectedSession.startTime || "",
+        endTime: selectedSession.endTime || "",
+        status: selectedSession.status || "scheduled",
+        notes: selectedSession.notes || "",
+      });
+    }
+  }, [selectedSession, mode]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -148,6 +178,9 @@ const TrainerSessionForm = ({ onSubmit, onCancel, loading }) => {
           handleChange={handleChange}
           errors={errors}
           loading={loading}
+          mode={mode}
+          isViewMode={mode === "view"}
+          selectedSession={selectedSession}
         />
 
         {/* Show warning if no clients */}
