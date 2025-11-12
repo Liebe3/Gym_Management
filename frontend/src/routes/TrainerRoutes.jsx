@@ -7,6 +7,7 @@ import Profile from "../trainerPanel/profile/Profile";
 import Reports from "../trainerPanel/Reports";
 import TrainerDashboard from "../trainerPanel/TrainerDashboard";
 import ProtectedRoute from "./ProtectedRoutes";
+import SessionDetailPage from "../trainerPanel/session/SessionDetailPage";
 
 export const TrainerRoutes = (
   <>
@@ -25,6 +26,17 @@ export const TrainerRoutes = (
         <ProtectedRoute allowedRoles={["trainer"]}>
           <TrainerLayout>
             <MySessions />
+          </TrainerLayout>
+        </ProtectedRoute>
+      }
+    />
+
+    <Route
+      path="/trainer/sessions/:sessionId"
+      element={
+        <ProtectedRoute allowedRoles={["trainer"]}>
+          <TrainerLayout>
+            <SessionDetailPage />
           </TrainerLayout>
         </ProtectedRoute>
       }
