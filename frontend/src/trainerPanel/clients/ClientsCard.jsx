@@ -34,7 +34,13 @@ const ClientCard = ({ client, getStatusBadge }) => {
   };
 
   const handleViewSessions = () => {
-    navigate(`/trainer/clients/${client._id}/sessions`);
+    // If there's a next session with an ID, navigate to its detail page
+    if (client.nextSession?._id) {
+      navigate(`/trainer/sessions/${client.nextSession._id}`);
+    } else {
+      // Otherwise, navigate to the sessions list (you can remove this route if not needed)
+      navigate(`/trainer/sessions?member=${client._id}`);
+    }
   };
 
   return (
@@ -142,10 +148,15 @@ const ClientCard = ({ client, getStatusBadge }) => {
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={handleViewSessions}
-          className="flex-1 flex items-center justify-center px-3 py-2 border border-emerald-600 dark:border-emerald-500 rounded-lg text-emerald-600 dark:text-emerald-400 bg-white dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors text-sm font-medium cursor-pointer"
+          disabled={!client.nextSession}
+          className={`flex-1 flex items-center justify-center px-3 py-2 border rounded-lg transition-colors text-sm font-medium cursor-pointer ${
+            client.nextSession
+              ? "border-emerald-600 dark:border-emerald-500 text-emerald-600 dark:text-emerald-400 bg-white dark:bg-gray-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+              : "border-gray-300 dark:border-gray-600 text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
+          }`}
         >
           <FaCalendarAlt className="w-4 h-4 mr-1.5" />
-          Sessions
+          {client.nextSession ? "View Session" : "No Sessions"}
         </motion.button>
       </div>
     </motion.div>
