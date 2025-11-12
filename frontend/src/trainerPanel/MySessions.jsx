@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import Loading from "../components/ui/Loading";
-import { showError, showSuccess } from "../pages/utils/Alert";
+import { showError, showSuccess, ShowWarning } from "../pages/utils/Alert";
 import sessionService from "../services/sessionService";
 import TrainerSessionForm from "./session/TrainerSessionForm";
 import TrainerSessionModal from "./session/TrainerSessionModal";
@@ -57,8 +57,7 @@ const MySessions = () => {
         setSessions(response.data || []);
         setPagination(response.pagination || {});
 
-        // FIXED: Extract status counts - check multiple possible locations
-        console.log("Session response:", response);
+        // Extract status counts
         const counts = response.counts || response.filter?.counts || {};
         setStatusCount(counts);
       }
@@ -69,8 +68,6 @@ const MySessions = () => {
       setLoading(false);
     }
   }, [currentPage, selectedStatus, debouncedSearch]);
-
-  console.log("Status Count:", statusCount);
 
   useEffect(() => {
     fetchSessions();
@@ -114,22 +111,23 @@ const MySessions = () => {
     setIsModalOpen(true);
   };
 
-  const handleDelete = async (sessionId) => {
-    if (!window.confirm("Are you sure you want to delete this session?")) {
-      return;
-    }
 
-    try {
-      const response = await sessionService.deleteSession(sessionId);
-      if (response.success) {
-        showSuccess("Session deleted successfully");
-        fetchSessions();
-      }
-    } catch (error) {
-      console.error("Delete session error:", error);
-      showError(error.response?.data?.message || "Failed to delete session");
-    }
-  };
+      // fix this if the trainer can delete sessions
+  // const handleDelete = async (sessionId) => {
+  //   try {
+  //     const result = await ShowWarning("This action cannot be undone");
+  //     if (result.isConfirmed) {
+  //       const response = await sessionService.deleteSession(sessionId);
+  //       if (response.success) {
+  //         showSuccess("Session deleted successfully");
+  //         fetchSessions();
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error("Delete session error:", error);
+  //     showError(error.response?.data?.message || "Failed to delete session");
+  //   }
+  // };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
@@ -193,12 +191,13 @@ const MySessions = () => {
         clearFilters={clearFilters}
         statusCount={statusCount}
       />
-      {/* Loading State */}
+
+      {/* Sessions Table */}
       <TrainerSessionsTable
         sessions={sessions}
         onEdit={handleEdit}
-        onDelete={handleDelete}
-        onView={handleView}
+        // onDelete={handleDelete} // uncomment if delete is implemented
+        onView={handleView} 
         handleOpenCreate={handleOpenCreate}
         hasActiveFilters={hasActiveFilters}
         clearFilters={clearFilters}
@@ -206,6 +205,7 @@ const MySessions = () => {
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
       />
+
       {/* Modal */}
       <TrainerSessionModal
         isModalOpen={isModalOpen}
