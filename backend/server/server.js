@@ -11,7 +11,7 @@ const sessionRoutes = require("../routes/SessionRoutes");
 
 const trainerProfileRoutes = require("../routes/trainer/TrainerProfileRoutes");
 const trainerClientsRoutes = require("../routes/trainer/TrainerClientsRoutes");
-const trainerSesssionRoutes = require("../routes/trainer/TrainerSessionRoutes");
+const trainerSessionRoutes = require("../routes/trainer/TrainerSessionRoutes");
 dotenv.config();
 connectDB();
 
@@ -45,7 +45,7 @@ app.use("/api/session", sessionRoutes);
 // Trainer Panel Routes
 app.use("/api/trainer-panel", trainerProfileRoutes);
 app.use("/api/trainer-panel", trainerClientsRoutes);
-app.use("/api/trainer-panel/sessions", trainerSesssionRoutes);
+app.use("/api/trainer-panel/sessions", trainerSessionRoutes);
 
 // Test route
 app.get("/", (req, res) => {
