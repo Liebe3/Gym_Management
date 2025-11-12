@@ -94,7 +94,7 @@ const TrainerSessionsTable = ({
             </p>
             <button
               onClick={handleOpenCreate}
-              className="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200"
+              className="inline-flex items-center px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 cursor-pointer"
             >
               <FiPlus className="w-4 h-4 mr-2" />
               Schedule Your First Session
