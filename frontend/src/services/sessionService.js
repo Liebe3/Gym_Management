@@ -122,6 +122,77 @@ const sessionService = {
       throw error;
     }
   },
+
+  // Trainer-specific methods
+  // Get trainer's own sessions
+  getMySessions: async (filters = {}) => {
+    try {
+      const queryParams = new URLSearchParams();
+      Object.entries(filters).forEach(([key, value]) => {
+        if (
+          value !== undefined &&
+          value !== null &&
+          value !== "" &&
+          value !== "all"
+        ) {
+          queryParams.append(key, value);
+        }
+      });
+
+      const queryString = queryParams.toString();
+      const endpoint = `/trainer-panel/sessions${
+        queryString ? `?${queryString}` : ""
+      }`;
+
+      const response = await API.get(endpoint);
+      return response.data;
+    } catch (error) {
+      console.error("Get my sessions service error:", error);
+      throw error;
+    }
+  },
+
+  // Create session as trainer
+  createMySession: async (sessionData) => {
+    try {
+      const response = await API.post("/trainer-panel/sessions", sessionData);
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Create my session service error:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
+
+  // Update trainer's own session
+  updateMySession: async (sessionId, updateData) => {
+    try {
+      const response = await API.put(
+        `/trainer-panel/sessions/${sessionId}`,
+        updateData
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Update my session service error:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
+
+  // Get single session details (trainer's own)
+  getMySessionById: async (sessionId) => {
+    try {
+      const response = await API.get(`/trainer-panel/sessions/${sessionId}`);
+      return response.data;
+    } catch (error) {
+      console.error("Get my session by ID service error:", error);
+      throw error;
+    }
+  },
 };
 
 export default sessionService;
