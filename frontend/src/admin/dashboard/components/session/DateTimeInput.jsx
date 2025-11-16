@@ -8,8 +8,6 @@ const DateTimeInput = ({
   loading,
   selectedSession,
 }) => {
-
-
   // 12 hour time formatter
   const formatTime12Hour = (time) => {
     if (!time) return "N/A";
@@ -74,7 +72,7 @@ const DateTimeInput = ({
             <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
               <FiClock className="w-5 h-5 text-gray-500 mr-2" />
               <span className="text-gray-800 dark:text-gray-200">
-                {formatTime12Hour(selectedSession?.startTime)}
+                {formatTime12Hour(formData?.startTime)}
               </span>
             </div>
           ) : (
@@ -105,7 +103,7 @@ const DateTimeInput = ({
             <div className="flex items-center p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600">
               <FiClock className="w-5 h-5 text-gray-500 mr-2" />
               <span className="text-gray-800 dark:text-gray-200">
-                {formatTime12Hour(selectedSession?.endTime)}
+                {formatTime12Hour(formData?.endTime)}
               </span>
             </div>
           ) : (
