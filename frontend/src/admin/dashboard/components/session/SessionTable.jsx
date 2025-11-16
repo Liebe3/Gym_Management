@@ -8,6 +8,7 @@ import {
   FiPlus,
   FiTrash2,
   FiUser,
+  FiCheck
 } from "react-icons/fi";
 
 const formatTime = (time24) => {
@@ -166,6 +167,7 @@ const SessionTable = ({
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm min-w-[120px]">
                 <div className="flex items-center justify-start whitespace-nowrap">
+                  <FiCheck className="w-4 h-4 mr-2 text-emerald-600" />
                   Status
                 </div>
               </th>
