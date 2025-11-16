@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FiCalendar,
+  FiCheck,
   FiEdit3,
   FiEye,
   FiFilter,
@@ -135,7 +136,10 @@ const TrainerTable = ({
                 </div>
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                Status
+                <div className="flex items-center">
+                  <FiCheck className="w-4 h-4 mr-2 text-emerald-600" />
+                  Status
+                </div>
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm  xl:table-cell">
                 <div className="flex items-center">
@@ -211,7 +215,9 @@ const TrainerTable = ({
                     </span>
                   </td>
                   <td className="py-3 px-4">
-                    <StatusBadge status={trainer.status} />
+                    <div className="flex items-center">
+                      <StatusBadge status={trainer.status} />
+                    </div>
                   </td>
                   <td className="py-3 px-4  xl:table-cell">
                     <WorkSchedule schedule={trainer.workSchedule} />
