@@ -1,24 +1,24 @@
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { useContext, useState } from "react";
+import {
+  MdAssignment,
+  MdBarChart,
+  MdCalendarToday,
+  MdCheckCircle,
+  MdChevronLeft,
+  MdChevronRight,
+  MdDarkMode,
+  MdDashboard,
+  MdFitnessCenter,
+  MdLightMode,
+  MdLogout,
+  MdPeople,
+  MdPerson,
+  MdSettings,
+} from "react-icons/md";
 import { NavLink, useNavigate } from "react-router-dom";
 import AuthContext from "../../pages/context/AuthContext";
 import ThemeContext from "../../pages/context/ThemeContext";
-import {
-  MdDashboard,
-  MdCalendarToday,
-  MdPeople,
-  MdFitnessCenter,
-  MdAssignment,
-  MdBarChart,
-  MdSettings,
-  MdLightMode,
-  MdDarkMode,
-  MdPerson,
-  MdLogout,
-  MdChevronLeft,
-  MdChevronRight,
-  MdCheckCircle,
-} from "react-icons/md";
 
 const iconMap = {
   dashboard: MdDashboard,
@@ -36,7 +36,7 @@ const trainerLinks = [
   { name: "Dashboard", href: "/trainer/dashboard", icon: "dashboard" },
   { name: "My Sessions", href: "/trainer/Sessions", icon: "calendar" },
   { name: "My Clients", href: "/trainer/client", icon: "clients" },
-  { name: "Reports", href: "/trainer/report", icon: "analytics" },
+  // { name: "Reports", href: "/trainer/report", icon: "analytics" }, for future feature
   { name: "Profile", href: "/trainer/profile", icon: "profile" },
   { name: "Theme", href: "#", icon: "theme" },
 ];
