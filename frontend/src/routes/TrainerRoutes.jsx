@@ -75,7 +75,8 @@ export const TrainerRoutes = (
       }
     />
 
-    <Route
+      {/* for report in the future */}
+    {/* <Route
       path="/trainer/report"
       element={
         <ProtectedRoute allowedRoles={["trainer"]}>
@@ -84,7 +85,7 @@ export const TrainerRoutes = (
           </TrainerLayout>
         </ProtectedRoute>
       }
-    />
+    /> */}
 
     <Route
       path="/trainer/profile"
