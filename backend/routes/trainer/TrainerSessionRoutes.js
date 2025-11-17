@@ -7,7 +7,7 @@ const VerifyTrainer = require('../../middleware/VerifyTrainer');
 router.use(VerifyToken);
 router.use(VerifyTrainer);
 
-const {getMySessions, getMySessionById, createMySession, updateMySession} = require("../../controllers/SessionController");
+const {getMySessions, getMySessionById, createMySession, updateMySession} = require("../../controllers/trainer/TrainerSessionController");
 
 router.get('/', getMySessions);
 router.get('/:sessionId', getMySessionById);
