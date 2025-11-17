@@ -195,7 +195,7 @@ const MySessions = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                 Total Sessions
               </p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                 {statusCount?.all ?? 0}
               </p>
             </div>
@@ -216,12 +216,12 @@ const MySessions = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                 Scheduled
               </p>
-              <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+              <p className="text-3xl font-bold text-pink-600 dark:text-pink-600">
                 {statusCount?.scheduled ?? 0}
               </p>
             </div>
-            <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
-              <FaUserCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            <div className="w-12 h-12 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center">
+              <FaUserCheck className="w-6 h-6 text-pink-600 dark:text-pink-400" />
             </div>
           </div>
         </motion.div>
