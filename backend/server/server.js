@@ -13,8 +13,24 @@ const trainerProfileRoutes = require("../routes/trainer/TrainerProfileRoutes");
 const trainerClientsRoutes = require("../routes/trainer/TrainerClientsRoutes");
 const trainerSessionRoutes = require("../routes/trainer/TrainerSessionRoutes");
 const trainerDashboardRoutes = require("../routes/trainer/TrainerDashboardRoutes");
+
+const {
+  startMembershipScheduler,
+} = require("../scheduler/membershipScheduler");
+
 dotenv.config();
-connectDB();
+
+// Connect to database and start scheduler
+connectDB()
+  .then(() => {
+
+    // Start the membership expiration scheduler
+    startMembershipScheduler();
+  })
+  .catch((err) => {
+    console.error("Database connection error:", err);
+    process.exit(1);
+  });
 
 const app = express();
 
