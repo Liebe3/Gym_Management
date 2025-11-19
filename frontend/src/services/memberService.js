@@ -67,6 +67,19 @@ const memberService = {
       throw error;
     }
   },
+
+  /*
+      Manual trigger to check for expired memberships (useful for testing)
+ */
+  // checkExpiredMemberships: async () => {
+  //   try {
+  //     const response = await API.post("/member/check-expirations");
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error("Service error checking expired memberships:", error);
+  //     throw error;
+  //   }
+  // },
 };
 
 export default memberService;
