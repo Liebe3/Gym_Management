@@ -122,7 +122,7 @@ const Sidebar = () => {
                 Admin Portal
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Admin Dashboard
+                Manage your gyms
               </p>
             </motion.div>
           ) : (
