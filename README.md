@@ -16,13 +16,15 @@ Built with **React, Node.js, Express, and MongoDB**.
 ---
 
 ## 🛠️ Tech Stack
-- **Frontend:** React, Tailwind CSS, Reac-icons, Framer Motion
+- **Frontend:** React/Vite Tailwind CSS, React-icons, Framer Motion  
+- **Charts & Data Visualization:** React Chart.js  
 - **Backend:** Node.js, Express  
 - **Database:** MongoDB (Mongoose ODM)  
 - **State Management:** React hooks / context  
-- **Notification:** SweetAlert2
-- **Modal:** Headlessui
-- **API Testing:** Postman 
+- **Notification:** SweetAlert2  
+- **Modal:** Headlessui  
+- **API Testing:** Postman
+
 
 ---
 ## 📂 Project Setup
