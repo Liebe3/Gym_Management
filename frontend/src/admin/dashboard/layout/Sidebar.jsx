@@ -119,7 +119,7 @@ const Sidebar = () => {
               transition={{ duration: 0.2 }}
             >
               <h2 className="text-xl font-bold text-emerald-600">
-                Gym Management
+                Admin Portal
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 Admin Dashboard
