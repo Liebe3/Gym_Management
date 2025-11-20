@@ -148,7 +148,7 @@ const MyClients = () => {
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                 Total Clients
               </p>
-              <p className="text-3xl font-bold text-gray-900 dark:text-white">
+              <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                 {stats.totalClients}
               </p>
             </div>
