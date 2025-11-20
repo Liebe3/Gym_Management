@@ -107,7 +107,7 @@ const TrainerDashboard = () => {
 
   const stats = [
     {
-      title: "Total Clients",
+      title: "Active Total Clients",
       value: overview.activeClients,
       icon: FaUsers,
       color: "blue",
