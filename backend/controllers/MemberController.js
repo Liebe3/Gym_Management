@@ -146,34 +146,40 @@ exports.createMember = async (req, res) => {
     });
     await newMember.save();
 
-    let payment = null;
-    if (paymentDetails) {
-      payment = new Payment({
-        member: newMember._id,
-        membershipPlan: membershipPlanId,
-        amount: paymentDetails.amount || plan.price,
-        paymentMethod: paymentDetails.paymentMethod,
-        status: paymentDetails.status || "completed",
-        paymentDate: paymentDetails.paymentDate || new Date(),
-        transactionId: paymentDetails.transactionId,
-        description: paymentDetails.description,
-        receiptNumber: paymentDetails.receiptNumber,
-      });
-      await payment.save();
+    // let payment = null;
+    // if (paymentDetails) {
+    //   payment = new Payment({
+    //     member: newMember._id,
+    //     membershipPlan: membershipPlanId,
+    //     amount: paymentDetails.amount || plan.price,
+    //     paymentMethod: paymentDetails.paymentMethod,
+    //     status: paymentDetails.status || "completed",
+    //     paymentDate: paymentDetails.paymentDate || new Date(),
+    //     transactionId: paymentDetails.transactionId,
+    //     description: paymentDetails.description,
+    //     receiptNumber: paymentDetails.receiptNumber,
+    //   });
+    //   await payment.save();
 
-      // Update member status based on payment
-      if (payment.status === "completed") {
-        newMember.status = "active";
-        await newMember.save();
+    //   // Update member status based on payment
+    //   if (payment.status === "completed") {
+    //     newMember.status = "active";
+    //     await newMember.save();
 
-        user.role = "member";
-        await user.save();
-      }
-    } else {
-      if (newMember.status === "active") {
-        user.role = "member";
-        await user.save();
-      }
+    //     user.role = "member";
+    //     await user.save();
+    //   }
+    // } else {
+    //   if (newMember.status === "active") {
+    //     user.role = "member";
+    //     await user.save();
+    //   }
+    // }
+
+    // Set user role to member immediately
+    if (user.role !== "member") {
+      user.role = "member";
+      await user.save();
     }
 
     // Get the populated member data
@@ -195,7 +201,7 @@ exports.createMember = async (req, res) => {
       message: "Member created successfully",
       data: {
         member: populatedMember,
-        payment: payment,
+        // payment: payment,
       },
     });
   } catch (error) {
