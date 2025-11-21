@@ -39,7 +39,7 @@ const TrainerSection = () => {
       const filters = {
         page: currentPage,
         limit,
-        all: true, // Add this to get stats for all trainers
+        // all: true, // Add this to get stats for all trainers
       };
 
       if (selectedStatus !== "all") {
