@@ -1,8 +1,14 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { AdminRoutes } from "./routes/AdminRoutes";
-import { TrainerRoutes } from "./routes/TrainerRoutes";
+import {
+  Navigate,
+  Route,
+  BrowserRouter as Router,
+  Routes,
+} from "react-router-dom";
 import LoginPage from "./auth/LoginPages";
 import RegisterPage from "./auth/RegisterPage";
+import AdminRoutes from "./routes/AdminRoutes";
+import MemberRoutes from "./routes/MemberRoutes";
+import TrainerRoutes from "./routes/TrainerRoutes";
 
 function App() {
   return (
@@ -14,8 +20,10 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
 
         {/* Role-based Routes */}
-        {AdminRoutes}
-        {TrainerRoutes}
+
+        {AdminRoutes()}
+        {TrainerRoutes()}
+        {MemberRoutes()}
 
         {/* Catch-all */}
         <Route path="/unauthorized" element={<h1>Access Denied</h1>} />
