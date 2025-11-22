@@ -4,12 +4,12 @@ import MyClients from "../trainerPanel/clients/MyClients";
 import TrainerLayout from "../trainerPanel/components/TrainerLayout";
 import MySessions from "../trainerPanel/MySessions";
 import Profile from "../trainerPanel/profile/Profile";
-import Reports from "../trainerPanel/Reports";
+// import Reports from "../trainerPanel/Reports";
+import SessionDetailPage from "../trainerPanel/session/SessionDetailPage";
 import TrainerDashboard from "../trainerPanel/TrainerDashboard";
 import ProtectedRoute from "./ProtectedRoutes";
-import SessionDetailPage from "../trainerPanel/session/SessionDetailPage";
 
-export const TrainerRoutes = (
+const TrainerRoutes = () => (
   <>
     <Route
       path="/trainer/dashboard"
@@ -75,7 +75,7 @@ export const TrainerRoutes = (
       }
     />
 
-      {/* for report in the future */}
+    {/* for report in the future */}
     {/* <Route
       path="/trainer/report"
       element={
@@ -99,3 +99,5 @@ export const TrainerRoutes = (
     />
   </>
 );
+
+export default TrainerRoutes;
