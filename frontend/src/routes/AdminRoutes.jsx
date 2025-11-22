@@ -1,14 +1,14 @@
 import { Route } from "react-router-dom";
-import ProtectedRoute from "./ProtectedRoutes";
-import DashboardLayout from "../admin/dashboard/DashboardLayout";
 import Dashboard from "../admin/dashboard/Dashboard";
+import DashboardLayout from "../admin/dashboard/DashboardLayout";
 import MemberSection from "../admin/dashboard/components/MemberSection";
 import MemberShipPlansSection from "../admin/dashboard/components/MemberShipPlansSection";
-import TrainerSection from "../admin/dashboard/components/TrainerSection";
 import SessionSection from "../admin/dashboard/components/SessionSection";
+import TrainerSection from "../admin/dashboard/components/TrainerSection";
 import UserSection from "../admin/dashboard/components/UserSection";
+import ProtectedRoute from "./ProtectedRoutes";
 
-export const AdminRoutes = (
+const AdminRoutes = () => (
   <>
     <Route
       path="/admin/dashboard"
@@ -72,3 +72,5 @@ export const AdminRoutes = (
     />
   </>
 );
+
+export default AdminRoutes;
