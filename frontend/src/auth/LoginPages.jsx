@@ -59,15 +59,31 @@ const LoginPage = () => {
         localStorage.setItem("token", response.token);
         const role = jwtDecode(response.token).role;
 
-        // Redirect based on role
-        if (role === "admin") {
-          navigate("/admin/dashboard");
-        } else if (role === "trainer") {
-          navigate("/trainer/dashboard");
-        } else {
-          // Optional fallback for unexpected roles
-          navigate("/unauthorized");
+        switch (role) {
+          case "admin":
+            navigate("/admin/dashboard");
+            break;
+          case "trainer":
+            navigate("/trainer/dashboard");
+            break;
+          case "member":
+            navigate("/member/home");
+            break;
+          default: 
+            navigate("/unauthorized");
         }
+
+        // // Redirect based on role
+        // if (role === "admin") {
+        //   navigate("/admin/dashboard");
+        // } else if (role === "trainer") {
+        //   navigate("/trainer/dashboard");
+        // } else if (role === "member") {
+        //   navigate("/member/home");
+        // } else {
+        //   // Optional fallback for unexpected roles
+        //   navigate("/unauthorized");
+        // }
       }
     } catch (error) {
       showError(error.message);
