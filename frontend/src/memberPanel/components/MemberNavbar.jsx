@@ -54,13 +54,13 @@ const MemberNavbar = () => {
               <MdFitnessCenter size={24} className="text-white" />
             </div>
             <div className="hidden sm:block">
-              <h1 className="text-2xl font-bold text-emerald-600">FitHub</h1>
+              <h1 className="text-2xl font-bold text-emerald-600">FitPulse</h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">Member</p>
             </div>
           </motion.div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          <div className="hidden lg:flex items-center space-x-1">
             {navLinks.map((link) => {
               const IconComponent = link.icon;
               const active = isActive(link.href);
@@ -101,7 +101,7 @@ const MemberNavbar = () => {
             </motion.button>
 
             {/* User Profile (Desktop) */}
-            {/* <motion.div
+            <motion.div
               className="hidden sm:flex items-center space-x-3 pl-5 border-l border-gray-200 dark:border-gray-700"
               initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
@@ -114,16 +114,13 @@ const MemberNavbar = () => {
                 <p className="text-base font-medium text-gray-900 dark:text-white">
                   {user?.firstName || "Member"}
                 </p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {user?.email}
-                </p>
               </div>
-            </motion.div> */}
+            </motion.div>
 
             {/* Logout Button (Desktop) */}
             <motion.button
               onClick={handleLogout}
-              className="hidden sm:flex items-center space-x-2 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
+              className="hidden lg:flex items-center space-x-2 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -134,7 +131,7 @@ const MemberNavbar = () => {
             {/* Mobile Menu Button */}
             <motion.button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="lg:hidden p-2 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -152,7 +149,7 @@ const MemberNavbar = () => {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className="md:hidden border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
+            className="lg:hidden border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800"
           >
             <div className="px-6 py-6 space-y-3">
               {navLinks.map((link) => {
