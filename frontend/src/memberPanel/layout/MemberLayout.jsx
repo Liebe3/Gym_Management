@@ -9,7 +9,7 @@ const MemberLayout = ({ children, title, breadcrumbs }) => {
 
       {/* Main Content */}
       <motion.main
-        className="flex-1 max-w-7xl w-full mx-auto px-6 sm:px-8 lg:px-10 py-10"
+    className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 sm:px-6 lg:px-8"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
