@@ -135,7 +135,7 @@ exports.getActiveMemberHomeData = async (req, res) => {
           trainer: member.trainer,
           startDate: member.startDate,
           endDate: member.endDate,
-          autoRenew: member.autoRenew,
+          // autoRenew: member.autoRenew,
           createdAt: member.createdAt,
         },
         membershipStatus: {
@@ -143,7 +143,7 @@ exports.getActiveMemberHomeData = async (req, res) => {
           isExpired,
           daysRemaining,
           expiresAt,
-          autoRenew: member.autoRenew,
+          // autoRenew: member.autoRenew,
         },
         sessions: {
           recent: recentSessions,
