@@ -39,8 +39,8 @@ exports.createMember = async (req, res) => {
       startDate,
       endDate,
       status,
-      autoRenew,
-      paymentDetails,
+      // autoRenew,
+      // paymentDetails,
     } = req.body;
 
     //validate user
@@ -142,7 +142,7 @@ exports.createMember = async (req, res) => {
       startDate: startDate || new Date(),
       endDate: calculatedEndDate,
       status: status || "pending", // Changed from "none" to "pending"
-      autoRenew: autoRenew || false,
+      // autoRenew: autoRenew || false,
     });
     await newMember.save();
 
