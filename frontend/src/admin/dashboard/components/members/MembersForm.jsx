@@ -14,7 +14,7 @@ const initialForm = {
   startDate: "",
   endDate: "",
   status: "pending",
-  autoRenew: false,
+  // autoRenew: false,
 };
 
 const formModes = {
@@ -50,7 +50,7 @@ const MembersForm = ({
           ? new Date(selectedMember.endDate).toISOString().split("T")[0]
           : "",
         status: selectedMember.status || "pending",
-        autoRenew: selectedMember.autoRenew || false,
+        // autoRenew: selectedMember.autoRenew || false,
       });
     } else {
       setForm(initialForm);
@@ -165,7 +165,7 @@ const MembersForm = ({
           ? new Date(selectedMember.endDate).toISOString().split("T")[0]
           : "",
         status: selectedMember.status || "pending",
-        autoRenew: selectedMember.autoRenew || false,
+        // autoRenew: selectedMember.autoRenew || false,
       });
     }
   };
@@ -217,7 +217,7 @@ const MembersForm = ({
         startDate: form.startDate,
         endDate: form.endDate || undefined,
         status: form.status,
-        autoRenew: form.autoRenew,
+        // autoRenew: form.autoRenew,
       };
 
       if (mode === formModes.Create) {
@@ -336,7 +336,7 @@ const MembersForm = ({
         </div>
 
         {/* Row 4: Auto Renew */}
-        <div className="flex items-center">
+        {/* <div className="flex items-center">
           <input
             type="checkbox"
             checked={form.autoRenew}
@@ -349,7 +349,7 @@ const MembersForm = ({
           <label className="ml-2 text-sm text-gray-700 dark:text-gray-300">
             Auto Renew {mode === formModes.Update && "(Cannot be changed)"}
           </label>
-        </div>
+        </div> */}
 
         {/* Actions */}
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
