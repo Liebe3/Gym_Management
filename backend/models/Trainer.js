@@ -15,7 +15,7 @@ const trainerSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: ["active", "inactive", "on_leave", "terminated"],
-      default: "active",
+      default: "inactive",
     },
 
     specializations: [
@@ -68,7 +68,7 @@ const trainerSchema = new mongoose.Schema(
 
     isAvailableForNewClients: {
       type: Boolean,
-      default: true,
+      default: false,
     },
 
     createdBy: {
