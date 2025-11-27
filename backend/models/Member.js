@@ -13,10 +13,19 @@ const memberSchema = new mongoose.Schema(
       required: true,
     },
 
-    trainer: {
+    // Changed: Array of trainers instead of single trainer
+    trainers: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Trainer",
+      },
+    ],
+
+    // Primary trainer (for backward compatibility and quick access)
+    primaryTrainer: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Trainer",
-      required: false
+      required: false,
     },
 
     status: {
@@ -41,30 +50,18 @@ const memberSchema = new mongoose.Schema(
   }
 );
 
-// // Virtual to get payments for this member
-// memberSchema.virtual("payments", {
-//   ref: "Payment",
-//   localField: "_id",
-//   foreignField: "member",
-// });
-
-// // Virtual to get active subscription
-// memberSchema.virtual("subscription", {
-//   ref: "Subscription",
-//   localField: "_id",
-//   foreignField: "member",
-//   justOne: true,
-// });
-
-// // Updated virtual for total amount paid
-// memberSchema.virtual("totalAmountPaid").get(function () {
-//   // This would need to be populated or calculated via aggregation
-//   return 0; // Placeholder - implement with aggregation pipeline
-// });
-
+// Indexes
 memberSchema.index({ user: 1 });
 memberSchema.index({ status: 1 });
 memberSchema.index({ endDate: 1 });
 memberSchema.index({ membershipPlan: 1 });
+memberSchema.index({ trainers: 1 });
+memberSchema.index({ primaryTrainer: 1 });
+
+// Virtual to get active trainers
+memberSchema.virtual("activeTrainers").get(function () {
+  // This will be populated with actual trainer data
+  return this.trainers || [];
+});
 
 module.exports = mongoose.model("Member", memberSchema);
