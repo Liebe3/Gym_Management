@@ -1,7 +1,6 @@
 const Member = require("../models/Member");
 const User = require("../models/User");
 const MembershipPlan = require("../models/MemberShipPlan");
-const Payment = require("../models/Payment");
 const Trainer = require("../models/Trainer");
 const { getAll } = require("./BaseController");
 
@@ -12,8 +11,15 @@ exports.getAllMember = async (req, res) => {
       { path: "user", select: "firstName lastName email" },
       { path: "membershipPlan", select: "name price duration durationType" },
       {
-        path: "trainer",
-        match: { status: "active", isAvailableForNewClients: true }, //only active + available trainers
+        path: "trainers",
+        match: { status: "active", isAvailableForNewClients: true },
+        populate: {
+          path: "user",
+          select: "firstName lastName",
+        },
+      },
+      {
+        path: "primaryTrainer",
         populate: {
           path: "user",
           select: "firstName lastName",
@@ -26,7 +32,7 @@ exports.getAllMember = async (req, res) => {
       fields: ["firstName", "lastName", "email"],
       key: "user",
     },
-    defaultSort: { createdAt: -1 }, // newest first
+    defaultSort: { createdAt: -1 },
   });
 };
 
@@ -35,41 +41,62 @@ exports.createMember = async (req, res) => {
     const {
       userId,
       membershipPlanId,
-      trainerId,
+      trainerIds = [],
+      primaryTrainerId,
       startDate,
       endDate,
       status,
-      // autoRenew,
-      // paymentDetails,
     } = req.body;
 
-    //validate user
+    // Validate user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    //validate plan
+    // Validate plan
     const plan = await MembershipPlan.findById(membershipPlanId);
     if (!plan) {
       return res.status(404).json({ message: "Membership plan not found" });
     }
 
-    console.log("TrainerId received:", trainerId);
-
-    let trainer = null;
-    if (trainerId) {
-      trainer = await Trainer.findById(trainerId);
-      if (!trainer) {
-        return res.status(404).json({ message: "Trainer not found" });
-      }
-    }
-
-    // Check if plan is active
+    // Validate plan is active
     if (plan.status !== "active") {
       return res.status(400).json({
         message: "Cannot assign inactive membership plan",
       });
+    }
+
+    // Validate trainers if provided
+    let validatedTrainerIds = [];
+    if (trainerIds && trainerIds.length > 0) {
+      const trainers = await Trainer.find({
+        _id: { $in: trainerIds },
+        status: "active",
+      });
+
+      if (trainers.length !== trainerIds.length) {
+        return res.status(404).json({
+          message: "One or more trainers not found or not active",
+        });
+      }
+      validatedTrainerIds = trainerIds;
+    }
+
+    // Validate primary trainer
+    let validatedPrimaryTrainerId = null;
+    if (primaryTrainerId) {
+      const primaryTrainer = await Trainer.findById(primaryTrainerId);
+      if (!primaryTrainer) {
+        return res.status(404).json({
+          message: "Primary trainer not found",
+        });
+      }
+      // Ensure primary trainer is in trainers list
+      if (!validatedTrainerIds.includes(primaryTrainerId)) {
+        validatedTrainerIds.push(primaryTrainerId);
+      }
+      validatedPrimaryTrainerId = primaryTrainerId;
     }
 
     if (!startDate) {
@@ -77,28 +104,24 @@ exports.createMember = async (req, res) => {
     }
 
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // ignore time
+    today.setHours(0, 0, 0, 0);
 
-    const start = startDate ? new Date(startDate) : today;
+    const start = new Date(startDate);
     let calculatedEndDate;
 
     if (endDate) {
       calculatedEndDate = new Date(endDate);
-
-      // stricter check: end must be AFTER start
       if (calculatedEndDate <= start) {
         return res
           .status(400)
           .json({ message: "End date must be after start date" });
       }
-
       if (calculatedEndDate < today) {
         return res
           .status(400)
           .json({ message: "End date cannot be in the past" });
       }
     } else {
-      // auto-calculate endDate based on plan duration
       calculatedEndDate = new Date(start);
       switch (plan.durationType) {
         case "days":
@@ -124,9 +147,11 @@ exports.createMember = async (req, res) => {
       }
     }
 
-    // UPDATED: Check for ANY existing membership for this user
+    // Check for existing active membership
     const existingMember = await Member.findOne({
       user: userId,
+      status: "active",
+      endDate: { $gte: today },
     });
 
     if (existingMember) {
@@ -138,71 +163,44 @@ exports.createMember = async (req, res) => {
     const newMember = new Member({
       user: userId,
       membershipPlan: membershipPlanId,
-      trainer: trainerId,
-      startDate: startDate || new Date(),
+      trainers: validatedTrainerIds,
+      primaryTrainer: validatedPrimaryTrainerId,
+      startDate: start,
       endDate: calculatedEndDate,
-      status: status || "pending", // Changed from "none" to "pending"
-      // autoRenew: autoRenew || false,
+      status: status || "pending",
     });
+
     await newMember.save();
 
-    // let payment = null;
-    // if (paymentDetails) {
-    //   payment = new Payment({
-    //     member: newMember._id,
-    //     membershipPlan: membershipPlanId,
-    //     amount: paymentDetails.amount || plan.price,
-    //     paymentMethod: paymentDetails.paymentMethod,
-    //     status: paymentDetails.status || "completed",
-    //     paymentDate: paymentDetails.paymentDate || new Date(),
-    //     transactionId: paymentDetails.transactionId,
-    //     description: paymentDetails.description,
-    //     receiptNumber: paymentDetails.receiptNumber,
-    //   });
-    //   await payment.save();
-
-    //   // Update member status based on payment
-    //   if (payment.status === "completed") {
-    //     newMember.status = "active";
-    //     await newMember.save();
-
-    //     user.role = "member";
-    //     await user.save();
-    //   }
-    // } else {
-    //   if (newMember.status === "active") {
-    //     user.role = "member";
-    //     await user.save();
-    //   }
-    // }
-
-    // Set user role to member immediately
+    // Update user role to member
     if (user.role !== "member") {
       user.role = "member";
       await user.save();
     }
 
-    // Get the populated member data
+    // Populate and return
     const populatedMember = await Member.findById(newMember._id)
-      .populate("user", "firstName lastName email phone role")
+      .populate("user", "firstName lastName email role")
       .populate("membershipPlan", "name price duration durationType")
       .populate({
-        path: "trainer",
+        path: "trainers",
+        populate: {
+          path: "user",
+          select: "firstName lastName email",
+        },
+      })
+      .populate({
+        path: "primaryTrainer",
         populate: {
           path: "user",
           select: "firstName lastName email",
         },
       });
 
-    console.log("Created member:", populatedMember.toJSON());
-
     res.status(201).json({
       success: true,
       message: "Member created successfully",
-      data: {
-        member: populatedMember,
-        // payment: payment,
-      },
+      data: populatedMember,
     });
   } catch (error) {
     console.error("Error creating member:", error);
@@ -226,9 +224,15 @@ exports.createMember = async (req, res) => {
 exports.updateMember = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, startDate, endDate, membershipPlanId } = req.body;
+    const {
+      status,
+      startDate,
+      endDate,
+      membershipPlanId,
+      trainerIds,
+      primaryTrainerId,
+    } = req.body;
 
-    // Validate member ID
     if (!id) {
       return res.status(400).json({
         success: false,
@@ -236,7 +240,6 @@ exports.updateMember = async (req, res) => {
       });
     }
 
-    // Find the existing member
     const existingMember = await Member.findById(id)
       .populate("user", "firstName lastName email")
       .populate("membershipPlan", "name price duration durationType");
@@ -248,26 +251,44 @@ exports.updateMember = async (req, res) => {
       });
     }
 
-    // Prepare update object with only allowed fields
     const updateData = {};
 
-    if (req.body.trainerId !== undefined) {
-      if (req.body.trainerId) {
-        const trainer = await Trainer.findById(req.body.trainerId);
-        if (!trainer) {
+    // Handle trainers update
+    if (trainerIds !== undefined) {
+      if (trainerIds && trainerIds.length > 0) {
+        const trainers = await Trainer.find({
+          _id: { $in: trainerIds },
+        });
+
+        if (trainers.length !== trainerIds.length) {
           return res.status(404).json({
             success: false,
-            message: "Trainer not found",
+            message: "One or more trainers not found",
           });
         }
-        updateData.trainer = req.body.trainerId;
+        updateData.trainers = trainerIds;
       } else {
-        // Allow setting trainer to null/undefined
-        updateData.trainer = null;
+        updateData.trainers = [];
       }
     }
 
-    // Validate and add membershipPlanId if provided
+    // Validate and update primary trainer
+    if (primaryTrainerId !== undefined) {
+      if (primaryTrainerId) {
+        const trainer = await Trainer.findById(primaryTrainerId);
+        if (!trainer) {
+          return res.status(404).json({
+            success: false,
+            message: "Primary trainer not found",
+          });
+        }
+        updateData.primaryTrainer = primaryTrainerId;
+      } else {
+        updateData.primaryTrainer = null;
+      }
+    }
+
+    // Handle membership plan update
     if (membershipPlanId !== undefined) {
       const plan = await MembershipPlan.findById(membershipPlanId);
       if (!plan) {
@@ -277,7 +298,6 @@ exports.updateMember = async (req, res) => {
         });
       }
 
-      // Check if plan is active
       if (plan.status !== "active") {
         return res.status(400).json({
           success: false,
@@ -288,7 +308,7 @@ exports.updateMember = async (req, res) => {
       updateData.membershipPlan = membershipPlanId;
     }
 
-    // Validate and add status if provided
+    // Handle status update
     if (status !== undefined) {
       const validStatuses = ["active", "expired", "none", "pending"];
       if (!validStatuses.includes(status)) {
@@ -302,7 +322,7 @@ exports.updateMember = async (req, res) => {
       updateData.status = status;
     }
 
-    // Validate and add dates if provided
+    // Handle dates
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -314,8 +334,6 @@ exports.updateMember = async (req, res) => {
           message: "Invalid start date format",
         });
       }
-
-      // Allow past start dates for existing members (they might need to correct historical data)
       updateData.startDate = start;
     }
 
@@ -328,7 +346,6 @@ exports.updateMember = async (req, res) => {
         });
       }
 
-      // Validate end date against start date
       const finalStartDate = startDate
         ? new Date(startDate)
         : existingMember.startDate;
@@ -342,49 +359,51 @@ exports.updateMember = async (req, res) => {
       updateData.endDate = end;
     }
 
-    // Check if there's anything to update
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         success: false,
-        message:
-          "No valid fields provided for update. You can only update: status, startDate, endDate",
+        message: "No valid fields provided for update",
       });
     }
 
-    // Update the member
     const updatedMember = await Member.findByIdAndUpdate(id, updateData, {
-      new: true, // Return the updated document
-      runValidators: true, // Run schema validators
+      new: true,
+      runValidators: true,
     })
-      .populate("user", "firstName lastName email phone role")
-      .populate("membershipPlan", "name price duration durationType");
+      .populate("user", "firstName lastName email role")
+      .populate("membershipPlan", "name price duration durationType")
+      .populate({
+        path: "trainers",
+        populate: {
+          path: "user",
+          select: "firstName lastName",
+        },
+      })
+      .populate({
+        path: "primaryTrainer",
+        populate: {
+          path: "user",
+          select: "firstName lastName",
+        },
+      });
 
-    // Handle user role update based on status change
+    // Update user role based on status
     if (status !== undefined && existingMember.user) {
       const user = await User.findById(existingMember.user._id);
       if (user) {
         if (status === "active") {
-          // Set user role to member when membership becomes active
           if (user.role !== "member") {
             user.role = "member";
             await user.save();
           }
-        } else if (status === "pending") {
-          // Pending → role should be user
-          if (user.role !== "user") {
-            user.role = "user";
-            await user.save();
-          }
         } else if (status === "expired" || status === "none") {
-          // Check if user has other active memberships before changing role
           const otherActiveMemberships = await Member.findOne({
             user: user._id,
-            _id: { $ne: id }, // Exclude current membership
+            _id: { $ne: id },
             status: "active",
             endDate: { $gte: new Date() },
           });
 
-          // If no other active memberships, revert to user role
           if (!otherActiveMemberships && user.role === "member") {
             user.role = "user";
             await user.save();
@@ -397,7 +416,6 @@ exports.updateMember = async (req, res) => {
       success: true,
       message: "Member updated successfully",
       data: updatedMember,
-      updatedFields: Object.keys(updateData),
     });
   } catch (error) {
     console.error("Error updating member:", error);
@@ -410,13 +428,6 @@ exports.updateMember = async (req, res) => {
       });
     }
 
-    if (error.name === "CastError") {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid member ID format",
-      });
-    }
-
     res.status(500).json({
       success: false,
       message: "Server error",
@@ -424,6 +435,7 @@ exports.updateMember = async (req, res) => {
     });
   }
 };
+
 exports.deleteMember = async (req, res) => {
   try {
     const { id } = req.params;
@@ -433,15 +445,13 @@ exports.deleteMember = async (req, res) => {
       return res.status(404).json({ message: "Member not found" });
     }
 
-    // Check if the user still has other active memberships
     const activeMembership = await Member.findOne({
       user: deletedMember.user,
       status: "active",
-      endDate: { $gte: new Date() }, // still valid
+      endDate: { $gte: new Date() },
     });
 
     if (!activeMembership) {
-      // No active memberships left → downgrade role
       await User.findByIdAndUpdate(deletedMember.user, { role: "user" });
     }
 
@@ -453,6 +463,7 @@ exports.deleteMember = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 exports.checkUserActiveMemberShip = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -464,16 +475,22 @@ exports.checkUserActiveMemberShip = async (req, res) => {
       });
     }
 
-    // Check for ANY existing membership (any status)
     const existingMembership = await Member.findOne({
       user: userId,
     })
       .populate("user", "firstName lastName email")
-      .populate("membershipPlan", "name price duration durationType");
+      .populate("membershipPlan", "name price duration durationType")
+      .populate({
+        path: "trainers",
+        populate: {
+          path: "user",
+          select: "firstName lastName",
+        },
+      });
 
     res.status(200).json({
       success: true,
-      existingMembership: existingMembership,
+      existingMembership,
       hasExistingMembership: !!existingMembership,
     });
   } catch (error) {
