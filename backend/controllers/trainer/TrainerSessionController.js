@@ -76,10 +76,16 @@ exports.getMySessions = async (req, res) => {
     const sessions = await Session.find(filter)
       .populate({
         path: "member",
-        populate: {
-          path: "user",
-          select: "firstName lastName email",
-        },
+        populate: [
+          {
+            path: "user",
+            select: "firstName lastName email",
+          },
+          {
+            path: "membershipPlan",
+            select: "name price duration durationType",
+          },
+        ],
       })
       .sort({ date: -1 })
       .skip(skip)
@@ -153,7 +159,7 @@ exports.getMySessionById = async (req, res) => {
         path: "trainer",
         populate: {
           path: "user",
-          select: "firstName lastName email phone",
+          select: "firstName lastName email",
         },
       })
       .populate({
@@ -161,7 +167,7 @@ exports.getMySessionById = async (req, res) => {
         populate: [
           {
             path: "user",
-            select: "firstName lastName email phone",
+            select: "firstName lastName email",
           },
           {
             path: "membershipPlan",
@@ -269,7 +275,11 @@ exports.createMySession = async (req, res) => {
     }
 
     // CRITICAL: Verify member is assigned to this trainer
-    if (!member.trainer || member.trainer.toString() !== trainerId.toString()) {
+    const isAssignedToTrainer =
+      member.trainers?.some((t) => t.toString() === trainerId.toString()) ||
+      member.primaryTrainer?.toString() === trainerId.toString();
+
+    if (!isAssignedToTrainer) {
       return res.status(403).json({
         success: false,
         message: "You can only schedule sessions with your assigned clients",
