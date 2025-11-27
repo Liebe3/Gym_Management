@@ -9,10 +9,12 @@ const addStatsToTrainers = async (trainers) => {
 
   // Aggregate member stats (total and active clients per trainer)
   const memberStats = await Member.aggregate([
-    { $match: { trainer: { $in: trainerIds } } },
+    { $match: { trainers: { $in: trainerIds } } },
+    { $unwind: "$trainers" },
+    { $match: { trainers: { $in: trainerIds } } },
     {
       $group: {
-        _id: "$trainer",
+        _id: "$trainers",
         totalClients: { $sum: 1 },
         activeClients: {
           $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] },
@@ -41,7 +43,7 @@ const addStatsToTrainers = async (trainers) => {
     date: { $gte: today },
     status: "scheduled",
   })
-  
+
     .populate({
       path: "member",
       populate: {
