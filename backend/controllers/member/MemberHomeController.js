@@ -15,18 +15,28 @@ exports.getActiveMemberHomeData = async (req, res) => {
     const member = await Member.findOne({ user: userId })
       .populate({
         path: "user",
-        select: "firstName lastName email phone role",
+        select: "firstName lastName email role",
       })
       .populate({
         path: "membershipPlan",
         select: "name price duration durationType description",
       })
       .populate({
-        path: "trainer",
-        select: "specializations experience rating",
+        path: "trainers",
+        select:
+          "specializations experience workSchedule status isAvailableForNewClients",
         populate: {
           path: "user",
-          select: "firstName lastName email phone",
+          select: "firstName lastName email",
+        },
+      })
+      .populate({
+        path: "primaryTrainer",
+        select:
+          "specializations experience workSchedule status isAvailableForNewClients",
+        populate: {
+          path: "user",
+          select: "firstName lastName email",
         },
       });
 
@@ -73,10 +83,11 @@ exports.getActiveMemberHomeData = async (req, res) => {
       })
       .select("date startTime endTime duration notes intensity status");
 
-    // Fetch upcoming sessions
+    // Fetch upcoming sessions (only 'scheduled', exclude 'completed' and 'cancelled')
     const upcomingSessions = await Session.find({
       member: member._id,
       date: { $gte: today },
+      status: "scheduled",
     })
       .sort({ date: 1 })
       .limit(3)
@@ -120,6 +131,9 @@ exports.getActiveMemberHomeData = async (req, res) => {
           lastName: "$userData.lastName",
           specializations: "$trainerData.specializations",
           experience: "$trainerData.experience",
+          workSchedule: "$trainerData.workSchedule",
+          status: "$trainerData.status",
+          isAvailableForNewClients: "$trainerData.isAvailableForNewClients",
           sessionCount: 1,
         },
       },
@@ -132,7 +146,8 @@ exports.getActiveMemberHomeData = async (req, res) => {
           _id: member._id,
           user: member.user,
           membershipPlan: member.membershipPlan,
-          trainer: member.trainer,
+          primaryTrainer: member.primaryTrainer,
+          trainers: member.trainers,
           startDate: member.startDate,
           endDate: member.endDate,
           // autoRenew: member.autoRenew,
@@ -171,6 +186,38 @@ exports.getActiveMemberHomeData = async (req, res) => {
         message: "Invalid user ID format",
       });
     }
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+exports.getAvailableTrainers = async (req, res) => {
+  try {
+    const Trainer = require("../../models/Trainer");
+
+    // Get all trainers who are active and available for new clients
+    const trainers = await Trainer.find({
+      status: "active",
+      isAvailableForNewClients: true,
+    })
+      .populate({
+        path: "user",
+        select: "firstName lastName email",
+      })
+      .select(
+        "specializations experience workSchedule isAvailableForNewClients status"
+      );
+
+    res.status(200).json({
+      success: true,
+      data: trainers,
+    });
+  } catch (error) {
+    console.error("Error fetching available trainers:", error);
 
     res.status(500).json({
       success: false,
