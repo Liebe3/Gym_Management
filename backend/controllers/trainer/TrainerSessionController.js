@@ -326,11 +326,12 @@ exports.createMySession = async (req, res) => {
       });
     }
 
-    // Check for overlapping sessions
+    // Check for overlapping sessions (only check against 'scheduled' status, not 'completed')
+    // This allows other trainers to schedule at the same time if your session is completed
     const overlappingSessions = await Session.find({
       trainer: trainerId,
       date: sessionDate,
-      status: { $in: ["scheduled", "completed"] },
+      status: "scheduled",
     });
 
     for (const existingSession of overlappingSessions) {
@@ -358,6 +359,43 @@ exports.createMySession = async (req, res) => {
           message: `You already have a session scheduled from ${formatTo12Hour(
             existingSession.startTime
           )} to ${formatTo12Hour(existingSession.endTime)}`,
+        });
+      }
+    }
+
+    // Check for member's active sessions (only 'scheduled' status blocks new sessions)
+    // Completed, cancelled, and no-show sessions do NOT block new sessions
+    const memberActiveSessions = await Session.find({
+      member: memberId,
+      date: sessionDate,
+      status: "scheduled",
+    });
+
+    for (const existingSession of memberActiveSessions) {
+      const [existingStartHour, existingStartMin] = existingSession.startTime
+        .split(":")
+        .map(Number);
+      const [existingEndHour, existingEndMin] = existingSession.endTime
+        .split(":")
+        .map(Number);
+
+      const existingStartMinutes = existingStartHour * 60 + existingStartMin;
+      const existingEndMinutes = existingEndHour * 60 + existingEndMin;
+
+      const hasOverlap =
+        (startMinutes >= existingStartMinutes &&
+          startMinutes < existingEndMinutes) ||
+        (endMinutes > existingStartMinutes &&
+          endMinutes <= existingEndMinutes) ||
+        (startMinutes <= existingStartMinutes &&
+          endMinutes >= existingEndMinutes);
+
+      if (hasOverlap) {
+        return res.status(400).json({
+          success: false,
+          message: `Client already has an active session scheduled from ${formatTo12Hour(
+            existingSession.startTime
+          )} to ${formatTo12Hour(existingSession.endTime)} on this date`,
         });
       }
     }
@@ -458,124 +496,163 @@ exports.updateMySession = async (req, res) => {
 
     const updateData = {};
 
-    // Validate time formats if provided
-    const timeRegex = /^([0-1]\d|2[0-3]):([0-5]\d)$/;
+    // Check if session date is in the past
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const sessionDate = new Date(existingSession.date);
+    sessionDate.setHours(0, 0, 0, 0);
+    const isDatePast = sessionDate < today;
 
-    if (startTime && !timeRegex.test(startTime)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid start time format. Use HH:MM (24-hour format)",
-      });
-    }
-
-    if (endTime && !timeRegex.test(endTime)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid end time format. Use HH:MM (24-hour format)",
-      });
-    }
-
-    // Get the final start/end times (use existing if not provided)
-    const finalStartTime = startTime || existingSession.startTime;
-    const finalEndTime = endTime || existingSession.endTime;
-
-    // Validate end time is after start time
-    const [startHour, startMin] = finalStartTime.split(":").map(Number);
-    const [endHour, endMin] = finalEndTime.split(":").map(Number);
-    const startMinutes = startHour * 60 + startMin;
-    const endMinutes = endHour * 60 + endMin;
-
-    if (endMinutes <= startMinutes) {
-      return res.status(400).json({
-        success: false,
-        message: "End time must be after start time",
-      });
-    }
-
-    // Validate and update date
+    // Check if date/time values are actually being changed (not just resending same values)
+    let isDateChanged = false;
     if (date !== undefined) {
-      const newDate = new Date(date);
-      newDate.setHours(0, 0, 0, 0);
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (newDate < today && existingSession.status === "scheduled") {
-        return res.status(400).json({
-          success: false,
-          message: "Cannot reschedule to a past date",
-        });
-      }
-
-      updateData.date = newDate;
+      const incomingDate = new Date(date);
+      incomingDate.setHours(0, 0, 0, 0);
+      const existingDateOnly = new Date(existingSession.date);
+      existingDateOnly.setHours(0, 0, 0, 0);
+      isDateChanged = incomingDate.getTime() !== existingDateOnly.getTime();
     }
+    const isStartTimeChanged =
+      startTime !== undefined && startTime !== existingSession.startTime;
+    const isEndTimeChanged =
+      endTime !== undefined && endTime !== existingSession.endTime;
 
-    const finalDate = updateData.date || existingSession.date;
-
-    // Validate against trainer's work schedule
-    const dayOfWeek = finalDate
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
-    const trainerSchedule = trainer.workSchedule[dayOfWeek];
-
-    if (!trainerSchedule || !trainerSchedule.isWorking) {
-      return res.status(400).json({
-        success: false,
-        message: `You are not available on ${dayOfWeek}s`,
-      });
-    }
-
+    // If date is past, block actual changes to date/time
     if (
-      !validateSessionTimeRange(finalStartTime, finalEndTime, trainerSchedule)
+      isDatePast &&
+      (isDateChanged || isStartTimeChanged || isEndTimeChanged)
     ) {
       return res.status(400).json({
         success: false,
-        message: `Session time ${formatTo12Hour(
-          finalStartTime
-        )} - ${formatTo12Hour(
-          finalEndTime
-        )} is outside your working hours (${formatTo12Hour(
-          trainerSchedule.startTime
-        )} - ${formatTo12Hour(trainerSchedule.endTime)})`,
+        message:
+          "Cannot modify date or time for past sessions. You can only update status and notes.",
       });
     }
 
-    // Check for overlapping sessions (excluding current session)
-    const overlappingSessions = await Session.find({
-      _id: { $ne: sessionId },
-      trainer: trainerId,
-      date: finalDate,
-      status: { $in: ["scheduled", "completed"] },
-    });
+    if (!isDatePast) {
+      // For future/current sessions, validate date, time, and schedule changes
+      const timeRegex = /^([0-1]\d|2[0-3]):([0-5]\d)$/;
 
-    for (const otherSession of overlappingSessions) {
-      const [otherStartHour, otherStartMin] = otherSession.startTime
-        .split(":")
-        .map(Number);
-      const [otherEndHour, otherEndMin] = otherSession.endTime
-        .split(":")
-        .map(Number);
-
-      const otherStartMinutes = otherStartHour * 60 + otherStartMin;
-      const otherEndMinutes = otherEndHour * 60 + otherEndMin;
-
-      const hasOverlap =
-        (startMinutes >= otherStartMinutes && startMinutes < otherEndMinutes) ||
-        (endMinutes > otherStartMinutes && endMinutes <= otherEndMinutes) ||
-        (startMinutes <= otherStartMinutes && endMinutes >= otherEndMinutes);
-
-      if (hasOverlap) {
+      if (startTime && !timeRegex.test(startTime)) {
         return res.status(400).json({
           success: false,
-          message: `You already have a session scheduled from ${formatTo12Hour(
-            otherSession.startTime
-          )} to ${formatTo12Hour(otherSession.endTime)}`,
+          message: "Invalid start time format. Use HH:MM (24-hour format)",
         });
       }
-    }
 
-    if (startTime) updateData.startTime = startTime;
-    if (endTime) updateData.endTime = endTime;
+      if (endTime && !timeRegex.test(endTime)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid end time format. Use HH:MM (24-hour format)",
+        });
+      }
+
+      // Get the final start/end times (use existing if not provided)
+      const finalStartTime = startTime || existingSession.startTime;
+      const finalEndTime = endTime || existingSession.endTime;
+
+      // Validate end time is after start time
+      const [startHour, startMin] = finalStartTime.split(":").map(Number);
+      const [endHour, endMin] = finalEndTime.split(":").map(Number);
+      const startMinutes = startHour * 60 + startMin;
+      const endMinutes = endHour * 60 + endMin;
+
+      if (endMinutes <= startMinutes) {
+        return res.status(400).json({
+          success: false,
+          message: "End time must be after start time",
+        });
+      }
+
+      // Validate and update date
+      if (date !== undefined) {
+        const newDate = new Date(date);
+        newDate.setHours(0, 0, 0, 0);
+
+        if (newDate < today) {
+          return res.status(400).json({
+            success: false,
+            message: "Cannot schedule to a past date",
+          });
+        }
+
+        updateData.date = newDate;
+      }
+
+      const finalDate = updateData.date || existingSession.date;
+
+      // Validate against trainer's work schedule
+      const dayOfWeek = finalDate
+        .toLocaleDateString("en-US", { weekday: "long" })
+        .toLowerCase();
+      const trainerSchedule = trainer.workSchedule[dayOfWeek];
+
+      if (!trainerSchedule || !trainerSchedule.isWorking) {
+        return res.status(400).json({
+          success: false,
+          message: `You are not available on ${dayOfWeek}s`,
+        });
+      }
+
+      if (
+        !validateSessionTimeRange(finalStartTime, finalEndTime, trainerSchedule)
+      ) {
+        return res.status(400).json({
+          success: false,
+          message: `Session time ${formatTo12Hour(
+            finalStartTime
+          )} - ${formatTo12Hour(
+            finalEndTime
+          )} is outside your working hours (${formatTo12Hour(
+            trainerSchedule.startTime
+          )} - ${formatTo12Hour(trainerSchedule.endTime)})`,
+        });
+      }
+
+      // Check for overlapping sessions (excluding current session)
+      const overlappingSessions = await Session.find({
+        _id: { $ne: sessionId },
+        trainer: trainerId,
+        date: finalDate,
+        status: { $in: ["scheduled", "completed"] },
+      });
+
+      const [startHour2, startMin2] = finalStartTime.split(":").map(Number);
+      const [endHour2, endMin2] = finalEndTime.split(":").map(Number);
+      const startMinutes2 = startHour2 * 60 + startMin2;
+      const endMinutes2 = endHour2 * 60 + endMin2;
+
+      for (const otherSession of overlappingSessions) {
+        const [otherStartHour, otherStartMin] = otherSession.startTime
+          .split(":")
+          .map(Number);
+        const [otherEndHour, otherEndMin] = otherSession.endTime
+          .split(":")
+          .map(Number);
+
+        const otherStartMinutes = otherStartHour * 60 + otherStartMin;
+        const otherEndMinutes = otherEndHour * 60 + otherEndMin;
+
+        const hasOverlap =
+          (startMinutes2 >= otherStartMinutes &&
+            startMinutes2 < otherEndMinutes) ||
+          (endMinutes2 > otherStartMinutes && endMinutes2 <= otherEndMinutes) ||
+          (startMinutes2 <= otherStartMinutes &&
+            endMinutes2 >= otherEndMinutes);
+
+        if (hasOverlap) {
+          return res.status(400).json({
+            success: false,
+            message: `You already have a session scheduled from ${formatTo12Hour(
+              otherSession.startTime
+            )} to ${formatTo12Hour(otherSession.endTime)}`,
+          });
+        }
+      }
+
+      if (startTime) updateData.startTime = startTime;
+      if (endTime) updateData.endTime = endTime;
+    }
 
     // Validate and update status
     if (status !== undefined) {
