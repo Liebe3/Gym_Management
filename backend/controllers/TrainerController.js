@@ -281,17 +281,19 @@ exports.createTrainer = async (req, res) => {
 
     const trainerData = {
       user: userId,
+      status: status || "inactive",
+      isAvailableForNewClients:
+        isAvailableForNewClients !== undefined
+          ? isAvailableForNewClients
+          : false,
       createdBy: req.user?.id,
       lastUpdatedBy: req.user?.id,
     };
 
     if (gender) trainerData.gender = gender;
-    if (status) trainerData.status = status;
     if (specializations) trainerData.specializations = specializations;
     if (experience !== undefined) trainerData.experience = experience;
     if (workSchedule) trainerData.workSchedule = workSchedule;
-    if (isAvailableForNewClients !== undefined)
-      trainerData.isAvailableForNewClients = isAvailableForNewClients;
 
     const newTrainer = new Trainer(trainerData);
     await newTrainer.save();
@@ -329,7 +331,7 @@ exports.getTrainerById = async (req, res) => {
 
     const trainer = await Trainer.findById(id).populate({
       path: "user",
-      select: "firstName lastName email phone",
+      select: "firstName lastName email",
     });
 
     if (!trainer) {
@@ -474,7 +476,7 @@ exports.updateTrainer = async (req, res) => {
     const updatedTrainer = await Trainer.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
-    }).populate("user", "firstName lastName email phone");
+    }).populate("user", "firstName lastName email");
 
     res.status(200).json({
       success: true,
