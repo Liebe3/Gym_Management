@@ -17,9 +17,17 @@ exports.getTrainerClients = async (req, res) => {
         .json({ success: false, message: "Trainer not found" });
     }
 
-    const filter = { trainer: trainer._id };
+    const filter = {
+      $and: [
+        {
+          $or: [{ trainers: trainer._id }, { primaryTrainer: trainer._id }],
+        },
+      ],
+    };
 
-    if (status && status !== "all") filter.status = status;
+    if (status && status !== "all") {
+      filter.$and.push({ status });
+    }
 
     if (search) {
       const userIds = await User.find({
@@ -30,7 +38,7 @@ exports.getTrainerClients = async (req, res) => {
         ],
       }).select("_id");
 
-      filter.user = { $in: userIds.map((u) => u._id) };
+      filter.$and.push({ user: { $in: userIds.map((u) => u._id) } });
     }
 
     const isAll = all === "true" || all === true;
@@ -70,16 +78,18 @@ exports.getTrainerClients = async (req, res) => {
       nextSession: nextSessionMap[member._id.toString()] || null,
     }));
 
-    const statusCounts = await buildCounts(Member, "status", {
-      trainer: trainer._id,
-    });
+    const baseFilter = {
+      $or: [{ trainers: trainer._id }, { primaryTrainer: trainer._id }],
+    };
+
+    const statusCounts = await buildCounts(Member, "status", baseFilter);
 
     const [totalClients, activeClients, pendingClients, expiredClients] =
       await Promise.all([
-        Member.countDocuments({ trainer: trainer._id }),
-        Member.countDocuments({ trainer: trainer._id, status: "active" }),
-        Member.countDocuments({ trainer: trainer._id, status: "pending" }),
-        Member.countDocuments({ trainer: trainer._id, status: "expired" }),
+        Member.countDocuments(baseFilter),
+        Member.countDocuments({ ...baseFilter, status: "active" }),
+        Member.countDocuments({ ...baseFilter, status: "pending" }),
+        Member.countDocuments({ ...baseFilter, status: "expired" }),
       ]);
 
     return res.json({
@@ -120,8 +130,11 @@ exports.getClientDetails = async (req, res) => {
         .json({ success: false, message: "Trainer not found" });
     }
 
-    const member = await Member.findOne({ _id: memberId, trainer: trainer._id })
-      .populate("user", "firstName lastName email phone profilePicture")
+    const member = await Member.findOne({
+      _id: memberId,
+      $or: [{ trainers: trainer._id }, { primaryTrainer: trainer._id }],
+    })
+      .populate("user", "firstName lastName email")
       .populate("membershipPlan", "name price duration durationType features");
 
     if (!member) {
