@@ -43,6 +43,18 @@ const TrainerSessionForm = ({
     return false;
   }, [mode, selectedSession]);
 
+  // Check if session date is in the past
+  const isDatePast = useMemo(() => {
+    if (mode === "update" && selectedSession) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const sessionDate = new Date(selectedSession.date);
+      sessionDate.setHours(0, 0, 0, 0);
+      return sessionDate < today;
+    }
+    return false;
+  }, [mode, selectedSession]);
+
   // Effective view mode: true if in view mode OR session is finalized
   const effectiveViewMode = mode === "view" || isSessionFinalized;
 
@@ -189,6 +201,16 @@ const TrainerSessionForm = ({
           </div>
         )}
 
+        {/* Show warning if session date is in the past */}
+        {isDatePast && !isSessionFinalized && (
+          <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+            <p className="text-sm text-orange-800 dark:text-orange-200 font-medium">
+              ⏰ This session date has passed. You can only edit the status and
+              notes. Date and time fields are locked.
+            </p>
+          </div>
+        )}
+
         {/* Info Banner */}
         {!isSessionFinalized && (
           <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg p-4">
@@ -208,7 +230,7 @@ const TrainerSessionForm = ({
           errors={errors}
           loading={loading}
           mode={mode}
-          isViewMode={mode === "view"}
+          isViewMode={mode === "view" || isDatePast}
           selectedSession={selectedSession}
         />
 
@@ -228,6 +250,7 @@ const TrainerSessionForm = ({
           handleChange={handleChange}
           errors={errors}
           isViewMode={isFormReadOnly}
+          isDatePast={isDatePast}
           loading={loading}
           selectedSession={selectedSession}
         />
@@ -237,7 +260,8 @@ const TrainerSessionForm = ({
           formData={formData}
           handleChange={handleChange}
           errors={errors}
-          isViewMode={isFormReadOnly}
+          isViewMode={isSessionFinalized}
+          isDatePast={isDatePast}
           loading={loading}
           selectedSession={selectedSession}
         />
@@ -246,7 +270,8 @@ const TrainerSessionForm = ({
         <NotesInput
           formData={formData}
           handleChange={handleChange}
-          isViewMode={isFormReadOnly}
+          isViewMode={isSessionFinalized}
+          isDatePast={isDatePast}
           loading={loading}
           selectedSession={selectedSession}
         />
