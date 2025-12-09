@@ -6,7 +6,7 @@ const User = require("../../models/User");
 exports.getTrainerDashboard = async (req, res) => {
   try {
     const userId = req.user.id;
-    
+
     // Get trainer profile
     const trainer = await Trainer.findOne({ user: userId });
     if (!trainer) {
@@ -20,12 +20,12 @@ exports.getTrainerDashboard = async (req, res) => {
 
     // ===== 1. OVERVIEW STATS =====
     const totalClients = await Member.countDocuments({
-      trainer: trainerId,
+      trainers: trainerId,
       status: "active",
     });
 
     const activeClients = await Member.countDocuments({
-      trainer: trainerId,
+      trainers: trainerId,
       status: "active",
     });
 
@@ -54,7 +54,9 @@ exports.getTrainerDashboard = async (req, res) => {
       {
         $match: {
           trainer: trainerId,
-          date: { $gte: new Date(new Date().getTime() - 6 * 30 * 24 * 60 * 60 * 1000) },
+          date: {
+            $gte: new Date(new Date().getTime() - 6 * 30 * 24 * 60 * 60 * 1000),
+          },
         },
       },
       {
@@ -70,10 +72,23 @@ exports.getTrainerDashboard = async (req, res) => {
     ]);
 
     // Format monthly data for chart
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
     const chartData = {};
     const today = new Date();
-    
+
     // Initialize last 6 months
     for (let i = 5; i >= 0; i--) {
       const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
@@ -158,18 +173,24 @@ exports.getTrainerDashboard = async (req, res) => {
     });
 
     const topClientsWithSessions = topClients.map((topClient) => {
-      const member = topClientsData.find((m) => m._id.toString() === topClient._id.toString());
+      const member = topClientsData.find(
+        (m) => m._id.toString() === topClient._id.toString()
+      );
       return {
         ...topClient,
         member: member,
-        name: member ? `${member.user.firstName} ${member.user.lastName}` : "Unknown",
+        name: member
+          ? `${member.user.firstName} ${member.user.lastName}`
+          : "Unknown",
       };
     });
 
     // ===== 6. WEEKLY SESSION DISTRIBUTION =====
     const todayWeek = new Date();
-    const startOfWeek = new Date(todayWeek.setDate(todayWeek.getDate() - todayWeek.getDay()));
-    
+    const startOfWeek = new Date(
+      todayWeek.setDate(todayWeek.getDate() - todayWeek.getDay())
+    );
+
     const weeklyData = await Session.aggregate([
       {
         $match: {
@@ -186,7 +207,15 @@ exports.getTrainerDashboard = async (req, res) => {
       { $sort: { _id: 1 } },
     ]);
 
-    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const daysOfWeek = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
     const weeklyChartData = {};
     daysOfWeek.forEach((day) => {
       weeklyChartData[day] = 0;
@@ -213,7 +242,11 @@ exports.getTrainerDashboard = async (req, res) => {
         },
         statusChart: {
           labels: ["Scheduled", "Completed", "Cancelled"],
-          data: [statusData.scheduled, statusData.completed, statusData.cancelled],
+          data: [
+            statusData.scheduled,
+            statusData.completed,
+            statusData.cancelled,
+          ],
         },
         weeklyChart: {
           labels: Object.keys(weeklyChartData),
