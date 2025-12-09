@@ -14,6 +14,13 @@ const sessionSchema = new mongoose.Schema(
       required: true,
     },
 
+    // Track who booked/created the session
+    bookedBy: {
+      type: String,
+      enum: ["member", "trainer", "admin"],
+      default: "admin",
+    },
+
     date: {
       type: Date, 
       required: true,
@@ -37,9 +44,22 @@ const sessionSchema = new mongoose.Schema(
       default: "scheduled",
     },
 
+    // Track cancellation reason
+    cancellationReason: {
+      type: String,
+      trim: true,
+    },
+
     notes: {
       type: String,
       trim: true,
+    },
+
+    // Attendance tracking
+    attendanceStatus: {
+      type: String,
+      enum: ["attended", "no-show", "rescheduled"],
+      default: null,
     },
   },
   { timestamps: true }
@@ -59,5 +79,12 @@ sessionSchema.pre('save', function(next) {
     next();
   }
 });
+
+// Indexes for better query performance
+sessionSchema.index({ trainer: 1, date: 1 });
+sessionSchema.index({ member: 1, date: 1 });
+sessionSchema.index({ status: 1 });
+sessionSchema.index({ date: 1 });
+sessionSchema.index({ bookedBy: 1 });
 
 module.exports = mongoose.model("Session", sessionSchema);
