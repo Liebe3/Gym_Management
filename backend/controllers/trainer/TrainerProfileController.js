@@ -8,7 +8,7 @@ exports.getTrainerProfile = async (req, res) => {
 
     const trainer = await Trainer.findOne({ user: userId }).populate({
       path: "user",
-      select: "firstName lastName email phone profilePicture",
+      select: "firstName lastName email profilePicture",
     });
 
     if (!trainer) {
