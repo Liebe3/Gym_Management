@@ -15,7 +15,7 @@ const TrainerCard = ({ trainer }) => {
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <span className="inline-block bg-pink-100 dark:bg-pink-900 text-pink-700 dark:text-pink-200 text-xs font-semibold px-3 py-1 rounded-full">
-              {trainer.specializations}
+              {trainer.specializations[0]}
             </span>
           </div>
         </div>
