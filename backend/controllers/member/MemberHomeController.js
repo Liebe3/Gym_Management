@@ -139,6 +139,17 @@ exports.getActiveMemberHomeData = async (req, res) => {
       },
     ]);
 
+    // Mark primary trainer in trainers array for better UI
+    const trainersWithPrimaryFlag = member.trainers.map((trainer) => {
+      const trainerObj = trainer.toObject ? trainer.toObject() : trainer;
+      return {
+        ...trainerObj,
+        isPrimary:
+          member.primaryTrainer &&
+          trainer._id.toString() === member.primaryTrainer._id.toString(),
+      };
+    });
+
     res.status(200).json({
       success: true,
       data: {
@@ -147,7 +158,7 @@ exports.getActiveMemberHomeData = async (req, res) => {
           user: member.user,
           membershipPlan: member.membershipPlan,
           primaryTrainer: member.primaryTrainer,
-          trainers: member.trainers,
+          trainers: trainersWithPrimaryFlag,
           startDate: member.startDate,
           endDate: member.endDate,
           // autoRenew: member.autoRenew,
