@@ -17,7 +17,7 @@ const trainerDashboardRoutes = require("../routes/trainer/TrainerDashboardRoutes
 
 // MemberPanel Routes
 const memberHomeRoutes = require("../routes/member/memberHomeRoutes");
-
+const memberSessionRoutes = require("../routes/member/memberSessionRoutes");
 
 const {
   startMembershipScheduler,
@@ -28,7 +28,6 @@ dotenv.config();
 // Connect to database and start scheduler
 connectDB()
   .then(() => {
-
     // Start the membership expiration scheduler
     startMembershipScheduler();
   })
@@ -72,6 +71,7 @@ app.use("/api/trainer-panel/dashboard", trainerDashboardRoutes);
 
 // Member Panel Routes
 app.use("/api/member-panel", memberHomeRoutes);
+app.use("/api/member-panel/sessions", memberSessionRoutes);
 
 // Test route
 app.get("/", (req, res) => {
