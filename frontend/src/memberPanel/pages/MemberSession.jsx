@@ -2,9 +2,10 @@ import { useEffect, useState } from "react";
 import { FiAlertCircle } from "react-icons/fi";
 import { MdFitnessCenter } from "react-icons/md";
 import Loading from "../../components/ui/Loading";
-import memberHomeService from "../../services/memberPanel/memberHomeService";
+
 import memberSessionService from "../../services/memberPanel/memberSessionService";
 import AssignedTrainers from "./components/session/AssignedTrainers";
+import BookSessionModal from "./components/session/components/BookSessionModal";
 import MemberFilterSession from "./components/session/MemberFilterSession";
 import MemberTableSession from "./components/session/MemberTableSession";
 
@@ -17,18 +18,29 @@ const MemberSession = () => {
   const [selectedTrainer, setSelectedTrainer] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [sessionCount, setSessionCount] = useState({});
+  const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+
+  // Load sessions function
+  const loadSessions = async () => {
+    try {
+      const sessionsData = await memberSessionService.getUpcomingSessions();
+      setSessions(sessionsData || []);
+      setError(null);
+    } catch (error) {
+      console.error("Error fetching sessions:", error);
+      setError("Failed to load sessions. Please try again.");
+    }
+  };
 
   // Fetch trainers and sessions
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const homeData = await memberHomeService.getMemberHomeData();
-        setTrainers(homeData?.member?.trainers || []);
+        const trainersData = await memberSessionService.getAssignedTrainers();
+        setTrainers(trainersData || []);
 
-        const sessionsData = await memberSessionService.getUpcomingSessions();
-        setSessions(sessionsData || []);
-        setError(null);
+        await loadSessions();
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to load sessions. Please try again.");
@@ -154,8 +166,21 @@ const MemberSession = () => {
         />
 
         {/* Table */}
-        <MemberTableSession sessions={filteredSessions} />
+        <MemberTableSession
+          sessions={filteredSessions}
+          onBookSession={() => setIsBookModalOpen(true)}
+        />
       </div>
+
+      {/* Book Session Modal */}
+      <BookSessionModal
+        isOpen={isBookModalOpen}
+        onClose={() => setIsBookModalOpen(false)}
+        onSuccess={() => {
+          setIsBookModalOpen(false);
+          loadSessions();
+        }}
+      />
     </div>
   );
 };
