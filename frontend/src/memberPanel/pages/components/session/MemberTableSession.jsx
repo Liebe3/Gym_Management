@@ -1,10 +1,26 @@
 import { motion } from "framer-motion";
+import { useState } from "react";
 import { FiCalendar, FiClock, FiUser } from "react-icons/fi";
 import { MdFitnessCenter } from "react-icons/md";
 
 import { formatDate, formatTimeAMPM } from "../../utils/formatTime";
 
+import ViewUpcomingSessionModal from "./components/VIewUpcomingSessionModal";
+
+
 const MemberTableSession = ({ sessions = [] }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState(null);
+
+  const handleViewSession = (session) => {
+    setSelectedSession(session);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSession(null);
+  };
   if (sessions.length === 0) {
     return (
       <motion.div
@@ -126,7 +142,10 @@ const MemberTableSession = ({ sessions = [] }) => {
                 </td>
                 <td className="px-6 py-4 text-sm whitespace-nowrap">
                   <div className="flex items-center gap-2">
-                    <button className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium">
+                    <button
+                      onClick={() => handleViewSession(session)}
+                      className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium cursor-pointer transition-colors"
+                    >
                       View
                     </button>
                     <button className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium">
@@ -139,6 +158,13 @@ const MemberTableSession = ({ sessions = [] }) => {
           </tbody>
         </table>
       </div>
+
+      {/* View Session Modal */}
+      <ViewUpcomingSessionModal
+        isModalOpen={isModalOpen}
+        session={selectedSession}
+        handleCloseModal={handleCloseModal}
+      />
     </motion.div>
   );
 };
