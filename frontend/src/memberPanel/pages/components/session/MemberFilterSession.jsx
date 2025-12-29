@@ -94,37 +94,44 @@ const MemberFilterSession = ({
           </motion.button>
 
           {/* Trainer options */}
-          {trainers.map((trainer) => {
-            const trainerId = trainer._id || trainer.id;
-            const trainerName = `${trainer.user?.firstName} ${trainer.user?.lastName}`;
-            const count = sessionCount[trainerId] || 0;
-            const isSelected = selectedTrainer === trainerId;
+          {trainers &&
+            trainers.length > 0 &&
+            trainers.map((trainer) => {
+              const trainerId = trainer._id || trainer.id;
+              const trainerName =
+                trainer.firstName && trainer.lastName
+                  ? `${trainer.firstName} ${trainer.lastName}`
+                  : trainer.user
+                  ? `${trainer.user.firstName} ${trainer.user.lastName}`
+                  : "Unknown Trainer";
+              const count = sessionCount[trainerId] || 0;
+              const isSelected = selectedTrainer === trainerId;
 
-            return (
-              <motion.button
-                key={trainerId}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleTrainerFilter(trainerId)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 cursor-pointer ${
-                  isSelected
-                    ? "bg-emerald-600 text-white shadow-lg"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
-              >
-                <span>{trainerName}</span>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+              return (
+                <motion.button
+                  key={trainerId}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleTrainerFilter(trainerId)}
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 cursor-pointer ${
                     isSelected
-                      ? "bg-white/20 text-white"
-                      : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                      ? "bg-emerald-600 text-white shadow-lg"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                   }`}
                 >
-                  {count}
-                </span>
-              </motion.button>
-            );
-          })}
+                  <span>{trainerName}</span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                      isSelected
+                        ? "bg-white/20 text-white"
+                        : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400"
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </motion.button>
+              );
+            })}
         </div>
       </div>
     </motion.div>
