@@ -1,14 +1,13 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
-import { FiCalendar, FiClock, FiUser } from "react-icons/fi";
+import { FiCalendar, FiClock, FiPlus, FiUser } from "react-icons/fi";
 import { MdFitnessCenter } from "react-icons/md";
 
 import { formatDate, formatTimeAMPM } from "../../utils/formatTime";
 
 import ViewUpcomingSessionModal from "./components/VIewUpcomingSessionModal";
 
-
-const MemberTableSession = ({ sessions = [] }) => {
+const MemberTableSession = ({ sessions = [], onBookSession }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
 
@@ -46,6 +45,18 @@ const MemberTableSession = ({ sessions = [] }) => {
       transition={{ duration: 0.6 }}
       className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
     >
+      <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+        <button
+          onClick={onBookSession}
+          className="px-4 py-2 bg-emerald-600 text-white rounded cursor-pointer hover:bg-emerald-700 transition-colors"
+        >
+          <div className="flex items-center">
+            <FiPlus className="w-4 h-4 mr-2" />
+            Book Session
+          </div>
+        </button>
+      </div>
+
       {/* Scrollable container */}
       <div className="overflow-x-auto w-full">
         <table className="min-w-[800px] w-full table-auto">
