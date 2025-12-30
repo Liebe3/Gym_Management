@@ -7,7 +7,7 @@ import { formatDate, formatTimeAMPM } from "../../utils/formatTime";
 
 import ViewUpcomingSessionModal from "./components/VIewUpcomingSessionModal";
 
-const MemberTableSession = ({ sessions = [], onBookSession }) => {
+const MemberTableSession = ({ sessions = [], onBookSession, pagination = {}, currentPage, setCurrentPage }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
 
@@ -20,6 +20,7 @@ const MemberTableSession = ({ sessions = [], onBookSession }) => {
     setIsModalOpen(false);
     setSelectedSession(null);
   };
+
   if (sessions.length === 0) {
     return (
       <motion.div
@@ -169,6 +170,64 @@ const MemberTableSession = ({ sessions = [], onBookSession }) => {
           </tbody>
         </table>
       </div>
+
+      {/* Pagination */}
+      {pagination.totalPages > 1 && (
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Page {pagination.currentPage} of {pagination.totalPages} —{" "}
+            {pagination.totalRecords} total sessions
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <button
+              disabled={!pagination.hasPrevPage}
+              onClick={() => setCurrentPage((prev) => prev - 1)}
+              className={`px-3 py-1 rounded-md text-sm ${
+                pagination.hasPrevPage
+                  ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 cursor-pointer"
+                  : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              Prev
+            </button>
+
+            {Array.from(
+              { length: Math.min(pagination.totalPages, 5) },
+              (_, i) => {
+                const startPage = Math.max(1, currentPage - 2);
+                return startPage + i;
+              }
+            )
+              .filter((page) => page <= pagination.totalPages)
+              .map((page) => (
+                <button
+                  key={page}
+                  onClick={() => setCurrentPage(page)}
+                  className={`px-3 py-1 rounded-md text-sm cursor-pointer ${
+                    currentPage === page
+                      ? "bg-emerald-600 text-white"
+                      : "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200"
+                  }`}
+                >
+                  {page}
+                </button>
+              ))}
+
+            <button
+              disabled={!pagination.hasNextPage}
+              onClick={() => setCurrentPage((prev) => prev + 1)}
+              className={`px-3 py-1 rounded-md text-sm ${
+                pagination.hasNextPage
+                  ? "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 cursor-pointer"
+                  : "bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* View Session Modal */}
       <ViewUpcomingSessionModal
