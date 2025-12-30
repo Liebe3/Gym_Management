@@ -44,7 +44,7 @@ const AssignedTrainers = ({ trainers = [] }) => {
                 {trainer.isPrimary ? "🌟 Primary Trainer" : "Trainer"}
               </p>
               <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-2">
-                {trainer.user?.firstName} {trainer.user?.lastName}
+                {trainer.firstName} {trainer.lastName}
               </p>
 
               {/* Specializations */}
@@ -79,16 +79,36 @@ const AssignedTrainers = ({ trainers = [] }) => {
               )}
 
               {/* Status */}
-              <div className="mt-3">
+              <div className="mt-3 flex items-center gap-2 flex-wrap">
                 <span
                   className={`inline-block text-xs font-semibold px-3 py-1 rounded-full ${
                     trainer.status === "active"
                       ? "bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300"
+                      : trainer.status === "on_leave"
+                      ? "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300"
+                      : trainer.status === "inactive" ||
+                        trainer.status === "terminated"
+                      ? "bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-300"
                       : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                   }`}
                 >
-                  {trainer.status === "active" ? "Active" : trainer.status}
+                  {trainer.status === "active"
+                    ? "Active"
+                    : trainer.status === "on_leave"
+                    ? "On Leave"
+                    : trainer.status === "inactive" ||
+                      trainer.status === "terminated"
+                    ? "Inactive"
+                    : "Unknown"}
                 </span>
+
+                {/* Availability badge */}
+                {!trainer.isAvailableForNewClients &&
+                  trainer.status === "active" && (
+                    <span className="inline-block text-xs font-semibold px-3 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300">
+                      Unavailable
+                    </span>
+                  )}
               </div>
             </div>
 
