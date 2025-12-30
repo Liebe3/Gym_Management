@@ -414,23 +414,21 @@ exports.getAssignedTrainers = async (req, res) => {
     }
 
     // Format the response - include all trainers regardless of status
-    const formattedTrainers = member.trainers
-      .map((trainer) => {
-        const trainerObj = trainer.toObject ? trainer.toObject() : trainer;
-        return {
-          _id: trainerObj._id,
-          firstName: trainerObj.user?.firstName || "",
-          lastName: trainerObj.user?.lastName || "",
-          email: trainerObj.user?.email || "",
-          specializations: trainerObj.specializations || [],
-          experience: trainerObj.experience || 0,
-          status: trainerObj.status,
-          isAvailableForNewClients: trainerObj.isAvailableForNewClients,
-          isPrimary:
-            member.primaryTrainer?._id?.toString() ===
-            trainerObj._id?.toString(),
-        };
-      });
+    const formattedTrainers = member.trainers.map((trainer) => {
+      const trainerObj = trainer.toObject ? trainer.toObject() : trainer;
+      return {
+        _id: trainerObj._id,
+        firstName: trainerObj.user?.firstName || "",
+        lastName: trainerObj.user?.lastName || "",
+        email: trainerObj.user?.email || "",
+        specializations: trainerObj.specializations || [],
+        experience: trainerObj.experience || 0,
+        status: trainerObj.status,
+        isAvailableForNewClients: trainerObj.isAvailableForNewClients,
+        isPrimary:
+          member.primaryTrainer?._id?.toString() === trainerObj._id?.toString(),
+      };
+    });
 
     res.status(200).json({
       success: true,
