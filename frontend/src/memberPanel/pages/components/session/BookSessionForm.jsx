@@ -15,15 +15,31 @@ const BookSessionForm = ({ onSuccess, onClose }) => {
   const [trainers, setTrainers] = useState([]);
   const [trainerLoading, setTrainerLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [trainerError, setTrainerError] = useState("");
 
   // Fetch assigned trainers on component mount
   useEffect(() => {
     const fetchTrainers = async () => {
       setTrainerLoading(true);
+      setTrainerError("");
       try {
         const trainersData = await memberSessionService.getAssignedTrainers();
         console.log("Fetched trainers:", trainersData); // Debug log
-        setTrainers(trainersData || []);
+
+        // Filter to only show active trainers
+        const activeTrainers = (trainersData || []).filter(
+          (trainer) => trainer.status === "active"
+        );
+
+        console.log("Active trainers:", activeTrainers); // Debug log
+        setTrainers(activeTrainers);
+
+        // Set error message if no active trainers are available
+        if (activeTrainers.length === 0) {
+          setTrainerError(
+            "No active trainers available at the moment."
+          );
+        }
       } catch (err) {
         console.error("Error fetching trainers:", err);
         showError("Failed to load trainers");
@@ -49,6 +65,20 @@ const BookSessionForm = ({ onSuccess, onClose }) => {
     // Check required fields
     if (!form.trainerId || !form.date || !form.startTime || !form.endTime) {
       showError("Please fill in all required fields");
+      return false;
+    }
+
+    // Validate that selected trainer is still active
+    const selectedTrainer = trainers.find((t) => t._id === form.trainerId);
+    if (!selectedTrainer) {
+      showError("Selected trainer is not available");
+      return false;
+    }
+
+    if (selectedTrainer.status !== "active") {
+      showError(
+        "This trainer is no longer available. Please select another trainer."
+      );
       return false;
     }
 
@@ -133,11 +163,15 @@ const BookSessionForm = ({ onSuccess, onClose }) => {
           <select
             value={form.trainerId}
             onChange={(e) => handleInputChange("trainerId", e.target.value)}
-            disabled={trainerLoading || loading}
+            disabled={trainerLoading || loading || trainers.length === 0}
             className="mt-1 w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <option value="">
-              {trainerLoading ? "Loading trainers..." : "Choose a trainer"}
+              {trainerLoading
+                ? "Loading trainers..."
+                : trainers.length === 0
+                ? "No active trainers available"
+                : "Choose a trainer"}
             </option>
             {trainers.map((trainer) => (
               <option key={trainer._id} value={trainer._id}>
@@ -145,12 +179,22 @@ const BookSessionForm = ({ onSuccess, onClose }) => {
                 {trainer.specializations && trainer.specializations.length > 0
                   ? ` - ${trainer.specializations.join(", ")}`
                   : ""}
+                {trainer.isPrimary ? " (Primary)" : ""}
               </option>
             ))}
           </select>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Select from your assigned trainers
-          </p>
+          {trainerError && (
+            <p className="text-sm text-red-500 dark:text-red-400 mt-2">
+              {trainerError}
+            </p>
+          )}
+          {!trainerError && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {trainers.length === 0 && !trainerLoading
+                ? "No available trainers assigned to you"
+                : "Select from your assigned available trainers"}
+            </p>
+          )}
         </div>
 
         {/* Row 2: Date and Time */}
@@ -226,7 +270,7 @@ const BookSessionForm = ({ onSuccess, onClose }) => {
           </button>
           <button
             type="submit"
-            disabled={loading || trainerLoading}
+            disabled={loading || trainerLoading || trainers.length === 0}
             className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-medium shadow-lg transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {loading ? "Booking..." : "Book Session"}
