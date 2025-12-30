@@ -19,12 +19,31 @@ const MemberSession = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sessionCount, setSessionCount] = useState({});
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    totalRecords: 0,
+    hasNextPage: false,
+    hasPrevPage: false,
+    limit: 10,
+  });
 
-  // Load sessions function
-  const loadSessions = async () => {
+  // Load sessions function with pagination
+  const loadSessions = async (page = 1) => {
     try {
-      const sessionsData = await memberSessionService.getUpcomingSessions();
-      setSessions(sessionsData || []);
+      const response = await memberSessionService.getUpcomingSessions(page, 10);
+      setSessions(response.data || []);
+      setPagination(response.pagination || {
+        currentPage: 1,
+        totalPages: 1,
+        totalRecords: 0,
+        hasNextPage: false,
+        hasPrevPage: false,
+        limit: 10,
+      });
       setError(null);
     } catch (error) {
       console.error("Error fetching sessions:", error);
@@ -40,7 +59,7 @@ const MemberSession = () => {
         const trainersData = await memberSessionService.getAssignedTrainers();
         setTrainers(trainersData || []);
 
-        await loadSessions();
+        await loadSessions(currentPage);
       } catch (error) {
         console.error("Error fetching data:", error);
         setError("Failed to load sessions. Please try again.");
@@ -50,7 +69,7 @@ const MemberSession = () => {
     };
 
     fetchData();
-  }, []);
+  }, [currentPage]);
 
   // Filter sessions based on trainer selection and search term
   useEffect(() => {
@@ -96,6 +115,10 @@ const MemberSession = () => {
   const clearFilters = () => {
     setSelectedTrainer("all");
     setSearchTerm("");
+  };
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
   };
 
   if (loading) {
@@ -149,8 +172,8 @@ const MemberSession = () => {
             Upcoming Sessions
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            {filteredSessions.length} session
-            {filteredSessions.length !== 1 ? "s" : ""} scheduled
+            {pagination.totalRecords} session
+            {pagination.totalRecords !== 1 ? "s" : ""} scheduled
           </p>
         </div>
 
@@ -169,6 +192,9 @@ const MemberSession = () => {
         <MemberTableSession
           sessions={filteredSessions}
           onBookSession={() => setIsBookModalOpen(true)}
+          pagination={pagination}
+          currentPage={currentPage}
+          setCurrentPage={handlePageChange}
         />
       </div>
 
@@ -178,7 +204,7 @@ const MemberSession = () => {
         onClose={() => setIsBookModalOpen(false)}
         onSuccess={() => {
           setIsBookModalOpen(false);
-          loadSessions();
+          loadSessions(currentPage);
         }}
       />
     </div>
