@@ -133,7 +133,18 @@ exports.getTrainerSessions = async (req, res) => {
     const filter = { trainer: trainerId };
 
     if (status && status !== "all") {
-      filter.status = status;
+      if (status === "cancelled") {
+        // Match all cancellation types
+        filter.status = {
+          $in: [
+            "cancelled_by_member",
+            "cancelled_by_trainer",
+            "cancelled_by_admin",
+          ],
+        };
+      } else {
+        filter.status = status;
+      }
     }
 
     if (startDate || endDate) {
@@ -194,7 +205,18 @@ exports.getMemberSessions = async (req, res) => {
     const filter = { member: memberId };
 
     if (status && status !== "all") {
-      filter.status = status;
+      if (status === "cancelled") {
+        // Match all cancellation types
+        filter.status = {
+          $in: [
+            "cancelled_by_member",
+            "cancelled_by_trainer",
+            "cancelled_by_admin",
+          ],
+        };
+      } else {
+        filter.status = status;
+      }
     }
 
     if (startDate || endDate) {
@@ -367,12 +389,11 @@ exports.createSession = async (req, res) => {
       });
     }
 
-    // Check for overlapping sessions for the same member (only 'scheduled' status blocks new sessions)
-    // Completed, cancelled, and no-show sessions do NOT block new sessions
+    // Check for overlapping sessions for the same member (with ANY trainer)
     const memberOverlappingSessions = await Session.find({
       member: memberId,
       date: sessionDate,
-      status: "scheduled",
+      status: { $in: ["scheduled", "completed"] },
     });
 
     for (const existingSession of memberOverlappingSessions) {
@@ -401,7 +422,7 @@ exports.createSession = async (req, res) => {
         ).populate("user", "firstName lastName");
         return res.status(400).json({
           success: false,
-          message: `Member already has an active session with ${
+          message: `Member already has a session with ${
             trainerName.user.firstName
           } ${trainerName.user.lastName} scheduled from ${formatTo12Hour(
             existingSession.startTime
