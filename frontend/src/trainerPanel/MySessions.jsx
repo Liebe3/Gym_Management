@@ -58,8 +58,8 @@ const MySessions = () => {
         setSessions(response.data || []);
         setPagination(response.pagination || {});
 
-        // Extract status counts
-        const counts = response.counts || response.filter?.counts || {};
+        // Extract status counts from backend (already aggregated)
+        const counts = response.filter?.counts || response.counts || {};
         setStatusCount(counts);
       }
     } catch (error) {
@@ -259,7 +259,15 @@ const MySessions = () => {
                 Cancelled
               </p>
               <p className="text-3xl font-bold text-red-600 dark:text-red-400">
-                {statusCount?.cancelled ?? 0}
+                {
+                  sessions.filter((session) =>
+                    [
+                      "cancelled_by_member",
+                      "cancelled_by_trainer",
+                      "cancelled_by_admin",
+                    ].includes(session.status)
+                  ).length
+                }
               </p>
             </div>
             <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center">
