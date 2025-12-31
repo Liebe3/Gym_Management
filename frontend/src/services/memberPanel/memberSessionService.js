@@ -43,6 +43,22 @@ const memberSessionService = {
       throw error;
     }
   },
+
+  cancelSession: async (sessionId, cancellationReason = "") => {
+    try {
+      const response = await API.put(
+        `/member-panel/sessions/${sessionId}/cancel`,
+        { cancellationReason }
+      );
+      return response.data;
+    } catch (error) {
+      console.error(
+        "Service error cancelling session:",
+        error.response?.data || error.message
+      );
+      throw error;
+    }
+  },
 };
 
 export default memberSessionService;
