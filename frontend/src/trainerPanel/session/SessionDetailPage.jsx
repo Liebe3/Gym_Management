@@ -6,13 +6,13 @@ import {
   FaCalendarAlt,
   FaEnvelope,
   FaNotesMedical,
-  FaPhone,
   FaUser,
 } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import sessionService from "../../services/sessionService";
 
 import SessionInfoCard from "./SessionInfroCard";
+import Loading from "../../components/ui/Loading";
 
 const SessionDetailPage = () => {
   const { sessionId } = useParams();
@@ -73,9 +73,7 @@ const SessionDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
-      </div>
+     <Loading />
     );
   }
 
@@ -168,17 +166,6 @@ const SessionDetailPage = () => {
                   {session.member.user.email}
                 </span>
               </div>
-              {session.member.user.phone && (
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center">
-                    <FaPhone className="mr-2 w-4 h-4" />
-                    Phone
-                  </span>
-                  <span className="text-sm text-gray-900 dark:text-gray-100">
-                    {session.member.user.phone}
-                  </span>
-                </div>
-              )}
             </div>
           </SessionInfoCard>
 
