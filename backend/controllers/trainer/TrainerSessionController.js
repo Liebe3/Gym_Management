@@ -36,7 +36,18 @@ exports.getMySessions = async (req, res) => {
 
     // Status filter
     if (status && status !== "all") {
-      filter.status = status;
+      if (status === "cancelled") {
+        // Match all cancellation types
+        filter.status = {
+          $in: [
+            "cancelled_by_member",
+            "cancelled_by_trainer",
+            "cancelled_by_admin",
+          ],
+        };
+      } else {
+        filter.status = status;
+      }
     }
 
     // Date range filter
@@ -113,7 +124,18 @@ exports.getMySessions = async (req, res) => {
     };
 
     statusCounts.forEach(({ _id, count }) => {
-      counts[_id] = count;
+      // Sum all cancellation types into a single 'cancelled' count
+      if (
+        [
+          "cancelled_by_member",
+          "cancelled_by_trainer",
+          "cancelled_by_admin",
+        ].includes(_id)
+      ) {
+        counts.cancelled += count;
+      } else if (_id === "scheduled" || _id === "completed") {
+        counts[_id] = count;
+      }
     });
 
     res.status(200).json({
@@ -359,43 +381,6 @@ exports.createMySession = async (req, res) => {
           message: `You already have a session scheduled from ${formatTo12Hour(
             existingSession.startTime
           )} to ${formatTo12Hour(existingSession.endTime)}`,
-        });
-      }
-    }
-
-    // Check for member's active sessions (only 'scheduled' status blocks new sessions)
-    // Completed, cancelled, and no-show sessions do NOT block new sessions
-    const memberActiveSessions = await Session.find({
-      member: memberId,
-      date: sessionDate,
-      status: "scheduled",
-    });
-
-    for (const existingSession of memberActiveSessions) {
-      const [existingStartHour, existingStartMin] = existingSession.startTime
-        .split(":")
-        .map(Number);
-      const [existingEndHour, existingEndMin] = existingSession.endTime
-        .split(":")
-        .map(Number);
-
-      const existingStartMinutes = existingStartHour * 60 + existingStartMin;
-      const existingEndMinutes = existingEndHour * 60 + existingEndMin;
-
-      const hasOverlap =
-        (startMinutes >= existingStartMinutes &&
-          startMinutes < existingEndMinutes) ||
-        (endMinutes > existingStartMinutes &&
-          endMinutes <= existingEndMinutes) ||
-        (startMinutes <= existingStartMinutes &&
-          endMinutes >= existingEndMinutes);
-
-      if (hasOverlap) {
-        return res.status(400).json({
-          success: false,
-          message: `Client already has an active session scheduled from ${formatTo12Hour(
-            existingSession.startTime
-          )} to ${formatTo12Hour(existingSession.endTime)} on this date`,
         });
       }
     }
