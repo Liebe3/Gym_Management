@@ -7,7 +7,6 @@ import {
   FaCreditCard,
   FaDumbbell,
   FaEnvelope,
-  FaPhone,
   FaUser,
 } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
@@ -106,12 +105,6 @@ const ClientsProfile = () => {
                 <FaEnvelope className="text-emerald-500" />
                 {client.user?.email}
               </p>
-              {client.user?.phone && (
-                <p className="text-gray-500 dark:text-gray-400 flex items-center justify-center md:justify-start gap-2">
-                  <FaPhone className="text-emerald-500" />
-                  {client.user.phone}
-                </p>
-              )}
             </div>
             <div className="mt-3">
               <span
