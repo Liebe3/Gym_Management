@@ -5,10 +5,19 @@ import { MdFitnessCenter } from "react-icons/md";
 
 import { formatDate, formatTimeAMPM } from "../../utils/formatTime";
 
+import CancelSessionModal from "./components/CancelSessionModal";
 import ViewUpcomingSessionModal from "./components/VIewUpcomingSessionModal";
 
-const MemberTableSession = ({ sessions = [], onBookSession, pagination = {}, currentPage, setCurrentPage }) => {
+const MemberTableSession = ({
+  sessions = [],
+  onBookSession,
+  pagination = {},
+  currentPage,
+  setCurrentPage,
+  onSessionsUpdated,
+}) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [selectedSession, setSelectedSession] = useState(null);
 
   const handleViewSession = (session) => {
@@ -19,6 +28,24 @@ const MemberTableSession = ({ sessions = [], onBookSession, pagination = {}, cur
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedSession(null);
+  };
+
+  const handleCancelSession = (session) => {
+    setSelectedSession(session);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleCloseCancelModal = () => {
+    setIsCancelModalOpen(false);
+    setSelectedSession(null);
+  };
+
+  const handleCancellationSuccess = () => {
+    setIsCancelModalOpen(false);
+    setSelectedSession(null);
+    if (onSessionsUpdated) {
+      onSessionsUpdated();
+    }
   };
 
   if (sessions.length === 0) {
@@ -160,7 +187,10 @@ const MemberTableSession = ({ sessions = [], onBookSession, pagination = {}, cur
                     >
                       View
                     </button>
-                    <button className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium">
+                    <button
+                      onClick={() => handleCancelSession(session)}
+                      className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-medium cursor-pointer transition-colors"
+                    >
                       Cancel
                     </button>
                   </div>
@@ -234,6 +264,14 @@ const MemberTableSession = ({ sessions = [], onBookSession, pagination = {}, cur
         isModalOpen={isModalOpen}
         session={selectedSession}
         handleCloseModal={handleCloseModal}
+      />
+
+      {/* Cancel Session Modal */}
+      <CancelSessionModal
+        isModalOpen={isCancelModalOpen}
+        session={selectedSession}
+        handleCloseModal={handleCloseCancelModal}
+        onSuccess={handleCancellationSuccess}
       />
     </motion.div>
   );
