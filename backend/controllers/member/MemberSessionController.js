@@ -112,6 +112,7 @@ exports.getUpcomingSessions = async (req, res) => {
     });
   }
 };
+
 // MEMBER PANEL - Book a session with a trainer
 exports.bookSession = async (req, res) => {
   try {
@@ -442,6 +443,117 @@ exports.getAssignedTrainers = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid user ID format",
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
+// MEMBER PANEL - Cancel a scheduled session
+exports.cancelSession = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { sessionId } = req.params;
+    const { cancellationReason } = req.body;
+
+    // Validate sessionId
+    if (!sessionId) {
+      return res.status(400).json({
+        success: false,
+        message: "Session ID is required",
+      });
+    }
+
+    // Find member by user ID
+    const member = await Member.findOne({ user: userId });
+
+    if (!member) {
+      return res.status(404).json({
+        success: false,
+        message: "Member profile not found",
+      });
+    }
+
+    // Find the session
+    const session = await Session.findById(sessionId).populate({
+      path: "trainer",
+      populate: {
+        path: "user",
+        select: "firstName lastName",
+      },
+    });
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    // Verify the session belongs to the member
+    if (session.member.toString() !== member._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to cancel this session",
+      });
+    }
+
+    // Handle past sessions explicitly
+    const now = new Date();
+    if (new Date(session.date) < now && session.status !== "upcoming") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel past sessions",
+      });
+    }
+
+    // Check if session is within 2 hours
+    const sessionDateTime = new Date(session.date);
+    const [sessionHour, sessionMin] = session.startTime.split(":").map(Number);
+    sessionDateTime.setHours(sessionHour, sessionMin, 0, 0);
+
+    const timeDifference = (sessionDateTime - now) / (1000 * 60); // in minutes
+
+    if (timeDifference < 120) {
+      // Less than 2 hours
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel sessions within 2 hours of the start time",
+      });
+    }
+
+    // Update session status and cancellation reason
+    session.status = "cancelled_by_member";
+    session.cancellationReason = cancellationReason || "";
+
+    await session.save();
+
+    // Populate trainer details for response
+    const populatedSession = await Session.findById(session._id).populate({
+      path: "trainer",
+      populate: {
+        path: "user",
+        select: "firstName lastName email",
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Session cancelled successfully",
+      data: populatedSession,
+    });
+  } catch (error) {
+    console.error("Error cancelling session:", error);
+
+    if (error.name === "CastError") {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid session ID format",
       });
     }
 
