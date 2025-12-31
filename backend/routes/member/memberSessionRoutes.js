@@ -7,6 +7,7 @@ const {
   getUpcomingSessions,
   bookSession,
   getAssignedTrainers,
+  cancelSession,
 } = require("../../controllers/member/MemberSessionController");
 
 router.use(VerifyToken);
@@ -16,5 +17,6 @@ router.get("/upcoming-sessions", getUpcomingSessions);
 router.get("/assigned-trainers", getAssignedTrainers);
 
 router.post("/book-session", bookSession);
+router.put("/:sessionId/cancel", cancelSession);
 
 module.exports = router;
