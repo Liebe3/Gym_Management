@@ -1,14 +1,15 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FiCalendar,
+  FiCheck,
   FiClock,
   FiEdit2,
   FiEye,
+  FiFileText,
   FiFilter,
   FiPlus,
   FiTrash2,
   FiUser,
-  FiCheck
 } from "react-icons/fi";
 
 const formatTime = (time24) => {
@@ -171,6 +172,18 @@ const SessionTable = ({
                   Status
                 </div>
               </th>
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm min-w-[120px]">
+                <div className="flex items-center justify-start whitespace-nowrap">
+                  <FiFileText className="w-4 h-4 mr-2 text-emerald-600" />
+                  Session Notes
+                </div>
+              </th>
+              <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm min-w-[120px]">
+                <div className="flex items-center justify-start whitespace-nowrap">
+                  <FiFileText className="w-4 h-4 mr-2 text-emerald-600" />
+                  Cancellation Notes
+                </div>
+              </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm w-1/8">
                 Actions
               </th>
@@ -245,6 +258,22 @@ const SessionTable = ({
                           session.status.slice(1)}
                       </span>
                     </div>
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                    {session.notes ? (
+                      <span>{session.notes}</span>
+                    ) : (
+                      <span className="text-gray-400 italic">No notes</span>
+                    )}
+                  </td>
+
+                  <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">
+                    {session.cancellationReason ? (
+                      <span>{session.cancellationReason}</span>
+                    ) : (
+                      <span className="text-gray-400 italic">No cancellation reason</span>
+                    )}
                   </td>
 
                   {/* Actions */}
