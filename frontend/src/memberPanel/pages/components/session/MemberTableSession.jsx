@@ -96,7 +96,7 @@ const MemberTableSession = ({
 
       {/* Scrollable container */}
       <div className="overflow-x-auto w-full">
-        <table className="min-w-[800px] w-full table-auto">
+        <table className="w-full table-auto">
           <thead>
             <tr className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
               <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
