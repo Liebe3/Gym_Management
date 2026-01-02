@@ -703,3 +703,70 @@ exports.updateMySession = async (req, res) => {
     });
   }
 };
+
+// Cancel trainer's own session
+exports.cancelMySession = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const trainer = await Trainer.findOne({ user: userId });
+
+    if (!trainer) {
+      return res.status(404).json({
+        success: false,
+        message: "Trainer profile not found",
+      });
+    }
+
+    const { sessionId } = req.params;
+    const { cancellationReason } = req.body;
+
+    // Find the session
+    const session = await Session.findById(sessionId);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    // Verify session belongs to this trainer
+    if (session.trainer._id.toString() !== trainer._id.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to cancel this session",
+      });
+    }
+
+    // Check if session is already cancelled or completed
+    if (
+      session.status === "cancelled" ||
+      session.status === "cancelled_by_trainer" ||
+      session.status === "completed"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot cancel a ${session.status} session`,
+      });
+    }
+
+    // Update session status
+    session.status = "cancelled_by_trainer";
+    session.cancellationReason = cancellationReason || "";
+
+    await session.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Session cancelled successfully",
+      data: session,
+    });
+  } catch (error) {
+    console.error("Cancel session error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
