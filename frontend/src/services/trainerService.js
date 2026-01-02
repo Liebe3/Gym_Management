@@ -135,6 +135,20 @@ const trainerService = {
       throw error;
     }
   },
+
+  // Cancel trainer's own session
+  cancelMySession: async (sessionId, cancellationReason = "") => {
+    try {
+      const response = await API.put(
+        `/trainer-panel/sessions/${sessionId}/cancel`,
+        { cancellationReason }
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Cancel session service error", error);
+      throw error;
+    }
+  },
 };
 
 export default trainerService;
