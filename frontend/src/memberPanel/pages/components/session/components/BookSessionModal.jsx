@@ -27,7 +27,7 @@ const BookSessionModal = ({ isOpen, onClose, onSuccess }) => {
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer"
           >
             <FiX className="w-6 h-6 text-gray-600 dark:text-gray-400" />
           </button>
