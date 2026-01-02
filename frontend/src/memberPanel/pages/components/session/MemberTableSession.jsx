@@ -51,17 +51,26 @@ const MemberTableSession = ({
   if (sessions.length === 0) {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 p-12 text-center"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="text-center py-16 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700"
       >
-        <MdFitnessCenter className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-        <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">
-          No sessions found
+        <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+          <MdFitnessCenter className="w-8 h-8 text-gray-400" />
+        </div>
+
+        <p className="text-gray-500 dark:text-gray-400 text-lg mb-6">
+          No sessions available yet.
         </p>
-        <p className="text-gray-500 dark:text-gray-500 text-sm mt-2">
-          Try adjusting your filters or search criteria
-        </p>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={onBookSession}
+          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition-colors duration-200 cursor-pointer inline-flex items-center"
+        >
+          <FiPlus className="w-4 h-4 mr-2" />
+          Book Your First Session
+        </motion.button>
       </motion.div>
     );
   }
