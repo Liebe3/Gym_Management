@@ -8,6 +8,7 @@ import TrainerSessionForm from "./session/TrainerSessionForm";
 import TrainerSessionModal from "./session/TrainerSessionModal";
 import TrainerSessionsFilter from "./session/TrainerSessionsFilter";
 import TrainerSessionsTable from "./session/TrainerSessionsTable ";
+import TrainerCancelSessionModal from "./session/components/TrainerCancelSessionModal";
 
 const MySessions = () => {
   const [sessions, setSessions] = useState([]);
@@ -25,6 +26,9 @@ const MySessions = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("create");
   const [selectedSession, setSelectedSession] = useState(null);
+
+  // Cancel modal state
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -110,6 +114,23 @@ const MySessions = () => {
     setModalMode("update");
     setSelectedSession(session);
     setIsModalOpen(true);
+  };
+
+  const handleCancel = (session) => {
+    setSelectedSession(session);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleCloseCancelModal = () => {
+    setIsCancelModalOpen(false);
+    setSelectedSession(null);
+  };
+
+  const handleCancellationSuccess = async () => {
+    setIsCancelModalOpen(false);
+    setSelectedSession(null);
+    showSuccess("Session cancelled successfully");
+    await fetchSessions();
   };
 
   // fix this if the trainer can delete sessions
@@ -291,6 +312,7 @@ const MySessions = () => {
       <TrainerSessionsTable
         sessions={sessions}
         onEdit={handleEdit}
+        onCancel={handleCancel}
         // onDelete={handleDelete} // uncomment if delete is implemented
         onView={handleView}
         handleOpenCreate={handleOpenCreate}
@@ -317,6 +339,14 @@ const MySessions = () => {
           selectedSession={selectedSession}
         />
       </TrainerSessionModal>
+
+      {/* Cancel Session Modal */}
+      <TrainerCancelSessionModal
+        isModalOpen={isCancelModalOpen}
+        session={selectedSession}
+        handleCloseModal={handleCloseCancelModal}
+        onSuccess={handleCancellationSuccess}
+      />
     </div>
   );
 };
