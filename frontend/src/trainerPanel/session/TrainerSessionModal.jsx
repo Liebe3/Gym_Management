@@ -55,7 +55,7 @@ const TrainerSessionModal = ({
                 </h2>
                 <button
                   onClick={handleCloseModal}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200"
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors duration-200 cursor-pointer"
                 >
                   <FiX className="w-6 h-6" />
                 </button>
