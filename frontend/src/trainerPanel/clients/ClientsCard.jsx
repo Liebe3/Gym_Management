@@ -34,20 +34,11 @@ const ClientCard = ({ client, getStatusBadge }) => {
   };
 
   const handleViewSessions = () => {
-    // If there's a next session with an ID, navigate to its detail page
-    if (client.nextSession?._id) {
-      navigate(`/trainer/sessions/${client.nextSession._id}`);
-    } else {
-      // Otherwise, navigate to the sessions list (you can remove this route if not needed)
-      navigate(`/trainer/sessions?member=${client._id}`);
-    }
+    navigate(`/trainer/sessions/${client.nextSession._id}`);
   };
 
   return (
-    <motion.div
-      whileHover={{ y: -5, boxShadow: "0 10px 30px rgba(0,0,0,0.15)" }}
-      className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 transition-all duration-300"
-    >
+    <motion.div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 transition-all duration-300">
       {/* Client Header */}
       <div className="flex items-center space-x-4 mb-4">
         <div className="flex-shrink-0">
