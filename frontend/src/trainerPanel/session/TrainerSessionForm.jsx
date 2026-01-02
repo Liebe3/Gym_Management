@@ -284,14 +284,14 @@ const TrainerSessionForm = ({
                 type="button"
                 onClick={onCancel}
                 disabled={loading || isSubmitting}
-                className="flex-1 px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="flex-1 px-6 py-3 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={loading || isSubmitting || clients.length === 0}
-                className="flex-1 px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg shadow-emerald-500/30"
+                className="flex-1 px-6 py-3 text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-lg shadow-emerald-500/30 cursor-pointer"
               >
                 {loading || isSubmitting ? (
                   <span className="flex items-center justify-center">
