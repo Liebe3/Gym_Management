@@ -8,10 +8,10 @@ import {
   ShowWarning,
 } from "../../../pages/utils/Alert";
 import sessionService from "../../../services/sessionService";
+import AdminCancelSessionModal from "./session/AdminCancelSessionModal";
 import SessionFilter from "./session/SessionFilter";
 import SessionTable from "./session/SessionTable";
 import SessionModal from "./ui/SessionModal";
-import AdminCancelSessionModal from "./session/AdminCancelSessionModal";
 
 const SessionSection = () => {
   const [sessions, setSessions] = useState([]);

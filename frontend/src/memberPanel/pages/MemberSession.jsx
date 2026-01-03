@@ -119,6 +119,8 @@ const MemberSession = () => {
     setSearchTerm("");
   };
 
+  const hasActiveFilters = selectedTrainer !== "all" || searchTerm !== "";
+
   const handlePageChange = (newPage) => {
     setCurrentPage(newPage);
   };
@@ -198,6 +200,8 @@ const MemberSession = () => {
           currentPage={currentPage}
           setCurrentPage={handlePageChange}
           onSessionsUpdated={() => loadSessions(currentPage)}
+          hasActiveFilters={hasActiveFilters}
+          clearFilters={clearFilters}
         />
       </div>
 
