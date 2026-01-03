@@ -11,14 +11,11 @@ import {
   FiXCircle,
 } from "react-icons/fi";
 
-const formatTime = (time24) => {
-  if (!time24) return "";
-  const [hourStr, minute] = time24.split(":");
-  let hour = parseInt(hourStr, 10);
-  const ampm = hour >= 12 ? "PM" : "AM";
-  hour = hour % 12 || 12;
-  return `${hour}:${minute} ${ampm}`;
-};
+import { formatTimeAMPM } from "../../memberPanel/pages/utils/formatTime";
+import {
+  formatSessionStatus,
+  getSessionStatusColor,
+} from "../../memberPanel/pages/utils/sessionStatus";
 
 const TrainerSessionsTable = ({
   sessions = [],
@@ -32,37 +29,6 @@ const TrainerSessionsTable = ({
   currentPage,
   setCurrentPage,
 }) => {
-  const formatStatus = (status) => {
-    switch (status) {
-      case "scheduled":
-        return "Scheduled";
-      case "completed":
-        return "Completed";
-      case "cancelled_by_trainer":
-        return "Cancelled by You";
-      case "cancelled_by_member":
-        return "Cancelled by Member";
-      default:
-        // Capitalize first letter
-        return status.charAt(0).toUpperCase() + status.slice(1);
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "scheduled":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
-      case "completed":
-        return "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300";
-      case "cancelled_by_trainer":
-        return "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"; // Cancelled by You
-      case "cancelled_by_member":
-        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300"; // Cancelled by Member
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
-    }
-  };
-
   const getClientName = (member) => {
     if (!member || !member.user) return "N/A";
     return `${member.user.firstName} ${member.user.lastName}`;
@@ -198,6 +164,10 @@ const TrainerSessionsTable = ({
             <AnimatePresence>
               {sessions.map((session, index) => {
                 const isCancelled = session.status.includes("cancelled");
+                const isCompleted = session.status === "completed";
+                const cannotModify = isCancelled || isCompleted;
+                const statusLabel = formatSessionStatus(session.status);
+                const statusColor = getSessionStatusColor(session.status);
                 return (
                   <motion.tr
                     key={session._id}
@@ -231,25 +201,23 @@ const TrainerSessionsTable = ({
                     <td className="py-3 px-4">
                       <div className="flex items-center text-sm text-gray-900 dark:text-white whitespace-nowrap">
                         <div className="w-4 mr-2" />
-                        {formatTime(session.startTime) || "N/A"}
+                        {formatTimeAMPM(session.startTime) || "N/A"}
                       </div>
                     </td>
 
                     <td className="py-3 px-4">
                       <div className="flex items-center text-sm text-gray-900 dark:text-white whitespace-nowrap">
                         <div className="w-4 mr-2" />
-                        {formatTime(session.endTime) || "N/A"}
+                        {formatTimeAMPM(session.endTime) || "N/A"}
                       </div>
                     </td>
 
                     <td className="py-3 px-4 min-w-[120px]">
                       <div className="flex items-center">
                         <span
-                          className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            session.status
-                          )}`}
+                          className={`inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium ${statusColor}`}
                         >
-                          {formatStatus(session.status)}
+                          {statusLabel}
                         </span>
                       </div>
                     </td>
@@ -285,46 +253,50 @@ const TrainerSessionsTable = ({
                           <FiEye className="w-3 h-3" />
                         </motion.button>
 
-                           {/* Edit Action */}
+                        {/* Edit Action */}
                         <motion.button
                           onClick={() => onEdit(session)}
-                          whileHover={isCancelled ? {} : { scale: 1.05 }}
-                          whileTap={isCancelled ? {} : { scale: 0.95 }}
-                          disabled={isCancelled}
+                          whileHover={cannotModify ? {} : { scale: 1.05 }}
+                          whileTap={cannotModify ? {} : { scale: 0.95 }}
+                          disabled={cannotModify}
                           className={`p-2 rounded-lg transition-colors duration-200 shadow-sm text-white ${
-                            isCancelled
+                            cannotModify
                               ? "bg-gray-400 cursor-not-allowed"
                               : "bg-emerald-600 hover:bg-emerald-700 cursor-pointer"
                           }`}
                           title={
                             isCancelled
                               ? "Cannot edit a cancelled session"
+                              : isCompleted
+                              ? "Cannot edit a completed session"
                               : "Edit Session"
                           }
                         >
                           <FiEdit2 className="w-3 h-3" />
                         </motion.button>
 
-                           {/* Cancel Action */}
+                        {/* Cancel Action */}
                         <motion.button
                           onClick={() => onCancel(session)}
-                          whileHover={isCancelled ? {} : { scale: 1.05 }}
-                          whileTap={isCancelled ? {} : { scale: 0.95 }}
-                          disabled={isCancelled}
+                          whileHover={cannotModify ? {} : { scale: 1.05 }}
+                          whileTap={cannotModify ? {} : { scale: 0.95 }}
+                          disabled={cannotModify}
                           className={`p-2 rounded-lg transition-colors duration-200 shadow-sm text-white ${
-                            isCancelled
+                            cannotModify
                               ? "bg-gray-400 cursor-not-allowed"
                               : "bg-red-600 hover:bg-red-700 cursor-pointer"
                           }`}
                           title={
                             isCancelled
                               ? "This session is already cancelled"
+                              : isCompleted
+                              ? "Cannot cancel a completed session"
                               : "Cancel Session"
                           }
                         >
                           <FiXCircle className="w-3 h-3" />
                         </motion.button>
-                        
+
                         {/* if ever the trainer can delete the session. */}
                         {/* <motion.button
                         onClick={() => onDelete(session._id)}
