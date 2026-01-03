@@ -766,6 +766,81 @@ exports.updateSession = async (req, res) => {
   }
 };
 
+exports.cancelSession = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { cancellationReason } = req.body;
+
+    const session = await Session.findById(id);
+
+    if (!session) {
+      return res.status(404).json({
+        success: false,
+        message: "Session not found",
+      });
+    }
+
+    // Check if session is already cancelled
+    if (
+      session.status === "cancelled" ||
+      session.status === "cancelled_by_member" ||
+      session.status === "cancelled_by_trainer" ||
+      session.status === "cancelled_by_admin"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Session is already cancelled",
+      });
+    }
+
+    // Check if session is completed
+    if (session.status === "completed") {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot cancel a completed session",
+      });
+    }
+
+    // Update session with cancellation details
+    const updateData = {
+      status: "cancelled_by_admin",
+      cancellationReason: cancellationReason || "",
+    };
+
+    const cancelledSession = await Session.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    })
+      .populate({
+        path: "trainer",
+        populate: {
+          path: "user",
+          select: "firstName lastName email",
+        },
+      })
+      .populate({
+        path: "member",
+        populate: {
+          path: "user",
+          select: "firstName lastName email",
+        },
+      });
+
+    res.status(200).json({
+      success: true,
+      message: "Session cancelled successfully",
+      data: cancelledSession,
+    });
+  } catch (error) {
+    console.error("Error cancelling session:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+
 exports.deleteSession = async (req, res) => {
   try {
     const { id } = req.params;
