@@ -11,6 +11,7 @@ import sessionService from "../../../services/sessionService";
 import SessionFilter from "./session/SessionFilter";
 import SessionTable from "./session/SessionTable";
 import SessionModal from "./ui/SessionModal";
+import AdminCancelSessionModal from "./session/AdminCancelSessionModal";
 
 const SessionSection = () => {
   const [sessions, setSessions] = useState([]);
@@ -29,6 +30,9 @@ const SessionSection = () => {
   const [pagination, setPagination] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 10;
+
+  // Cancel modal state
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
   // Load sessions
   const loadSessions = async () => {
@@ -130,6 +134,26 @@ const SessionSection = () => {
     setMode("view");
     setSelectedSession(session);
     setIsModalOpen(true);
+  };
+
+  // Handle cancel session
+  const handleCancel = (session) => {
+    setSelectedSession(session);
+    setIsCancelModalOpen(true);
+  };
+
+  // Handle close cancel modal
+  const handleCloseCancelModal = () => {
+    setIsCancelModalOpen(false);
+    setSelectedSession(null);
+  };
+
+  // Handle cancellation success
+  const handleCancellationSuccess = async () => {
+    setIsCancelModalOpen(false);
+    setSelectedSession(null);
+    showSuccess("Session cancelled successfully");
+    await loadSessions();
   };
 
   // Delete session
@@ -257,6 +281,7 @@ const SessionSection = () => {
           onEdit={handleOpenEdit}
           onDelete={handleDelete}
           onView={handleView}
+          onCancel={handleCancel}
           handleOpenCreate={handleOpenCreate}
           hasActiveFilters={hasActiveFilters}
           clearFilters={clearFilters}
@@ -267,13 +292,21 @@ const SessionSection = () => {
           formatDateTime={formatDateTime}
         />
 
-        {/* Modal */}
+        {/* Session Modal */}
         <SessionModal
           isModalOpen={isModalOpen}
           mode={mode}
           selectedSession={selectedSession}
           handleCloseModal={handleCloseModal}
           onSuccess={handleSuccess}
+        />
+
+        {/* Cancel Session Modal */}
+        <AdminCancelSessionModal
+          isModalOpen={isCancelModalOpen}
+          session={selectedSession}
+          handleCloseModal={handleCloseCancelModal}
+          onSuccess={handleCancellationSuccess}
         />
       </div>
     </div>
