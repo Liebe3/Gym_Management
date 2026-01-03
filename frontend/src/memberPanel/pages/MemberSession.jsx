@@ -19,7 +19,7 @@ const MemberSession = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sessionCount, setSessionCount] = useState({});
   const [isBookModalOpen, setIsBookModalOpen] = useState(false);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({
@@ -36,14 +36,16 @@ const MemberSession = () => {
     try {
       const response = await memberSessionService.getUpcomingSessions(page, 10);
       setSessions(response.data || []);
-      setPagination(response.pagination || {
-        currentPage: 1,
-        totalPages: 1,
-        totalRecords: 0,
-        hasNextPage: false,
-        hasPrevPage: false,
-        limit: 10,
-      });
+      setPagination(
+        response.pagination || {
+          currentPage: 1,
+          totalPages: 1,
+          totalRecords: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+          limit: 10,
+        }
+      );
       setError(null);
     } catch (error) {
       console.error("Error fetching sessions:", error);
@@ -195,6 +197,7 @@ const MemberSession = () => {
           pagination={pagination}
           currentPage={currentPage}
           setCurrentPage={handlePageChange}
+          onSessionsUpdated={() => loadSessions(currentPage)}
         />
       </div>
 
