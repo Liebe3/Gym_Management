@@ -11,6 +11,7 @@ const {
   createSession,
   updateSession,
   deleteSession,
+  cancelSession,
 } = require("../controllers/SessionController");
 
 router.use(VerifyToken);
@@ -22,6 +23,7 @@ router.get("/:id", getSessionById);
 router.post("/", createSession);
 router.put("/:id", updateSession);
 router.patch("/:id", updateSession);
+router.put("/:id/cancel", cancelSession);
 router.delete("/:id", deleteSession);
 
 // Trainer-specific sessions
