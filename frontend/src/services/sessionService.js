@@ -123,6 +123,19 @@ const sessionService = {
     }
   },
 
+  // Cancel a session (admin)
+  cancelSession: async (sessionId, cancellationReason = "") => {
+    try {
+      const response = await API.put(`/session/${sessionId}/cancel`, {
+        cancellationReason,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Cancel session service error:", error);
+      throw error;
+    }
+  },
+
   // Trainer-specific methods
   // Get trainer's own sessions
   getMySessions: async (filters = {}) => {
