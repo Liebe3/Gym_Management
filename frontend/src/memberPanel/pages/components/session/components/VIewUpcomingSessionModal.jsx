@@ -196,6 +196,18 @@ const ViewUpcomingSessionModal = ({
                     </p>
                   </div>
                 )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={handleCloseModal}
+                    className="px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600
+                      text-gray-700 dark:text-gray-300 font-medium
+                      hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </Dialog.Panel>
           </Transition.Child>
