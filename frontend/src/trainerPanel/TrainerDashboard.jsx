@@ -21,22 +21,28 @@ import {
   Line as ChartJSLine,
 } from "react-chartjs-2";
 
-import { FaCalendarAlt, FaCheckCircle, FaClock, FaUsers } from "react-icons/fa";
+import {
+  FaBan,
+  FaCalendarAlt,
+  FaCheckCircle,
+  FaClock,
+  FaUsers,
+} from "react-icons/fa";
 import Loading from "../components/ui/Loading";
 import { showError } from "../pages/utils/Alert";
 import dashboardService from "../services/dashboardService";
 import TrainerLayout from "./components/TrainerLayout";
 
 import ChartCard from "./dashboard/ChartCard";
-import StatCard from "./dashboard/StatCard";
 import ClientCard from "./dashboard/ClientCard";
 import SessionCard from "./dashboard/SessionCard";
+import StatCard from "./dashboard/StatCard";
 
 import {
   createMonthlyChartData,
   createStatusChartData,
+  createWeeklyChartData,
   getChartOptions,
-  createWeeklyChartData
 } from "./dashboard/Chartconfig";
 
 // Register ChartJS components
@@ -130,6 +136,12 @@ const TrainerDashboard = () => {
       icon: FaClock,
       color: "yellow",
     },
+    {
+      title: "Cancelled",
+      value: overview.cancelledSessions,
+      icon: FaBan,
+      color: "red",
+    },
   ];
 
   return (
@@ -155,7 +167,7 @@ const TrainerDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8"
         >
           {stats.map((stat, index) => (
             <StatCard key={index} {...stat} />
