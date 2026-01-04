@@ -46,7 +46,13 @@ exports.getTrainerDashboard = async (req, res) => {
 
     const cancelledSessions = await Session.countDocuments({
       trainer: trainerId,
-      status: "cancelled",
+      status: {
+        $in: [
+          "cancelled_by_member",
+          "cancelled_by_trainer",
+          "cancelled_by_admin",
+        ],
+      },
     });
 
     // ===== 2. SESSIONS BY MONTH (Last 6 months) =====
@@ -112,7 +118,22 @@ exports.getTrainerDashboard = async (req, res) => {
       },
       {
         $group: {
-          _id: "$status",
+          _id: {
+            $cond: [
+              {
+                $in: [
+                  "$status",
+                  [
+                    "cancelled_by_member",
+                    "cancelled_by_trainer",
+                    "cancelled_by_admin",
+                  ],
+                ],
+              },
+              "cancelled",
+              "$status",
+            ],
+          },
           count: { $sum: 1 },
         },
       },
