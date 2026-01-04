@@ -2,8 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const connectDB = require("../config/db");
+
+// admin routes
 const authRoutes = require("../routes/AuthRoutes");
 const userRoutes = require("../routes/UserRoutes");
+const dashboardRoutes = require("../routes/DashboardRoutes");
 const membershipPlansRoutes = require("../routes/MemberShipPlansRoutes");
 const memberRoutes = require("../routes/MemberRoutes");
 const trainerRoutes = require("../routes/TrainerRoutes");
@@ -58,6 +61,7 @@ app.use(express.json());
 // Admin Panel Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/membership-plans", membershipPlansRoutes);
 app.use("/api/member", memberRoutes);
 app.use("/api/trainer", trainerRoutes);
