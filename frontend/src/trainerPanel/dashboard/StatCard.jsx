@@ -20,6 +20,11 @@ const StatCard = ({ title, value, icon: Icon, color }) => {
       text: "text-yellow-600 dark:text-yellow-400",
       value: "text-yellow-600 dark:text-yellow-400",
     },
+    red: {
+      bg: "bg-red-100 dark:bg-red-900/30",
+      text: "text-red-600 dark:text-red-400",
+      value: "text-red-600 dark:text-red-400",
+    },
   };
 
   const colors = colorClasses[color];
