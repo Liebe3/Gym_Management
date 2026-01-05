@@ -1,10 +1,10 @@
 import { Route } from "react-router-dom";
 import MemberLayout from "../memberPanel/layout/MemberLayout";
 import MemberHome from "../memberPanel/pages/MemberHome";
-import Membership from "../memberPanel/pages/Membership";
+import MembershipPlansPage from "../memberPanel/pages/MembershipPlansPage";
 import Profile from "../memberPanel/pages/Profile";
-import Trainer from "../memberPanel/pages/Trainer";
 import ProtechtedRoute from "./ProtectedRoutes";
+import MemberSession from "../memberPanel/pages/MemberSession";
 
 const MemberRoutes = () => (
   <>
@@ -24,18 +24,29 @@ const MemberRoutes = () => (
       element={
         <ProtechtedRoute allowedRoles={["member"]}>
           <MemberLayout title="Membership Plans">
-            <Membership />
+            <MembershipPlansPage />
           </MemberLayout>
         </ProtechtedRoute>
       }
     />
 
-    <Route
+    {/* <Route
       path="/member/trainer"
       element={
         <ProtechtedRoute allowedRoles={["member"]}>
           <MemberLayout title="Find a Trainer">
             <Trainer />
+          </MemberLayout>
+        </ProtechtedRoute>
+      }
+    /> */}
+
+    <Route
+      path="/member/session"
+      element={
+        <ProtechtedRoute allowedRoles={["member"]}>
+          <MemberLayout title="Find a Trainer">
+            <MemberSession />
           </MemberLayout>
         </ProtechtedRoute>
       }
