@@ -25,3 +25,15 @@ export const ShowWarning = (message) => {
     confirmButtonText: "Okay",
   });
 };
+
+export const ShowInfo = (message) => {
+  return Swal.fire({
+    text: message,
+    icon: "info",
+    iconColor: "#facc15",
+    showCancelButton: false,
+    confirmButtonColor: "#059669",
+    cancelButtonColor: "#d33",
+    confirmButtonText: "Okay",
+  });
+};
