@@ -21,6 +21,7 @@ const trainerDashboardRoutes = require("../routes/trainer/TrainerDashboardRoutes
 // MemberPanel Routes
 const memberHomeRoutes = require("../routes/member/memberHomeRoutes");
 const memberSessionRoutes = require("../routes/member/memberSessionRoutes");
+const memberShipRoutes = require("../routes/member/memberShipRoutes");
 
 const {
   startMembershipScheduler,
@@ -76,6 +77,7 @@ app.use("/api/trainer-panel/dashboard", trainerDashboardRoutes);
 // Member Panel Routes
 app.use("/api/member-panel", memberHomeRoutes);
 app.use("/api/member-panel/sessions", memberSessionRoutes);
+app.use("/api/member-panel/membership", memberShipRoutes);
 
 // Test route
 app.get("/", (req, res) => {
