@@ -2,7 +2,7 @@ import { Route } from "react-router-dom";
 import MemberLayout from "../memberPanel/layout/MemberLayout";
 import MemberHome from "../memberPanel/pages/MemberHome";
 import MembershipPlansPage from "../memberPanel/pages/MembershipPlansPage";
-import Profile from "../memberPanel/pages/Profile";
+import ProfilePage from "../memberPanel/pages/ProfilePage";
 import ProtechtedRoute from "./ProtectedRoutes";
 import MemberSession from "../memberPanel/pages/MemberSession";
 
@@ -69,7 +69,7 @@ const MemberRoutes = () => (
       element={
         <ProtechtedRoute allowedRoles={["member"]}>
           <MemberLayout title="My Profile">
-            <Profile />
+            <ProfilePage />
           </MemberLayout>
         </ProtechtedRoute>
       }
