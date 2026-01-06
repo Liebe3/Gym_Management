@@ -10,7 +10,7 @@ const AuthProvider = ({ children }) => {
   //state hook
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -19,7 +19,7 @@ const AuthProvider = ({ children }) => {
       setUser(JSON.parse(storedUser));
       setToken(storedToken);
     }
-    setLoading(false)
+    setLoading(false);
   }, []);
 
   const register = async (formData) => {
@@ -45,8 +45,17 @@ const AuthProvider = ({ children }) => {
     localStorage.removeItem("token");
   };
 
+  const updateUser = (updatedUser) => {
+    const updateUser = { ...user, ...updatedUser };
+
+    setUser(updateUser);
+    localStorage.setItem("user", JSON.stringify(updateUser));
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, register, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, token, register, login, logout, loading, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );
