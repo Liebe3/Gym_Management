@@ -22,6 +22,7 @@ const trainerDashboardRoutes = require("../routes/trainer/TrainerDashboardRoutes
 const memberHomeRoutes = require("../routes/member/memberHomeRoutes");
 const memberSessionRoutes = require("../routes/member/memberSessionRoutes");
 const memberShipRoutes = require("../routes/member/memberShipRoutes");
+const memberProfileRoutes = require("../routes/member/memberProfileRoutes");
 
 const {
   startMembershipScheduler,
@@ -78,6 +79,8 @@ app.use("/api/trainer-panel/dashboard", trainerDashboardRoutes);
 app.use("/api/member-panel", memberHomeRoutes);
 app.use("/api/member-panel/sessions", memberSessionRoutes);
 app.use("/api/member-panel/membership", memberShipRoutes);
+app.use("/api/member-panel/profile", memberProfileRoutes);
+
 
 // Test route
 app.get("/", (req, res) => {
