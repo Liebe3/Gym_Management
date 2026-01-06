@@ -20,7 +20,7 @@ const MemberLayout = ({ children, title, breadcrumbs }) => {
       {/* Footer (Optional) */}
       <footer className="mt-auto border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-8 text-center text-base text-gray-500 dark:text-gray-400">
-          <p>© 2025 FitHub Gym Management. All rights reserved.</p>
+          <p>© 2025 FitPulse Gym Management. All rights reserved.</p>
         </div>
       </footer>
     </div>
