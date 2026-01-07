@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useContext, useState } from "react";
 import {
+  MdAccountCircle,
   MdCardMembership,
   MdClose,
   MdDarkMode,
@@ -25,7 +26,7 @@ const MemberNavbar = () => {
   const navLinks = [
     { name: "Home", href: "/member/home", icon: MdDashboard },
     { name: "Membership", href: "/member/membership", icon: MdCardMembership },
-    { name: "Trainers", href: "/member/trainer", icon: MdFitnessCenter },
+    { name: "Session", href: "/member/session", icon: MdAccountCircle },
     { name: "Profile", href: "/member/profile", icon: MdPerson },
   ];
 
@@ -69,7 +70,7 @@ const MemberNavbar = () => {
                 <motion.button
                   key={link.href}
                   onClick={() => navigate(link.href)}
-                  className={`px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 flex items-center space-x-2 ${
+                  className={`px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 flex items-center space-x-2 cursor-pointer ${
                     active
                       ? "bg-emerald-50 dark:bg-emerald-900 text-emerald-600 dark:text-emerald-400"
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-emerald-600 dark:hover:text-emerald-400"
@@ -89,7 +90,7 @@ const MemberNavbar = () => {
             {/* Theme Toggle */}
             <motion.button
               onClick={toggleTheme}
-              className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200"
+              className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-200 dark:hover:bg-emerald-700 transition-all duration-200 cursor-pointer"
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -120,7 +121,7 @@ const MemberNavbar = () => {
             {/* Logout Button (Desktop) */}
             <motion.button
               onClick={handleLogout}
-              className="hidden lg:flex items-center space-x-2 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
+              className="hidden lg:flex items-center space-x-2 px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 cursor-pointer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
