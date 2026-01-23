@@ -80,9 +80,6 @@ export const formatSessionStatus = (status) => {
   }
 };
 
-/*
-  Returns Tailwind classes for a session status
- */
 export const getSessionStatusColor = (status) => {
   switch (status) {
     case SESSION_STATUS.SCHEDULED:
@@ -102,5 +99,31 @@ export const getSessionStatusColor = (status) => {
 
     default:
       return "bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-300";
+  }
+};
+
+export const getStatusColor = (status) => {
+  switch (status) {
+    case "active":
+      return "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-800 dark:text-green-300";
+    case "expired":
+      return "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-800 dark:text-red-300";
+    case "pending":
+      return "bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-800 dark:text-yellow-300";
+    default:
+      return "bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-300";
+  }
+};
+
+export const getMemberStatusBadge = (status) => {
+  switch (status) {
+    case "active":
+      return "bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-300";
+    case "expired":
+      return "bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300";
+    case "pending":
+      return "bg-yellow-100 dark:bg-yellow-900/40 text-yellow-800 dark:text-yellow-300";
+    default:
+      return "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-300";
   }
 };
