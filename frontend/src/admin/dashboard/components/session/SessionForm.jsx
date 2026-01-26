@@ -45,6 +45,18 @@ const SessionForm = ({
     return false;
   }, [mode, selectedSession]);
 
+  // Check if session date is in the past
+  const isDatePast = useMemo(() => {
+    if (mode === "update" && selectedSession) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const sessionDate = new Date(selectedSession.date);
+      sessionDate.setHours(0, 0, 0, 0);
+      return sessionDate < today;
+    }
+    return false;
+  }, [mode, selectedSession]);
+
   // Effective view mode: true if in view mode OR session is finalized
   const effectiveViewMode = isViewMode || isSessionFinalized;
 
@@ -54,7 +66,9 @@ const SessionForm = ({
       return members;
     }
     return members.filter(
-      (member) => member.trainer?._id === formData.trainerId
+      (member) =>
+        member.trainers?.some((t) => t._id === formData.trainerId) ||
+        member.primaryTrainer?._id === formData.trainerId
     );
   }, [formData.trainerId, members]);
 
@@ -130,11 +144,14 @@ const SessionForm = ({
     //  Additional validation: Check if selected member belongs to trainer
     if (formData.trainerId && formData.memberId) {
       const selectedMember = members.find((m) => m._id === formData.memberId);
-      if (
-        selectedMember &&
-        selectedMember.trainer?._id !== formData.trainerId
-      ) {
-        errs.memberId = "Selected member is not assigned to this trainer";
+      if (selectedMember) {
+        const isAssignedToTrainer =
+          selectedMember.trainers?.some((t) => t._id === formData.trainerId) ||
+          selectedMember.primaryTrainer?._id === formData.trainerId;
+
+        if (!isAssignedToTrainer) {
+          errs.memberId = "Selected member is not assigned to this trainer";
+        }
       }
     }
 
@@ -210,13 +227,23 @@ const SessionForm = ({
         </div>
       )}
 
+      {/* Show warning banner if session date has passed */}
+      {isDatePast && !isSessionFinalized && (
+        <div className="mb-6 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
+          <p className="text-sm text-orange-800 dark:text-orange-200 font-medium">
+            ⏰ This session date has passed. You can only edit the status and
+            notes. Date and time fields are locked.
+          </p>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         <TrainerSelect
           formData={formData}
           trainers={trainers}
           handleChange={handleChange}
           errors={errors}
-          isViewMode={effectiveViewMode}
+          isViewMode={effectiveViewMode || isDatePast}
           mode={mode}
           loading={loading}
           selectedSession={selectedSession}
@@ -228,7 +255,7 @@ const SessionForm = ({
           members={filteredMembers}
           handleChange={handleChange}
           errors={errors}
-          isViewMode={effectiveViewMode}
+          isViewMode={effectiveViewMode || isDatePast}
           mode={mode}
           loading={loading}
           selectedSession={selectedSession}
@@ -251,6 +278,7 @@ const SessionForm = ({
           handleChange={handleChange}
           errors={errors}
           isViewMode={effectiveViewMode}
+          isDatePast={isDatePast}
           loading={loading}
           selectedSession={selectedSession}
         />
@@ -258,14 +286,16 @@ const SessionForm = ({
           formData={formData}
           handleChange={handleChange}
           errors={errors}
-          isViewMode={effectiveViewMode}
+          isViewMode={isSessionFinalized}
+          isDatePast={isDatePast}
           loading={loading}
           selectedSession={selectedSession}
         />
         <NotesInput
           formData={formData}
           handleChange={handleChange}
-          isViewMode={effectiveViewMode}
+          isViewMode={isSessionFinalized}
+          isDatePast={isDatePast}
           loading={loading}
           selectedSession={selectedSession}
         />
