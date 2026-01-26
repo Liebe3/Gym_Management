@@ -2,18 +2,17 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CgGym } from "react-icons/cg";
 import {
   FiCalendar,
-  FiCheckCircle,
+  FiCheck,
   FiClock,
   FiCreditCard,
   FiEdit3,
   FiFilter,
   FiMail,
-  FiMinusCircle,
   FiPlus,
   FiTrash2,
   FiUser,
-  FiXCircle
 } from "react-icons/fi";
+
 import CreateMemberButon from "../ui/CreateMemberButon";
 const MemberTable = ({
   members = [],
@@ -25,7 +24,7 @@ const MemberTable = ({
   pagination = {},
   currentPage,
   setCurrentPage,
-	formatDate
+  formatDate,
 }) => {
   if (members.length === 0) {
     return (
@@ -140,7 +139,10 @@ const MemberTable = ({
                 </div>
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
-                Status
+                <div className="flex items-center">
+                  <FiCheck className="w-4 h-4 mr-2 text-emerald-600" />
+                  Status
+                </div>
               </th>
               <th className="py-3 px-4 text-left font-semibold text-gray-900 dark:text-white text-sm">
                 Actions
@@ -174,11 +176,24 @@ const MemberTable = ({
                     {member.membershipPlan?.name}
                   </td>
                   <td className="py-3 px-4 hidden md:table-cell text-gray-600 dark:text-gray-400">
-                    {member.trainer?.user ? (
-                      <span className="inline-flex items-center">
-                        {`${member.trainer.user.firstName} ${
-                          member.trainer.user.lastName || ""
-                        }`}
+                    {member.primaryTrainer?.user ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span>
+                          {`${member.primaryTrainer.user.firstName} ${
+                            member.primaryTrainer.user.lastName || ""
+                          }`}
+                        </span>
+                        {member.primaryTrainer.status !== "active" && (
+                          <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300">
+                            {member.primaryTrainer.status}
+                          </span>
+                        )}
+                        {!member.primaryTrainer.isAvailableForNewClients &&
+                          member.primaryTrainer.status === "active" && (
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
+                              Unavailable
+                            </span>
+                          )}
                       </span>
                     ) : (
                       <span className="text-red-400 dark:text-gray-500">
@@ -192,33 +207,30 @@ const MemberTable = ({
                   <td className="py-3 px-4 hidden lg:table-cell text-gray-600 dark:text-gray-400">
                     {formatDate(member.endDate)}
                   </td>
-                  <td className="py-3 px-4">
-                    {member.status === "active" ? (
-                      <div className="flex items-center bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 px-2 py-1 rounded-full text-xs font-medium">
-                        <FiCheckCircle className="w-3 h-3 mr-1" />
-                        <span className="hidden sm:inline">Active</span>
-                      </div>
-                    ) : member.status === "pending" ? (
-                      <div className="flex items-center bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 px-2 py-1 rounded-full text-xs font-medium">
-                        <FiClock className="w-3 h-3 mr-1" />
-                        <span className="hidden sm:inline">Pending</span>
-                      </div>
-                    ) : member.status === "none" ? (
-                      <div className="flex items-center bg-gray-100 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 px-2 py-1 rounded-full text-xs font-medium">
-                        <FiMinusCircle className="w-3 h-3 mr-1" />
-                        <span className="hidden sm:inline">None</span>
-                      </div>
-                    ) : member.status === "expired" ? (
-                      <div className="flex items-center bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 px-2 py-1 rounded-full text-xs font-medium">
-                        <FiXCircle className="w-3 h-3 mr-1" />
-                        <span className="hidden sm:inline">Expired</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 px-2 py-1 rounded-full text-xs font-medium">
-                        <FiXCircle className="w-3 h-3 mr-1" />
-                        <span className="hidden sm:inline">Inactive</span>
-                      </div>
-                    )}
+                  <td className="py-3 px-4 min-w-[120px]">
+                    <div className="flex items-center">
+                      {member.status === "active" ? (
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium w-24 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300">
+                          Active
+                        </span>
+                      ) : member.status === "pending" ? (
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium w-24 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
+                          Pending
+                        </span>
+                      ) : member.status === "none" ? (
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium w-24 bg-gray-100 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300">
+                          None
+                        </span>
+                      ) : member.status === "expired" ? (
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium w-24 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                          Expired
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium w-24 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300">
+                          Inactive
+                        </span>
+                      )}
+                    </div>
                   </td>
 
                   <td className="py-3 px-4">
@@ -252,7 +264,7 @@ const MemberTable = ({
       </div>
 
       {/* Pagination */}
-      {pagination.totalPages > 1 && (
+      {pagination.totalPages > 1 && ( 
         <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
           <div className="text-sm text-gray-500 dark:text-gray-400">
             Page {pagination.currentPage} of {pagination.totalPages} —{" "}
