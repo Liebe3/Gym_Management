@@ -109,6 +109,7 @@ const SessionFilter = ({
 
         <div className="flex flex-wrap gap-2">
           {availableStatus.map((status) => {
+            // Use statusCount from backend which has all cancelled variations aggregated
             const count = statusCount[status.value] || 0;
             const isSelected = selectedStatus === status.value;
 
