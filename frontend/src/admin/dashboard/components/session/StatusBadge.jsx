@@ -19,16 +19,19 @@ const StatusBadge = ({
     }
   };
 
+  // For past sessions, allow status editing unless session is finalized
+  const shouldShowDropdown = !isViewMode;
+
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
         Status <span className="text-red-500">*</span>
       </label>
-      {isViewMode ? (
+      {!shouldShowDropdown ? (
         <div className="flex items-center">
           <span
             className={`inline-block px-3 py-2 rounded-full text-sm font-medium ${getStatusColor(
-              selectedSession?.status || formData.status
+              selectedSession?.status || formData.status,
             )}`}
           >
             {selectedSession?.status || formData.status || "N/A"}
@@ -40,16 +43,19 @@ const StatusBadge = ({
           value={formData.status}
           onChange={handleChange}
           disabled={loading}
-          className={`w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border ${
-            errors.status ? "border-red-500" : "border-gray-300 dark:border-gray-600"
+          className={`w-full px-4 py-3 dark:text-white bg-gray-50 dark:bg-gray-700 border ${
+            errors.status
+              ? "border-red-500"
+              : "border-gray-300 dark:border-gray-600"
           } rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           <option value="scheduled">Scheduled</option>
           <option value="completed">Completed</option>
-          <option value="cancelled">Cancelled</option>
         </select>
       )}
-      {errors.status && <p className="mt-1 text-sm text-red-500">{errors.status}</p>}
+      {errors.status && (
+        <p className="mt-1 text-sm text-red-500">{errors.status}</p>
+      )}
     </div>
   );
 };
