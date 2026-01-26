@@ -1,4 +1,4 @@
-import { memo, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { showError, showSuccess } from "../../../../pages/utils/Alert";
 import memberService from "../../../../services/memberService";
 import membershipPlanService from "../../../../services/membershipPlansService";
@@ -10,7 +10,8 @@ import UserSelect from "./UserSelect";
 const initialForm = {
   userId: "",
   membershipPlanId: "",
-  trainerId: "",
+  trainerIds: [],
+  primaryTrainerId: "",
   startDate: "",
   endDate: "",
   status: "pending",
@@ -42,7 +43,8 @@ const MembersForm = ({
       setForm({
         userId: selectedMember.user?._id || "",
         membershipPlanId: selectedMember.membershipPlan?._id || "",
-        trainerId: selectedMember.trainer?._id || "",
+        trainerIds: selectedMember.trainers?.map((t) => t._id) || [],
+        primaryTrainerId: selectedMember.primaryTrainer?._id || "",
         startDate: selectedMember.startDate
           ? new Date(selectedMember.startDate).toISOString().split("T")[0]
           : "",
@@ -157,7 +159,8 @@ const MembersForm = ({
       setForm({
         userId: selectedMember.user?._id || "",
         membershipPlanId: selectedMember.membershipPlan?._id || "",
-        trainerId: selectedMember.trainer?._id || "",
+        trainerIds: selectedMember.trainers?.map((t) => t._id) || [],
+        primaryTrainerId: selectedMember.primaryTrainer?._id || "",
         startDate: selectedMember.startDate
           ? new Date(selectedMember.startDate).toISOString().split("T")[0]
           : "",
@@ -213,7 +216,8 @@ const MembersForm = ({
       const submitData = {
         userId: form.userId,
         membershipPlanId: form.membershipPlanId,
-        trainerId: form.trainerId || undefined,
+        trainerIds: form.trainerIds || [],
+        primaryTrainerId: form.primaryTrainerId || undefined,
         startDate: form.startDate,
         endDate: form.endDate || undefined,
         status: form.status,
@@ -283,14 +287,21 @@ const MembersForm = ({
           />
         </div>
 
-        {/* Row 2: Trainer and Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Row 2: Trainers */}
+        <div className="grid grid-cols-1 gap-6">
           <TrainerSelect
-            value={form.trainerId}
-            onChange={(value) => handleInputChange("trainerId", value)}
+            value={form.trainerIds}
+            onChange={(value) => handleInputChange("trainerIds", value)}
             disabled={false}
+            primaryTrainerId={form.primaryTrainerId}
+            onPrimaryChange={(value) =>
+              handleInputChange("primaryTrainerId", value)
+            }
           />
+        </div>
 
+        {/* Row 3: Status */}
+        <div>
           <StatusSelect
             value={form.status}
             onChange={(value) => handleInputChange("status", value)}
@@ -298,7 +309,7 @@ const MembersForm = ({
           />
         </div>
 
-        {/* Row 3: Start & End Date */}
+        {/* Row 4: Start & End Date */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
