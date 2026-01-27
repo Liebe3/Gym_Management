@@ -22,7 +22,7 @@ const sessionSchema = new mongoose.Schema(
     },
 
     date: {
-      type: Date, 
+      type: Date,
       required: true,
     },
 
@@ -40,7 +40,14 @@ const sessionSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["scheduled", "completed", "cancelled"],
+      enum: [
+        "scheduled",
+        "completed",
+        "cancelled",
+        "cancelled_by_member",
+        "cancelled_by_trainer",
+        "cancelled_by_admin",
+      ],
       default: "scheduled",
     },
 
@@ -66,15 +73,15 @@ const sessionSchema = new mongoose.Schema(
 );
 
 // Add validation to ensure endTime is after startTime
-sessionSchema.pre('save', function(next) {
-  const [startHour, startMin] = this.startTime.split(':').map(Number);
-  const [endHour, endMin] = this.endTime.split(':').map(Number);
-  
+sessionSchema.pre("save", function (next) {
+  const [startHour, startMin] = this.startTime.split(":").map(Number);
+  const [endHour, endMin] = this.endTime.split(":").map(Number);
+
   const startMinutes = startHour * 60 + startMin;
   const endMinutes = endHour * 60 + endMin;
-  
+
   if (endMinutes <= startMinutes) {
-    next(new Error('End time must be after start time'));
+    next(new Error("End time must be after start time"));
   } else {
     next();
   }
