@@ -22,7 +22,14 @@ const buildQuery = (
   // Filterable fields
   Object.entries(filterableFields).forEach(([key, dbField]) => {
     if (query[key] && query[key] !== "all") {
-      filter[dbField] = query[key];
+      // Special handling for status field with "cancelled" value
+      if (key === "status" && query[key] === "cancelled") {
+        filter[dbField] = { 
+          $in: ['cancelled', 'cancelled_by_member', 'cancelled_by_trainer', 'cancelled_by_admin'] 
+        };
+      } else {
+        filter[dbField] = query[key];
+      }
     }
   });
 
@@ -47,4 +54,5 @@ const buildPagination = (page = 1, limit = 10, all = false) => {
   const skip = (pageNum - 1) * limitNum;
   return { page: pageNum, limit: limitNum, skip };
 };
+
 module.exports = { buildQuery, buildSort, buildPagination };
