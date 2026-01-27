@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import MemberNavbar from "../components/MemberNavbar";
 
-const MemberLayout = ({ children, title, breadcrumbs }) => {
+const MemberLayout = ({ children  }) => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col">
       {/* Navbar */}
