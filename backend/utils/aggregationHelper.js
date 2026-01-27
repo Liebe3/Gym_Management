@@ -10,6 +10,22 @@ const buildCounts = async (Model, groupByField, baseFilter = {}) => {
     return acc;
   }, {});
 
+  // Special handling for status field - combine all cancelled statuses
+  if (groupByField === 'status') {
+    const cancelledCount = 
+      (counts.cancelled || 0) + 
+      (counts.cancelled_by_member || 0) + 
+      (counts.cancelled_by_trainer || 0) + 
+      (counts.cancelled_by_admin || 0);
+    
+    counts.cancelled = cancelledCount;
+    
+    // Optionally remove individual cancelled status counts if you don't need them
+    delete counts.cancelled_by_member;
+    delete counts.cancelled_by_trainer;
+    delete counts.cancelled_by_admin;
+  }
+
   counts.all = await Model.countDocuments(baseFilter);
   return counts;
 };
